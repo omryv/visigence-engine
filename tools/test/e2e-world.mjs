@@ -33,7 +33,10 @@ const check = (name, ok, detail = '') => { console.log(`  ${ok ? 'ok  ' : 'FAIL'
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const errors = [];
 const opened = [];
-on('Target.targetCreated', (p) => { if (p.targetInfo.type === 'page' && p.targetInfo.url.includes('world=')) opened.push(p.targetInfo.url); });
+// A new tab can be created on about:blank and navigated after: follow its URL until it carries the world.
+const seenTab = (p) => { if (p.targetInfo.type === 'page' && p.targetInfo.url.includes('world=') && !opened.includes(p.targetInfo.url)) opened.push(p.targetInfo.url); };
+on('Target.targetCreated', seenTab);
+on('Target.targetInfoChanged', seenTab);
 await send('Target.setDiscoverTargets', { discover: true });
 
 async function page(url) {
@@ -65,7 +68,14 @@ async function page(url) {
     return { file: path.relative(ROOT, file), colours: seen.size };
   };
   const key = async (opts) => { for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, ...opts }, sessionId); };
-  return { targetId, sessionId, js, until, shot, key, insertText: (text) => send('Input.insertText', { text }, sessionId) };
+  // A real click (a user gesture), not element.click(): a popup opened from script is blocked, as it is for a person
+  // whose click a page script imitates, and "Play here" opens a tab.
+  const click = async (selector) => {
+    const r = JSON.parse(await js(`JSON.stringify(document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect())`));
+    const x = r.x + r.width / 2, y = r.y + r.height / 2;
+    for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }, sessionId);
+  };
+  return { targetId, sessionId, js, until, shot, key, click, insertText: (text) => send('Input.insertText', { text }, sessionId) };
 }
 
 try {
@@ -93,7 +103,7 @@ try {
     return hex(terrainParameterHash(worldParamsFor(engine.params.seed, { terrain: engine.params.terrain, water: engine.params.water })));
   })()`);
   // ── 3. Play here ─────────────────────────────────────────────────────────────
-  await w.js(`document.querySelector('#play-here').click()`);
+  await w.click('#play-here');
   const t0 = Date.now();
   while (!opened.length && Date.now() - t0 < 10000) await sleep(200);
   check('"Play here" opens Play in a new tab, the world in the link', opened.length === 1 && /\/\?mode=play#world=/.test(opened[0]), opened[0]?.slice(0, 90));

@@ -108,7 +108,13 @@ window.__h = {
       const t0 = g.tick, w0 = performance.now();
       const step = () => {
         const p = g.player.position, d = Math.hypot(x - p.x, z - p.z);
-        if (d <= arrive || g.tick - t0 > maxTicks || performance.now() - w0 > 600000 || !g.state.isPlaying) { s.keys.delete('KeyW'); s.touchMove = { x: 0, y: 0 }; resolve(d <= arrive); return; }
+        if (d <= arrive || g.tick - t0 > maxTicks || performance.now() - w0 > 600000 || !g.state.isPlaying) {
+          s.keys.delete('KeyW'); s.touchMove = { x: 0, y: 0 };
+          // Why the walk ended, for the failure message: arrived, out of ticks, out of time, or the game stopped.
+          this.lastWalk = { arrived: d <= arrive, distance: +d.toFixed(2), ticks: g.tick - t0, ms: Math.round(performance.now() - w0),
+            state: g.state.current, playing: g.state.isPlaying, at: [+p.x.toFixed(2), +p.z.toFixed(2)], to: [x, z] };
+          resolve(d <= arrive); return;
+        }
         const path = g.collision.findPath(p.x, p.z, x, z, 0.36 / g.collision.cell, { bestEffort: true }) ?? [];
         const wp = path.find(w => Math.hypot(w.x - p.x, w.z - p.z) > 0.6) ?? { x, z };
         const yaw = Math.atan2(-(wp.x - p.x), -(wp.z - p.z)); s.look.x = this.wrap(yaw - g.player.yaw); s.keys.add('KeyW');
@@ -193,7 +199,7 @@ const GENRES = {
     check('no weapon stack', await page.evaluate(`window.__h.g().weapons === null && window.__h.s().viewmodel === null`));
     check('HUD shows hands free', (await page.evaluate(`document.querySelector('#weapon-name').textContent`)) === 'HANDS FREE');
     const station = await page.evaluate(`(() => { const p = window.__h.g().level.placements.find(p => p.interaction === 'activate'); return { x: p.x, z: p.z, h: p.height }; })()`);
-    check('walked to the station', await page.evaluate(`window.__h.walkTo(${station.x}, ${station.z}, 3600, 1.6)`));
+    check('walked to the station', await page.evaluate(`window.__h.walkTo(${station.x}, ${station.z}, 3600, 1.6)`), JSON.stringify(await page.evaluate(`window.__h.lastWalk`)));
     await page.evaluate(`window.__h.face(${station.x}, ${station.z}); window.__h.s().look.y = 0.3; window.__h.ticks(3)`);
     const activated = await page.evaluate(`window.__h.hold('KeyE', () => window.__h.hud().objectives.completed >= 1, 400)`);
     check('E held at the station activates it', activated, await page.evaluate(`document.querySelector('#interaction-prompt').textContent`));

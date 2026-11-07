@@ -1749,8 +1749,9 @@ body.stage #vignette { opacity: 0.55; }
 #modes a:hover { color: var(--text); background: var(--seam-2); }
 #modes a.on { color: var(--text); background: var(--seam-2); }
 #play-here {
-  position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 40;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  /* Under the top bar's left end, where nothing else sits: the bar keeps its seed and modes in full view. */
+  position: fixed; left: 12px; top: 66px; z-index: 40;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
   padding: 7px 16px; border: 0; border-radius: 10px; cursor: pointer;
   background: #ed9f59; color: #20170f; box-shadow: 0 6px 22px #0006;
 }
@@ -1758,4 +1759,4 @@ body.stage #vignette { opacity: 0.55; }
 #play-here small { font-size: 10px; font-weight: 600; opacity: 0.72; }
 #play-here:hover { filter: brightness(1.07); }
 body.stage #play-here { display: none; }
-@media (max-width: 720px) { #modes a:not(.on) { padding: 4px 5px; } #play-here { top: auto; bottom: 86px; } #play-here small { display: none; } }
+@media (max-width: 720px) { #modes a:not(.on) { padding: 4px 5px; } #play-here { top: 58px; } #play-here small { display: none; } }
