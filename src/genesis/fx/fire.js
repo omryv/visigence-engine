@@ -15,7 +15,11 @@
 // tier's few PointLights to the nearest fires and easing char colours.
 
 import * as THREE from "three";
-import "../render/chunks.js";   // registers wg_noise
+import {
+  Fn, If, Discard, uniform, attribute, instancedBufferAttribute, uv, varying, vec2, vec3, vec4, float, fract, sin, cos, atan,
+  abs, max, pow, mix, clamp, length, normalize, cross, smoothstep, cameraPosition, positionGeometry, positionView,
+} from "three/tsl";
+import { wgNoise } from "../render/nodes.js";
 import { CHAR_SECONDS, CHAR_HEX, burnFieldFor, reseatFires } from "./burn-spec.js";
 
 // Re-exported so callers reach the burn rules through the fire system they
@@ -28,148 +32,96 @@ const EMBERS_PER_FIRE = 26;
 const SMOKE_PER_FIRE = 5;
 const CHAR_COLOR = new THREE.Color(CHAR_HEX);
 
-const FLAME_VERT = /* glsl */`
-  attribute vec4 aFire;    // xyz = fire origin, w = radius
-  attribute vec2 aQuad;    // x = quad index within fire, y = corner phase
-  attribute float aRoof;   // 1 = a roof stands between this fire and the sky
-  varying vec2 vUv;
-  varying float vSeed;
-  varying float vDamp;
-  uniform float uTime;
-  uniform float uRain;     // how hard it is falling, 0..1
-  void main() {
-    vUv = uv;
-    vSeed = fract(aFire.x * 0.731 + aFire.z * 0.377);
-    /* Rain guts a fire it can reach and does nothing at all to a hearth.
-       Before this, a fire burned identically in a downpour and under a roof,
-       which is the same missing fact as rain falling through ceilings: the
-       weather did not know what was between it and the thing it fell on. */
-    float wet = uRain * (1.0 - aRoof);
-    vDamp = 1.0 - wet * 0.72;
-    float r = aFire.w * (1.0 - wet * 0.45);
-    // Cross-billboard: each quad yaws around the fire axis toward the
-    // camera half-space so the volume reads from every angle.
-    float ang = aQuad.x * 2.0943951; // 120° apart
-    vec3 toCam = normalize(cameraPosition - aFire.xyz);
-    ang += atan(toCam.x, toCam.z) * 0.35;
-    vec3 right = vec3(cos(ang), 0.0, -sin(ang));
-    // Sway: the column leans and recovers, quads slightly out of phase.
-    float sway = sin(uTime * 2.3 + vSeed * 17.0 + aQuad.x) * 0.12
-               + sin(uTime * 5.1 + vSeed * 31.0) * 0.05;
-    vec3 p = aFire.xyz
-           + right * (position.x * r * 1.35)
-           + vec3(0.0, (position.y + 0.5) * r * 2.6, 0.0);
-    p.xz += sway * r * (position.y + 0.5);
-    gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
-  }
-`;
+/* The three layers as nodes: term for term the GLSL programs they replaced.
+   Values above 1 are HDR on purpose; the renderer's tone map rolls the core
+   off to white. */
+const hash1 = (n) => fract(sin(n).mul(43758.5453));
 
-const FLAME_FRAG = /* glsl */`
-  precision highp float;
-  varying vec2 vUv;
-  varying float vSeed;
-  varying float vDamp;
-  uniform float uTime;
-#include <wg_noise>
-  void main() {
-    vec2 uv = vUv;
-    // Flame body: a teardrop mask eroded by upward-scrolling noise.
-    float t = uTime * 1.9 + vSeed * 43.0;
-    float n = wgNoise(vec2(uv.x * 3.0 + vSeed * 9.0, uv.y * 4.0 - t)) * 0.65
-            + wgNoise(vec2(uv.x * 7.0 - vSeed * 5.0, uv.y * 9.0 - t * 1.7)) * 0.35;
-    float cx = abs(uv.x - 0.5) * 2.0;
-    float body = (1.0 - cx * cx) * (1.0 - uv.y);
-    float flame = body * (0.75 + 0.5 * n) - uv.y * 0.22 - cx * 0.18;
-    if (flame < 0.02) discard;
-    // Colour ramp: white-hot core → orange → deep red rim. HDR values on
-    // purpose — the bloom pass turns the core into glow.
-    float k = clamp(flame * 2.4, 0.0, 1.0);
-    vec3 col = mix(vec3(3.2, 0.35, 0.05), vec3(4.5, 1.6, 0.25), k);
-    col = mix(col, vec3(5.5, 4.2, 2.6), pow(k, 3.0) * (1.0 - uv.y * 0.6));
-    gl_FragColor = vec4(col * vDamp, clamp(flame * 2.2, 0.0, 1.0) * 0.9 * vDamp);
-  }
-`;
+/* Flames: three cross-billboarded quads per fire, yawing toward the camera's
+   half-space, swaying, a teardrop eroded by upward-scrolling noise. Rain guts a
+   fire it can reach and does nothing at all to a hearth. */
+function flameNodes(u) {
+  const F = attribute("aFire", "vec4"), Q = attribute("aQuad", "vec2"), roof = attribute("aRoof", "float");
+  const seed = fract(F.x.mul(0.731).add(F.z.mul(0.377)));
+  const wet = u.uRain.mul(float(1).sub(roof));
+  const damp = varying(float(1).sub(wet.mul(0.72)));
+  const r = F.w.mul(float(1).sub(wet.mul(0.45)));
+  const toCam = normalize(cameraPosition.sub(F.xyz));
+  const ang = Q.x.mul(2.0943951).add(atan(toCam.x, toCam.z).mul(0.35));
+  const right = vec3(cos(ang), 0, sin(ang).negate());
+  const sway = sin(u.uTime.mul(2.3).add(seed.mul(17)).add(Q.x)).mul(0.12).add(sin(u.uTime.mul(5.1).add(seed.mul(31))).mul(0.05));
+  const P = positionGeometry;
+  const base = F.xyz.add(right.mul(P.x.mul(r).mul(1.35))).add(vec3(0, P.y.add(0.5).mul(r).mul(2.6), 0));
+  const lean = sway.mul(r).mul(P.y.add(0.5));
+  const positionNode = base.add(vec3(lean, 0, lean));
+  const vSeed = varying(seed);
+  const fragment = Fn(() => {
+    const st = uv();
+    const t = u.uTime.mul(1.9).add(vSeed.mul(43));
+    const n = wgNoise(vec2(st.x.mul(3).add(vSeed.mul(9)), st.y.mul(4).sub(t))).mul(0.65)
+      .add(wgNoise(vec2(st.x.mul(7).sub(vSeed.mul(5)), st.y.mul(9).sub(t.mul(1.7)))).mul(0.35));
+    const cx = abs(st.x.sub(0.5)).mul(2);
+    const body = float(1).sub(cx.mul(cx)).mul(float(1).sub(st.y));
+    const flame = body.mul(float(0.75).add(n.mul(0.5))).sub(st.y.mul(0.22)).sub(cx.mul(0.18));
+    If(flame.lessThan(0.02), () => { Discard(); });
+    // White-hot core → orange → deep red rim.
+    const k = clamp(flame.mul(2.4), 0, 1);
+    const col = mix(mix(vec3(3.2, 0.35, 0.05), vec3(4.5, 1.6, 0.25), k), vec3(5.5, 4.2, 2.6), pow(k, 3).mul(float(1).sub(st.y.mul(0.6))));
+    return vec4(col.mul(damp), clamp(flame.mul(2.2), 0, 1).mul(0.9).mul(damp));
+  })();
+  return { positionNode, fragment };
+}
 
-const EMBER_VERT = /* glsl */`
-  attribute vec4 aFire;   // xyz origin, w radius
-  attribute float aSeed;
-  varying float vGlow;
-  uniform float uTime;
-  float ehash(float n) { return fract(sin(n) * 43758.5453); }
-  void main() {
-    float r = aFire.w;
-    float cycle = 2.2 + ehash(aSeed) * 2.4;
-    float t = fract((uTime + aSeed * 7.31) / cycle);
-    float ang = aSeed * 39.77;
-    float swirl = ang + t * (2.0 + ehash(aSeed + 2.0) * 3.0);
-    float rad = (0.15 + ehash(aSeed + 1.0) * 0.55) * r * (1.0 - t * 0.4);
-    vec3 p = aFire.xyz + vec3(
-      cos(swirl) * rad,
-      t * t * r * (2.8 + ehash(aSeed + 3.0) * 2.0) + t * r * 1.6,
-      sin(swirl) * rad);
-    vGlow = (1.0 - t) * (0.55 + 0.45 * sin(uTime * 11.0 + aSeed * 91.0));
-    vec4 mv = viewMatrix * vec4(p, 1.0);
-    gl_PointSize = (30.0 * r * (1.0 - t * 0.7)) / max(-mv.z, 1.0);
-    gl_Position = projectionMatrix * mv;
-  }
-`;
+/* Embers: an instanced sprite per spark (WebGPU draws points one pixel wide),
+   each on its own cycle, swirling up and out, sized by distance, glinting. */
+function emberMaterial(fireAttr, seedAttr, u) {
+  const F = instancedBufferAttribute(fireAttr), s = instancedBufferAttribute(seedAttr);
+  const r = F.w;
+  const cycle = float(2.2).add(hash1(s).mul(2.4));
+  const t = fract(u.uTime.add(s.mul(7.31)).div(cycle));
+  const swirl = s.mul(39.77).add(t.mul(float(2).add(hash1(s.add(2)).mul(3))));
+  const rad = float(0.15).add(hash1(s.add(1)).mul(0.55)).mul(r).mul(float(1).sub(t.mul(0.4)));
+  const m = new THREE.PointsNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: false, fog: false });
+  m.positionNode = F.xyz.add(vec3(cos(swirl).mul(rad), t.mul(t).mul(r).mul(float(2.8).add(hash1(s.add(3)).mul(2))).add(t.mul(r).mul(1.6)), sin(swirl).mul(rad)));
+  m.sizeNode = float(30).mul(r).mul(float(1).sub(t.mul(0.7))).div(max(positionView.z.negate(), 1));
+  const glow = varying(float(1).sub(t).mul(float(0.55).add(sin(u.uTime.mul(11).add(s.mul(91))).mul(0.45))));
+  m.fragmentNode = Fn(() => {
+    const d = length(uv().sub(0.5));
+    If(d.greaterThan(0.5), () => { Discard(); });
+    const a = smoothstep(0.5, 0.1, d).mul(glow);
+    return vec4(vec3(3.4, 1.15, 0.18).mul(a), a);
+  })();
+  return m;
+}
 
-const EMBER_FRAG = /* glsl */`
-  precision highp float;
-  varying float vGlow;
-  void main() {
-    float d = length(gl_PointCoord - 0.5);
-    if (d > 0.5) discard;
-    float a = smoothstep(0.5, 0.1, d) * vGlow;
-    gl_FragColor = vec4(vec3(3.4, 1.15, 0.18) * a, a);
-  }
-`;
-
-const SMOKE_VERT = /* glsl */`
-  attribute vec4 aFire;
-  attribute vec2 aQuad;   // x = puff index, y unused
-  varying vec2 vUv;
-  varying float vFade;
-  varying float vSeed;
-  uniform float uTime;
-  float shash(float n) { return fract(sin(n) * 43758.5453); }
-  void main() {
-    vUv = uv;
-    float r = aFire.w;
-    float seed = aQuad.x * 3.7 + fract(aFire.x * 0.311 + aFire.z * 0.677) * 19.0;
-    vSeed = seed;
-    float cycle = 5.0 + shash(seed) * 3.0;
-    float t = fract((uTime * 0.55 + seed * 1.7) / cycle);
-    float grow = 0.7 + t * 2.4;
-    vec3 center = aFire.xyz + vec3(
-      sin(t * 5.0 + seed) * r * 0.5 * t,
-      r * 2.2 + t * r * (6.5 + shash(seed + 1.0) * 3.0),
-      cos(t * 4.0 + seed * 2.0) * r * 0.5 * t);
-    // Camera-facing billboard.
-    vec3 look = normalize(cameraPosition - center);
-    vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), look));
-    vec3 up2 = cross(look, right);
-    vec3 p = center + (right * position.x + up2 * position.y) * r * grow;
-    vFade = (1.0 - t) * smoothstep(0.0, 0.12, t);
-    gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
-  }
-`;
-
-const SMOKE_FRAG = /* glsl */`
-  precision highp float;
-  varying vec2 vUv;
-  varying float vFade;
-  varying float vSeed;
-  uniform float uTime;
-#include <wg_noise>
-  void main() {
-    float d = length(vUv - 0.5) * 2.0;
-    float n = wgNoise(vUv * 5.0 + vSeed + vec2(0.0, -uTime * 0.35));
-    float a = smoothstep(1.0, 0.25, d + n * 0.45) * vFade * 0.32;
-    if (a < 0.01) discard;
-    gl_FragColor = vec4(vec3(0.16, 0.15, 0.145), a);
-  }
-`;
+/* Smoke: camera-facing puffs climbing and spreading over their cycle. */
+function smokeNodes(u) {
+  const F = attribute("aFire", "vec4"), Q = attribute("aQuad", "vec2"), r = F.w;
+  const seed = Q.x.mul(3.7).add(fract(F.x.mul(0.311).add(F.z.mul(0.677))).mul(19));
+  const cycle = float(5).add(hash1(seed).mul(3));
+  const t = fract(u.uTime.mul(0.55).add(seed.mul(1.7)).div(cycle));
+  const grow = float(0.7).add(t.mul(2.4));
+  const center = F.xyz.add(vec3(
+    sin(t.mul(5).add(seed)).mul(r).mul(0.5).mul(t),
+    r.mul(2.2).add(t.mul(r).mul(float(6.5).add(hash1(seed.add(1)).mul(3)))),
+    cos(t.mul(4).add(seed.mul(2))).mul(r).mul(0.5).mul(t)));
+  const look = normalize(cameraPosition.sub(center));
+  const right = normalize(cross(vec3(0, 1, 0), look));
+  const up2 = cross(look, right);
+  const P = positionGeometry;
+  const positionNode = center.add(right.mul(P.x).add(up2.mul(P.y)).mul(r).mul(grow));
+  const fade = varying(float(1).sub(t).mul(smoothstep(0, 0.12, t)));
+  const vSeed = varying(seed);
+  const fragment = Fn(() => {
+    const st = uv();
+    const d = length(st.sub(0.5)).mul(2);
+    const n = wgNoise(st.mul(5).add(vSeed).add(vec2(0, u.uTime.mul(-0.35))));
+    const a = smoothstep(1, 0.25, d.add(n.mul(0.45))).mul(fade).mul(0.32);
+    If(a.lessThan(0.01), () => { Discard(); });
+    return vec4(vec3(0.16, 0.15, 0.145), a);
+  })();
+  return { positionNode, fragment };
+}
 
 export class FireFX {
   constructor({ quality }) {
@@ -177,19 +129,22 @@ export class FireFX {
     this.group.name = "fx:fire";
     this.fires = [];          // { x, y, z, r, uid|null }
     this._burns = new Map();  // uid → { object, mats: [{ mat, color, rough }], t }
-    this._timeU = { value: 0 };
+    this._timeU = uniform(0);
 
     // How hard it is raining on the world, eased by the engine. Shared by
     // reference with all three flame materials.
-    this._rainU = { value: 0 };
-    const shader = (vert, frag, blending, depthWrite = false) => new THREE.ShaderMaterial({
-      vertexShader: vert, fragmentShader: frag,
-      uniforms: { uTime: this._timeU, uRain: this._rainU },
-      transparent: true, depthWrite, blending, side: THREE.DoubleSide,
-    });
-    this._flameMat = shader(FLAME_VERT, FLAME_FRAG, THREE.AdditiveBlending);
-    this._emberMat = shader(EMBER_VERT, EMBER_FRAG, THREE.AdditiveBlending);
-    this._smokeMat = shader(SMOKE_VERT, SMOKE_FRAG, THREE.NormalBlending);
+    this._rainU = uniform(0);
+    const u = { uTime: this._timeU, uRain: this._rainU };
+    const quadMat = (nodes, blending) => {
+      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending, side: THREE.DoubleSide, fog: false });
+      m.positionNode = nodes.positionNode; m.fragmentNode = nodes.fragment;
+      return m;
+    };
+    this._flameMat = quadMat(flameNodes(u), THREE.AdditiveBlending);
+    this._smokeMat = quadMat(smokeNodes(u), THREE.NormalBlending);
+    // The embers' material reads the instance buffers it was built over, so it
+    // is made with them (see the ember block in _buildMeshes).
+    this._emberMat = null;
     this._flames = null; this._embers = null; this._smoke = null;
 
     // Flickering firelight: a small pool assigned to the nearest fires.
@@ -245,7 +200,7 @@ export class FireFX {
       [this._smoke, SMOKE_PER_FIRE * 4],
     ];
     for (const [mesh, vertsPerFire] of spans) {
-      const attr = mesh?.geometry.getAttribute("aFire");
+      const attr = mesh?.userData.aFire ?? mesh?.geometry.getAttribute("aFire");
       if (!attr) continue;
       for (let v = 0; v < attr.count; v++) {
         const f = this.fires[Math.floor(v / vertsPerFire)];
@@ -351,7 +306,6 @@ export class FireFX {
 
     { // embers: points
       const total = n * EMBERS_PER_FIRE;
-      const pos = new Float32Array(total * 3); // unused but required
       const fire = new Float32Array(total * 4);
       const seed = new Float32Array(total);
       let i = 0;
@@ -361,11 +315,12 @@ export class FireFX {
           seed[i] = i * 1.618 + 0.37;
         }
       }
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute("aFire", new THREE.BufferAttribute(fire, 4));
-      geo.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
-      this._embers = new THREE.Points(geo, this._emberMat);
+      const fireAttr = new THREE.InstancedBufferAttribute(fire, 4);
+      this._emberMat?.dispose();
+      this._emberMat = emberMaterial(fireAttr, new THREE.InstancedBufferAttribute(seed, 1), { uTime: this._timeU });
+      this._embers = new THREE.Sprite(this._emberMat);
+      this._embers.count = total;
+      this._embers.userData.aFire = fireAttr;   // reseat() moves the fires through this
       this._embers.frustumCulled = false;
       this.group.add(this._embers);
     }
@@ -453,7 +408,7 @@ export class FireFX {
     for (const m of [this._flames, this._embers, this._smoke]) {
       if (!m) continue;
       this.group.remove(m);
-      m.geometry.dispose(); // materials are shared class-level and kept
+      if (!m.isSprite) m.geometry.dispose(); // materials are shared class-level and kept
     }
     this._flames = this._embers = this._smoke = null;
   }
@@ -461,6 +416,6 @@ export class FireFX {
   dispose() {
     this._dropMeshes();
     this._burns.clear();
-    for (const m of [this._flameMat, this._emberMat, this._smokeMat]) m.dispose();
+    for (const m of [this._flameMat, this._emberMat, this._smokeMat]) m?.dispose();
   }
 }

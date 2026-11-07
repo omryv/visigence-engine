@@ -52,6 +52,11 @@
 // shader's rotation uses the same convention the quaternion did.
 
 import * as THREE from "three";
+import {
+  Fn, uniform, attribute, vec2, vec3, vec4, float, sin, cos, atan, dot, mix, clamp, max, normalize, smoothstep, select,
+  materialColor, normalViewGeometry, varying,
+} from "three/tsl";
+import { instanceMatrixNode, syncInstances, ownPosition, heatField, MAX_BURN } from "../render/nodes.js";
 import { channelRng, seedChannel } from "../../kernel/seed.js";
 import { slopeAt, elevNorm } from "../../kernel/terrain/heightfield.js";
 import { valueNoise } from "../../kernel/terrain/noise.js";
@@ -68,7 +73,6 @@ const CARDS_PER_TUFT = 3;
 // times per vertex, so it is a fixed cost paid whether or not anything is
 // burning — the engine hands over the nearest fires and the rest are simply
 // too far away to have scorched anything visible.
-const MAX_BURN = 12;
 
 // Brush defaults for one painted patch: radius (m) and tuft count.
 export const GRASS_PATCH = { r: 9, n: 110 };
@@ -144,23 +148,22 @@ export class Grass {
     this.settings = resolveDetail(params, palette);
 
     // Shared wind + fade uniforms — one set drives every prototype material.
-    this.windU = { value: 0 };
-    this.sizeU = { value: this.settings.wind.size };
-    this.bendU = { value: this.settings.wind.bending * this.settings.windStrength };
-    this.tintU = { value: new THREE.Color(this.settings.wind.tint) };
-    this.distU = { value: this._effectiveDistance() };
+    this.windU = uniform(0);
+    this.sizeU = uniform(this.settings.wind.size);
+    this.bendU = uniform(this.settings.wind.bending * this.settings.windStrength);
+    this.tintU = uniform(new THREE.Color(this.settings.wind.tint));
+    this.distU = uniform(this._effectiveDistance());
     // Which way the wind blows, as a unit vector on the ground plane, and how
     // far the field bows along it on top of the ripple.
-    this.dirU = { value: new THREE.Vector2(...windVector(this.settings.wind.direction)) };
-    this.leanU = { value: this.settings.wind.lean };
+    this.dirU = uniform(new THREE.Vector2(...windVector(this.settings.wind.direction)));
+    this.leanU = uniform(this.settings.wind.lean);
     // The heat field: (x, z, scorchRadius, char) per fire, filled by
     // setBurnField from FireFX.burnField(). Zeroed = nothing is burning.
-    this.burnU = { value: new Float32Array(MAX_BURN * 4) };
-    this.burnCountU = { value: 0 };
+    this.heat = heatField();
     // The MAIN camera, fed by the engine. Used instead of the built-in
     // cameraPosition so the shadow pass measures distance from the viewer
     // rather than from the sun (see _vertexProgram).
-    this.viewPosU = { value: new THREE.Vector3() };
+    this.viewPosU = uniform(new THREE.Vector3());
 
     const atlas = makeDetailAtlas({ anisotropy: quality.anisotropy });
     this.group = new THREE.Group();
@@ -169,7 +172,7 @@ export class Grass {
     for (const proto of this.settings.prototypes) {
       const cap = Math.max(1, Math.round(this.capacity * proto.share));
       const billboard = proto.renderMode === "grassBillboard";
-      const mat = this._makeMaterial(atlas.texture, billboard);
+      const mat = this._makeMaterial(atlas.texture);
       const geo = makeCardGeometry(proto.atlasCell ?? 0, !billboard);
       // One instanced attribute, allocated with the mesh, written by rebuild.
       // It has to exist before first compile: a program declaring an
@@ -180,6 +183,7 @@ export class Grass {
       geo.setAttribute("aJitter", jitter);
       const mesh = new THREE.InstancedMesh(geo, mat, cap);
       mesh.name = "detail:" + proto.key;
+      this._program(mesh, mat, billboard);
       // The whole field spans the world; per-card culling is the shader's
       // distance collapse, not the frustum.
       mesh.frustumCulled = false;
@@ -190,11 +194,9 @@ export class Grass {
       if (quality.grassShadows && quality.shadows) {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        // Deliberately NOT in `materials`: that list is what the engine hands
-        // to Atmosphere.apply(), and aerial perspective on a depth material
-        // is meaningless work at best.
-        mesh.customDepthMaterial = this._makeDepthMaterial(atlas.texture, billboard);
-        this._depthMaterials.push(mesh.customDepthMaterial);
+        // The shadow pass runs the material's own positionNode (the node
+        // renderer's rule), so the cards cast from where the wind put them,
+        // with no separate depth material to keep in step.
       }
       // `jitter` is held here as well as on the geometry so the placement
       // loop writes straight into it — a getAttribute() per card is a map
@@ -213,185 +215,77 @@ export class Grass {
      lit toward the wind tint through the ×2 DOUBLE combine — a card in still
      air renders exactly its instance colour.
 
-     The SHADOW pass has to run the identical program (see _makeDepthMaterial)
-     or the shadows are cast by cards standing somewhere the visible ones are
-     not — so the displacement lives here once and both materials inject it.
+     The SHADOW pass runs the identical program: the node renderer draws a
+     caster's shadow with its material's own positionNode, so the shadows are
+     cast by cards standing exactly where the visible ones stand.
 
      It reads uViewPos rather than the built-in cameraPosition on purpose: in
-     the shadow pass cameraPosition is the SUN's, and the distance collapse
-     would then measure every card against the sun and shrink the entire
-     field to nothing — grass that casts no shadow at all. */
-  _vertexProgram(billboard) {
-    return /* glsl */`
-        vec4 wgOrigin = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-        /* ── the card's turn, for BOTH modes ──
-           The crossed cards' yaw used to live in the instance quaternion. It
-           lives here now so the instance matrix carries no rotation at all,
-           which is what lets a world-space wind survive to the world (see the
-           file header). Same convention the quaternion used — a Y rotation is
-           (x·c + z·s, −x·s + z·c) — so a crossed pair lands exactly where it
-           always did. */
-        float wgAz = aJitter.x;
-        ${billboard ? /* glsl */`
-        // Cylindrical billboard: turn the card's local X to face the camera.
-        // atan(0,0) is UNDEFINED in GLSL, and the camera sits exactly on a
-        // card's vertical axis every time you look straight down at one — a
-        // NaN there propagates through transformed and drops the whole card.
-        vec2 wgLook = uViewPos.xz - wgOrigin.xz;
-        wgAz = dot(wgLook, wgLook) > 1e-8 ? atan(wgLook.x, wgLook.y) : 0.0;` : ""}
-        float wgC = cos(wgAz), wgS = sin(wgAz);
-        transformed.xz = vec2(transformed.x * wgC + transformed.z * wgS,
-                              -transformed.x * wgS + transformed.z * wgC);
-        /* Stand it slightly off vertical. A field of perfectly upright cards
-           reads as a printed pattern however well each card is drawn, and no
-           amount of size jitter fixes it because every silhouette still has
-           the same axis. The lean is linear in height so the root stays put,
-           and its compass is the tuft's own phase — decorrelated from the
-           yaw, and free, because the phase is already in the attribute. */
-        transformed.xz += vec2(cos(aJitter.y), sin(aJitter.y)) * (aJitter.w * position.y);
-        /* ── waving grass, in a wind-aligned frame ──
-           Unity's four waves run on fixed world-X and world-Z frequencies, so
-           the ripple always crosses the field along the same diagonal. Here
-           the same frequencies run along the WIND and across it: uWindDir is
-           a unit vector, uWindDir⊥ is its perpendicular, and the phase is
-           taken in that frame. At direction 0 the frame is world XZ and every
-           number below is Unity's, unchanged.
+     the shadow pass the camera is the SUN, and the distance collapse would
+     then measure every card against the sun and shrink the entire field to
+     nothing — grass that casts no shadow at all.
 
-           aJitter.y offsets the clock per tuft. It is deliberately a small
-           fraction of a cycle: enough that neighbours stop cresting on the
-           same frame, not so much that the travelling gust dissolves into
-           per-blade noise — the wave IS the effect. */
-        vec2 wgWd = uWindDir;
-        vec2 wgWp = vec2(-wgWd.y, wgWd.x);
-        vec2 wgUV = vec2(dot(wgOrigin.xz, wgWd), dot(wgOrigin.xz, wgWp));
-        float wgFreq = 2.0 + uWaveSize * 20.0;
-        vec4 wgPhase = wgUV.x * vec4(0.012, 0.02, 0.06, 0.024) * wgFreq
-                     + wgUV.y * vec4(0.006, 0.02, 0.02, 0.05) * wgFreq
-                     + uWaveTime * vec4(1.2, 2.0, 1.6, 4.8)
-                     + aJitter.y;
-        vec4 wgS4 = sin(wgPhase); wgS4 *= wgS4; wgS4 *= wgS4;
-        float wgH = position.y * position.y * uBending * aJitter.z; // roots stay planted
-        /* The steady bow. Unity's displacement is symmetric about the blade's
-           own axis — sin⁴ pushes and pulls and the mean is nearly zero — so a
-           Unity field in a gale is agitated and never actually blown over.
-           uWindLean adds a constant along the wind, inside the same wgH ramp,
-           so it is proportional to the bending slider: still air (bending 0)
-           still stands straight up. */
-        float wgDu = dot(wgS4, vec4(0.024, 0.04, -0.12, 0.096)) + uWindLean;
-        float wgDv = dot(wgS4, vec4(0.006, 0.02, -0.02, 0.1));
-        transformed.xz -= (wgWd * wgDu + wgWp * wgDv) * wgH;
-        float wgGust = clamp(dot(wgS4, normalize(vec4(1.0, 1.0, 0.4, 0.2))) * 0.7, 0.0, 1.0);
-        // The healthy/dry instance colour is NOT multiplied here — three's own
-        // USE_INSTANCING_COLOR path already folds instanceColor into vColor,
-        // and doing it twice squares the linear colour into near-black.
-        vDetailTint = 2.0 * mix(vec3(0.5), uWindTint, wgGust);
-        // Unity's detail-distance falloff, saturate(2(D² − d²)/D²), spent on
-        // scale instead of alpha: the card sinks into its root point, so the
-        // cutout never has to sort.
-        // max() guards the 0/0: detailDistance 0 is a legal authored value
-        // (and a legal manifest one), and it would otherwise NaN every card.
-        float wgD2 = max(uDetailDist * uDetailDist, 1e-4);
-        vec2 wgDelta = wgOrigin.xz - uViewPos.xz;
-        transformed *= clamp(2.0 * (wgD2 - dot(wgDelta, wgDelta)) / wgD2, 0.0, 1.0);
-        /* ── heat ──
-           Fire and plants stand on the same heightfield, so a planar
-           distance IS the distance. Each fire contributes a scorch that is
-           total at its centre and gone by its scorch radius; the strongest
-           one wins rather than summing, so overlapping fires do not burn
-           twice as black as physics allows. */
-        vBurn = 0.0;
-        for (int i = 0; i < ${MAX_BURN}; i++) {
-          if (i >= uBurnCount) break;
-          vec4 wgB = uBurn[i];
-          vBurn = max(vBurn, (1.0 - smoothstep(0.0, wgB.z, distance(wgOrigin.xz, wgB.xy))) * wgB.w);
-        }
-        // Consumed: at the heart of the fire the blade is gone, not merely
-        // black — it collapses into the ground rather than standing as ash.
-        transformed *= 1.0 - smoothstep(0.62, 1.0, vBurn);`;
+     Built in the card's own space, then placed by the instance matrix (see
+     render/nodes.js instanceMatrixNode for why the matrix is applied here). */
+  _program(mesh, mat, billboard) {
+    const M = instanceMatrixNode(mesh);
+    const J = attribute("aJitter", "vec4");
+    const p = ownPosition;
+    const origin = M.mul(vec4(0, 0, 0, 1));
+    // The card's turn, for BOTH modes: the yaw lives here, not in the matrix,
+    // so a world-space wind survives to the world.
+    let az = J.x;
+    if (billboard) {
+      // Cylindrical billboard toward the viewer; atan(0,0) is undefined, and
+      // the camera sits on a card's axis every time it looks straight down.
+      const look = this.viewPosU.xz.sub(origin.xz);
+      az = select(dot(look, look).greaterThan(1e-8), atan(look.x, look.y), float(0));
+    }
+    const c = cos(az), sn = sin(az);
+    const turned = vec2(p.x.mul(c).add(p.z.mul(sn)), p.x.negate().mul(sn).add(p.z.mul(c)));
+    // Stand it slightly off vertical: linear in height so the root stays put.
+    const leaned = turned.add(vec2(cos(J.y), sin(J.y)).mul(J.w.mul(p.y)));
+    // Waving grass in a wind-aligned frame (at direction 0, Unity's numbers).
+    const wd = this.dirU, wp = vec2(wd.y.negate(), wd.x);
+    const uv = vec2(dot(origin.xz, wd), dot(origin.xz, wp));
+    const freq = float(2).add(this.sizeU.mul(20));
+    const phase = vec4(0.012, 0.02, 0.06, 0.024).mul(uv.x).mul(freq)
+      .add(vec4(0.006, 0.02, 0.02, 0.05).mul(uv.y).mul(freq))
+      .add(vec4(1.2, 2.0, 1.6, 4.8).mul(this.windU))
+      .add(J.y);
+    const s1 = sin(phase), s2 = s1.mul(s1), s4 = s2.mul(s2);
+    const h = p.y.mul(p.y).mul(this.bendU).mul(J.z);                 // roots stay planted
+    const du = dot(s4, vec4(0.024, 0.04, -0.12, 0.096)).add(this.leanU); // plus the steady bow
+    const dv = dot(s4, vec4(0.006, 0.02, -0.02, 0.1));
+    const blown = leaned.sub(wd.mul(du).add(wp.mul(dv)).mul(h));
+    const gust = clamp(dot(s4, normalize(vec4(1.0, 1.0, 0.4, 0.2))).mul(0.7), 0, 1);
+    // Unity's detail-distance falloff, saturate(2(D² − d²)/D²), spent on scale
+    // so the card sinks into its root point and the cutout never sorts.
+    const d2 = max(this.distU.mul(this.distU), 1e-4);
+    const delta = origin.xz.sub(this.viewPosU.xz);
+    const fade = clamp(d2.sub(dot(delta, delta)).mul(2).div(d2), 0, 1);
+    // Heat: the ring around a fire goes drought-brown, the part that caught
+    // turns to ash, and at the heart the blade is gone, not merely black.
+    const burn = this.heat.at(origin.xz);
+    const local = vec3(blown.x, p.y, blown.y).mul(fade).mul(float(1).sub(smoothstep(0.62, 1.0, burn)));
+    mat.positionNode = M.mul(vec4(local, 1)).xyz;
+    const tint = varying(vec3(2).mul(mix(vec3(0.5), this.tintU, gust)));
+    const vBurn = varying(burn);
+    mat.colorNode = Fn(() => {
+      const c0 = vec4(materialColor).toVar();
+      c0.rgb.mulAssign(tint);
+      c0.rgb.assign(mix(c0.rgb, vec3(0.20, 0.11, 0.035), smoothstep(0, 0.55, vBurn)));
+      c0.rgb.assign(mix(c0.rgb, vec3(0.022, 0.019, 0.017), smoothstep(0.42, 1.0, vBurn)));
+      return c0;
+    })();
+    // Double-sided Lambert flips the normal on back faces, which would unlight
+    // half the cards; grass is lit like the ground it stands on from BOTH sides.
+    mat.normalNode = normalViewGeometry;
   }
 
-  // The uniform block both materials need. vDetailTint/vBurn are declared as
-  // varyings by the lit material and as plain locals by the depth one, which
-  // has no fragment stage that wants them.
-  _vertexUniforms(varying) {
-    return "uniform float uWaveTime; uniform float uWaveSize; uniform float uBending;\n" +
-      "uniform vec3 uWindTint; uniform float uDetailDist; uniform vec3 uViewPos;\n" +
-      "uniform vec2 uWindDir; uniform float uWindLean;\n" +
-      // Declared for both materials: the shadow pass runs the identical
-      // program, and a card that turned in one pass and not the other casts
-      // a shadow belonging to a plant standing somewhere else.
-      "attribute vec4 aJitter;\n" +
-      `uniform vec4 uBurn[${MAX_BURN}]; uniform int uBurnCount;\n` +
-      (varying ? "varying vec3 vDetailTint; varying float vBurn;\n" : "vec3 vDetailTint; float vBurn;\n");
-  }
-
-  _bindUniforms(sh) {
-    sh.uniforms.uWaveTime = this.windU;
-    sh.uniforms.uWaveSize = this.sizeU;
-    sh.uniforms.uBending = this.bendU;
-    sh.uniforms.uWindTint = this.tintU;
-    sh.uniforms.uDetailDist = this.distU;
-    sh.uniforms.uViewPos = this.viewPosU;
-    sh.uniforms.uWindDir = this.dirU;
-    sh.uniforms.uWindLean = this.leanU;
-    sh.uniforms.uBurn = this.burnU;
-    sh.uniforms.uBurnCount = this.burnCountU;
-  }
-
-  _makeMaterial(map, billboard) {
+  _makeMaterial(map) {
     // alphaToCoverage: on the MSAA path the cutout edge dissolves over the
-    // sample mask instead of cutting at one hard threshold — softer blade
-    // silhouettes for free. A no-op when MSAA is off (the TAA path), where
-    // the accumulated jitter does the same job.
-    const mat = new THREE.MeshLambertMaterial({
-      map, alphaTest: 0.5, side: THREE.DoubleSide, alphaToCoverage: true,
-    });
-    mat.onBeforeCompile = (sh) => {
-      this._bindUniforms(sh);
-      sh.vertexShader = (this._vertexUniforms(true) + sh.vertexShader).replace(
-        "#include <begin_vertex>",
-        "#include <begin_vertex>\n" + this._vertexProgram(billboard)
-      );
-      sh.fragmentShader = ("varying vec3 vDetailTint;\nvarying float vBurn;\n" + sh.fragmentShader).replace(
-        "#include <color_fragment>",
-        /* glsl */`#include <color_fragment>
-        diffuseColor.rgb *= vDetailTint;
-        // Heat kills before it chars: the ring around a fire goes drought-
-        // brown first, and only the part that actually caught turns to ash.
-        // Linear-space colours — this is inside the lighting pipeline.
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.20, 0.11, 0.035), smoothstep(0.0, 0.55, vBurn));
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.022, 0.019, 0.017), smoothstep(0.42, 1.0, vBurn));`
-      ).replace(
-        // Double-sided Lambert flips the normal on back faces, which would
-        // unlight half the cards (normal (0,-1,0) sees no sun). Grass is lit
-        // like the ground it stands on from BOTH sides — undo the flip.
-        "#include <normal_fragment_begin>",
-        "#include <normal_fragment_begin>\n        normal = normalize( vNormal );"
-      );
-    };
-    return mat;
-  }
-
-  /* The shadow caster. Without it three renders the shadow pass with its own
-     stock depth material, which knows nothing about the wind, the billboard
-     turn or the distance collapse — so the field would cast shadows from
-     cards standing bolt upright wherever the untouched instance matrices put
-     them, including for grass that has visibly collapsed to nothing.
-
-     RGBADepthPacking is what the shadow map reads; the atlas and alphaTest
-     come along so the shadow is blade-shaped rather than a solid card. */
-  _makeDepthMaterial(map, billboard) {
-    const mat = new THREE.MeshDepthMaterial({
-      depthPacking: THREE.RGBADepthPacking, map, alphaTest: 0.5, side: THREE.DoubleSide,
-    });
-    mat.onBeforeCompile = (sh) => {
-      this._bindUniforms(sh);
-      sh.vertexShader = (this._vertexUniforms(false) + sh.vertexShader).replace(
-        "#include <begin_vertex>",
-        "#include <begin_vertex>\n" + this._vertexProgram(billboard)
-      );
-    };
-    return mat;
+    // sample mask instead of cutting at one hard threshold.
+    return new THREE.MeshLambertMaterial({ map, alphaTest: 0.5, side: THREE.DoubleSide, alphaToCoverage: true });
   }
 
   // In orbit the author must see every painted patch from any height, so the
@@ -573,6 +467,7 @@ export class Grass {
     for (const entry of this._meshes) {
       entry.mesh.count = entry.cursor;
       entry.mesh.instanceMatrix.needsUpdate = true;
+      syncInstances(entry.mesh);
       entry.jitter.needsUpdate = true;
       if (entry.mesh.instanceColor) entry.mesh.instanceColor.needsUpdate = true;
     }
@@ -599,14 +494,7 @@ export class Grass {
      changed, so the engine can skip a redraw when nothing moved. */
   setBurnField(field) {
     if (!this.group) return false;
-    const count = Math.min((field?.length ?? 0) / 4 | 0, MAX_BURN);
-    const buf = this.burnU.value;
-    let changed = count !== this.burnCountU.value;
-    for (let i = 0; i < count * 4; i++) {
-      if (buf[i] !== field[i]) { buf[i] = field[i]; changed = true; }
-    }
-    this.burnCountU.value = count;
-    return changed;
+    return this.heat.set(field);
   }
 
   /* The viewer position the cards turn toward and fade against. Kept as a

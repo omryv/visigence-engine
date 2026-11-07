@@ -76,6 +76,9 @@ export function resolveProject(input = {}) {
   p.name = String(input.name ?? p.name).trim().slice(0, 64) || p.name;
   // String(… ?? '') keeps a saved `seed: 0` the seed it was (see buildSpec.js resolveSpec).
   p.seed = normalizeSeed(String(input.seed ?? p.seed ?? '')) ?? p.seed;
+  // The world a `ground: 'world'` level is cut from, when it was made in World mode (world/kernelGround.js
+  // worldParamsFor): its terrain and water as the world editor holds them. Absent = the seed's own world.
+  p.worldParams = normalizeWorldParams(input.worldParams);
   // A theme without an enemy roster plays with none, whatever the genre asks for.
   const c=CATALOG[p.theme],hostile=c.enemies.length>0;
   for (const [key, min, max] of [['enemyCount', p.genre==='exploration'||!hostile?0:1, hostile?12:0], ['objectives', 1, 4]]) {
@@ -175,6 +178,26 @@ function groundReport(project,g,reason=null){
   if(!g?.ok)return {kind:'village',asked:'world',reason:reason??g?.reason??'no ground',world:g?.world??null,...(g?.tried?{tried:g.tried}:{})};
   return {kind:'world',version:g.version,world:g.world,site:g.site,frame:g.frame,heightHash:g.heightHash,min:g.min,max:g.max,
     intent:{records:g.intent.records,rows:g.intent.rows,notes:g.intent.notes,sources:g.intent.sources},conditioning:g.conditioning};
+}
+
+/**
+ * A world's params as a project carries them: its `terrain` and `water` blocks only (what decides the ground and the
+ * sea; the sky, the palette and the placements are the world editor's business), plain JSON, bounded in size so a
+ * project file stays a project file. `null` when absent.
+ */
+export const WORLD_PARAMS_MAX_BYTES = 512 * 1024;
+export function normalizeWorldParams(input) {
+  if (input == null) return null;
+  if (typeof input !== 'object' || Array.isArray(input)) throw new Error('worldParams must be an object');
+  const out = {};
+  for (const k of ['terrain', 'water']) {
+    if (input[k] == null) continue;
+    if (typeof input[k] !== 'object' || Array.isArray(input[k])) throw new Error(`worldParams.${k} must be an object`);
+    out[k] = JSON.parse(JSON.stringify(input[k]));
+  }
+  if (!out.terrain) return null;
+  if (JSON.stringify(out).length > WORLD_PARAMS_MAX_BYTES) throw new Error(`worldParams is over ${WORLD_PARAMS_MAX_BYTES / 1024} KB`);
+  return out;
 }
 
 /** Seeded combat spaces assembled from the pack, with navigable streets and objective pads. */

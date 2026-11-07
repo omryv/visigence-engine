@@ -5,6 +5,7 @@ import { MISSION_WORLDS, missionWorld, worldMission, bestTime, formatTime, recor
 import { escapeHtml as esc } from './BlueprintBoard.js';
 import { parseProjectText } from '../src/world/projectSchema.js';
 import { GENRES, genreOf } from '../src/genres/registry.js';
+import { worldFromLocation } from '../src/world/worldLink.js';
 function missionLighting(p){return p.lighting==='dawn'?'Sunny day':'Golden hour';}
 const ICONS={cube:'<path d="m12 2 9 5v10l-9 5-9-5V7Zm0 10 9-5M3 7l9 5v10"/>',pin:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/>',note:'<path d="M6 3h9l4 4v14H6Z"/><path d="M14 3v5h5M9 12h7m-7 4h5"/>',badge:'<path d="M4 5h16v14H4Z"/><circle cx="9" cy="11" r="2"/><path d="M6 17c.8-2 5.2-2 6 0m2-7h4m-4 3h3"/>'};
 const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -23,6 +24,10 @@ export function worldArt(t,onReady){if(t.artSize==='cover')return assetURL(t.art
 export function mountPlayerFront({ getProject, change, play, remix, build, toast, download, onMode = null }) {
   const root=document.querySelector('#player-front');if(!root)return null;
   let seed=getProject().seed,busy=false,currentTheme=missionWorld(getProject()),genre=genreOf(getProject()).id;
+  // A world handed over by World mode ("Play here", src/world/worldLink.js): its seed and its params. Missions then
+  // stand on that world (world/kernelGround.js worldParamsFor), not on the plain world of its seed.
+  const linked=worldFromLocation(location);let carried=linked.world;if(carried)seed=carried.seed;
+  if(linked.error)queueMicrotask(()=>toast(`The world in this link could not be used: ${linked.error}. Playing on the seed's own world.`));
   const params=new URLSearchParams(location.search);let challenge=getProject().blueprint.nodes.length?getProject():null;const targetTime=Number(params.get('beat'));const challengeTime=Number.isFinite(targetTime)&&targetTime>0?targetTime:null;
   if(document.body.dataset.build!=='standalone'&&params.has('mission'))try{challenge=parseProjectText(decodeURIComponent(escape(atob(params.get('mission'))))).project;if(challenge.importedProps?.length)throw Error('Custom props need the game download.');change(challenge);seed=getProject().seed;currentTheme=missionWorld(getProject());challenge=getProject();genre=genreOf(challenge).id;}catch{toast('This mission link is invalid. Choose a world to start a new run.');challenge=null;}
   // A link from the landing hub picks the genre and world the launcher opens on (?genre=arena&world=snow).
@@ -32,7 +37,7 @@ export function mountPlayerFront({ getProject, change, play, remix, build, toast
   <div class="front-alert" role="alert" hidden><div><strong>This mission couldn't be prepared.</strong><p>A game file or engine step failed. Try again; if it keeps happening, share the details below.</p><pre id="front-alert-detail"></pre></div><button data-retry>Try again</button><button data-dismiss-alert>Dismiss</button></div>
   <section class="featured-mission" aria-label="Selected mission"></section>
   <section class="world-library" aria-label="World catalog"><div class="deck-heading"><h2>Worlds <span class="world-count"></span></h2><span>Choose where the mission takes place</span></div><div class="mission-deck" role="radiogroup" aria-label="World"></div></section>
-  <section class="mission-settings" aria-label="Mission settings"><div class="seed-panel"><label for="mission-seed">MISSION SEED</label><div><input id="mission-seed" aria-label="Mission seed" maxlength="24" spellcheck="false" value="${esc(seed)}"><button id="shuffle-seed" aria-label="Generate a new seed"><img src="${assetURL('/assets/studio/shuffle.svg')}" alt="" width="20" height="20"></button></div></div><p>A seed recreates the same mission. Share it to challenge another player.</p></section>
+  <section class="mission-settings" aria-label="Mission settings"><div class="seed-panel"><label for="mission-seed">MISSION SEED</label><div><input id="mission-seed" aria-label="Mission seed" maxlength="24" spellcheck="false" value="${esc(seed)}"><button id="shuffle-seed" aria-label="Generate a new seed"><img src="${assetURL('/assets/studio/shuffle.svg')}" alt="" width="20" height="20"></button></div></div><p>A seed recreates the same mission. Share it to challenge another player.</p><div class="carried-world" hidden><span>ON A WORLD FROM WORLD MODE</span><strong></strong><button data-drop-world aria-label="Play on the seed's own world instead">Use the seed's own world</button></div></section>
   <section class="maker-strip" aria-labelledby="maker-title"><div class="maker-heading"><div><h2 id="maker-title">Creator tools</h2><p>Add your own props and branding. They travel with your game download.</p></div></div><div class="maker-actions">${tool('data-import-prop','cube','Import prop','GLB · size and collision')}${tool('data-place-props','pin','Place props','<span id="place-hint">Import a prop first</span>')}${tool('data-identity','badge','Mission identity','<span id="identity-hint">Studio name, accent, artwork</span>')}</div><div id="imported-prop-list"></div></section>
   <footer class="front-footer"><span>VISIGENCE <i>/</i> ENGINE</span><span>World concept artwork <i>·</i> Playable layouts vary by seed</span></footer></main>
   <div class="front-build" hidden role="status" aria-live="polite"><div class="build-art"></div><div><span class="eyebrow">VISIGAMES</span><h2 tabindex="-1">Preparing mission</h2><p id="front-build-status">Loading environment…</p><span class="build-progress"></span></div></div>`;
@@ -41,7 +46,8 @@ export function mountPlayerFront({ getProject, change, play, remix, build, toast
   // name (a world's, an authored route's, the first releases') read the same. A mission someone named keeps its name.
   const STOCK=new Set(['Afterlight','First light','Dead signal','Untitled Shooter Project','Arcade','The Silent Survey','The Trail Warden','Honey Siege','Honey Harvest',...Object.values(MISSION_WORLDS).map(w=>w.title)]);
   const titleOf=p=>!p.name||STOCK.has(p.name)?genreOf(p).label:p.name;
-  function mission(theme){const p={...(challenge&&missionWorld(challenge)===theme&&genreOf(challenge).id===genre?challenge:worldMission(theme,seed,genre)),importedProps:getProject().importedProps,presentation:getProject().presentation};p.name=titleOf(p);return p;}
+  function mission(theme){const p={...(challenge&&missionWorld(challenge)===theme&&genreOf(challenge).id===genre?challenge:worldMission(theme,seed,genre)),importedProps:getProject().importedProps,presentation:getProject().presentation};p.name=titleOf(p);
+    if(carried&&p.seed===carried.seed)p.worldParams=carried.worldParams;return p;}
   function visual(p){const t={...MISSION_WORLDS[missionWorld(p)]},art=presentationURL(p.presentation?.artwork);if(art)Object.assign(t,{art,artSize:'cover',position:'50%',crop:[0,0,1,1]});return t;}
   function artStyle(t){const art=worldArt(t,render);return `--mission-accent:${t.accent};${art?`--world-art:url('${art}');--art-size:cover;--art-position:${t.focus??'50% 50%'}`:art===null?'--world-art:none':`--world-art:url('${assetURL(t.art)}');--art-size:${t.artSize};--art-position:center ${t.position}`}`;}
   function card(p,{result=false,time}={}){const t=visual(p),best=bestTime(p),target=challenge&&missionWorld(challenge)===missionWorld(p)?challengeTime:null,light=missionLighting(p);
@@ -50,7 +56,9 @@ export function mountPlayerFront({ getProject, change, play, remix, build, toast
     const accent=/^#[0-9a-f]{6}$/i.test(p.presentation?.accent??'')?p.presentation.accent:'#ec9a52';
     return `<article class="mission-card ${result?'result-card':'featured-card'}" data-world="${missionWorld(p)}" style="${artStyle(t)};--creator-accent:${accent};--creator-ink:${ink(accent)}"><div class="mission-art" aria-hidden="true"></div><div class="mission-card-content">${p.presentation?.studioName||p.presentation?.logo?`<div class="mission-studio">${presentationURL(p.presentation?.logo)?`<img src="${presentationURL(p.presentation.logo)}" alt="Studio logo">`:""}<span>${esc(p.presentation?.studioName??"")}</span></div>`:""}<div class="mission-title"><p>${eyebrow}</p><h${result?'3':'2'}>${esc(title)}</h${result?'3':'2'}><span>${esc(GENRE_LEVELS[p.missionProfile]?.description??t.description)}</span></div><div class="mission-card-body"><div class="mission-meta"><div><span>SEED</span><strong>${esc(p.seed)}</strong></div><div><span>${time!==undefined?'THIS RUN':target!==null?'TIME TO BEAT':'PERSONAL BEST'}</span><strong>${formatTime(time??target??best)}</strong></div>${result?'':`<div><span>LENGTH</span><strong>~2 MIN</strong></div><div><span>DIFFICULTY</span><strong>${esc(p.difficulty.toUpperCase())}</strong></div>`}</div>${result?'':`<div class="mission-actions"><button class="mission-play" data-play-world="${missionWorld(p)}" ${busy?'disabled':''}><svg viewBox="0 0 18 20" width="16" height="18" aria-hidden="true"><path fill="currentColor" d="M2 1v18l15-9Z"/></svg>${busy?'Preparing…':best!==null||target!==null?'Beat this':'Play now'}</button><button class="mission-remix" data-mode="remix">Remix mission</button></div>`}</div></div></article>`;
   }
+  function showCarried(){const el=$('.carried-world'),on=!!carried&&carried.seed===seed;el.hidden=!on;if(on)el.querySelector('strong').textContent=`${carried.name??'Your world'} · ${carried.seed}`;}
   function render(){
+    showCarried();
     for(const g of root.querySelectorAll('[data-genre]')){g.setAttribute('aria-checked',String(g.dataset.genre===genre));g.tabIndex=g.dataset.genre===genre?0:-1;}
     const active=document.activeElement,refocus=root.contains(active)&&(active.dataset.selectWorld?`[data-select-world="${active.dataset.selectWorld}"]`:active.dataset.playWorld?'.featured-mission [data-play-world]':active.classList.contains('mission-remix')?'.featured-mission .mission-remix':null);
     $('.featured-mission').innerHTML=card(mission(currentTheme));
@@ -63,9 +71,12 @@ export function mountPlayerFront({ getProject, change, play, remix, build, toast
   // World and genre changes apply at once and the new hero eases in; input is never held for the animation.
   function swap(update){update();$('.featured-card')?.classList.add('swap-in');}
   // Build opens the level editor on the mission in hand (editor/build/); it owns its own view.
-  // World (editor/worldMode.js) is a mode of the same page: entering it hands over to onMode, which owns its view.
   function nav(value){for(const b of root.querySelectorAll('.front-nav [data-mode]')){const on=b.dataset.mode===value;b.classList.toggle('mode-active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');}}
-  function mode(value){const prev=document.body.dataset.mode;
+  /* World is the world engine's own page (world.html). Opened from World ("Play here"), this page returns to that tab,
+     where the world is still being edited: the editor stores nothing, so a new page would not have it. Otherwise it
+     opens World on this seed. */
+  function openWorld(){if(carried&&window.opener&&!window.opener.closed){try{window.opener.focus();return;}catch{}}location.href=`/world.html?seed=${encodeURIComponent(seed)}`;}
+  function mode(value){if(value==='world'){openWorld();return;}const prev=document.body.dataset.mode;
     if(value==='build'){if(prev==='world'){document.body.dataset.mode='play';nav('play');onMode?.('play','world');}change(mission(currentTheme));build();return;}
     document.body.dataset.mode=value;nav(value);document.querySelector('#remix-return').hidden=value==='play'||value==='world';if(value==='remix'){change(mission(currentTheme));remix();}if(prev!==value)onMode?.(value,prev);window.scrollTo(0,0);}
   root.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
@@ -78,8 +89,9 @@ export function mountPlayerFront({ getProject, change, play, remix, build, toast
     if(b.hasAttribute('data-import-prop')){if(!getProject().blueprint.nodes.length)change(worldMission(currentTheme,seed));try{const {openAssetImport}=await import('./assetImport.js');await openAssetImport({getProject,onChange:patch=>{change(patch);render();},toast});}catch(e){toast(e.message);}}
     if(b.hasAttribute('data-dismiss-alert')){$('.front-alert').hidden=true;$('.featured-mission .mission-play')?.focus({preventScroll:true});}
     if(b.hasAttribute('data-retry'))$('.featured-mission [data-play-world]')?.click();
+    if(b.hasAttribute('data-drop-world')){carried=null;history.replaceState(null,'',location.pathname+location.search);challenge=null;render();}
     if(b.dataset.removeProp){change({importedProps:getProject().importedProps.filter(p=>p.id!==b.dataset.removeProp)});render();}
-    if(b.id==='shuffle-seed'){seed=Array.from(crypto.getRandomValues(new Uint8Array(12)),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('').match(/.{4}/g).join('-');challenge=null;$('#mission-seed').value=seed;render();}
+    if(b.id==='shuffle-seed'){carried=null;seed=Array.from(crypto.getRandomValues(new Uint8Array(12)),n=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n%32]).join('').match(/.{4}/g).join('-');challenge=null;$('#mission-seed').value=seed;render();}
     if(b.dataset.playWorld&&!busy){currentTheme=b.dataset.playWorld;const p=mission(currentTheme);change({...p,importedProps:getProject().importedProps});await play();}
   });
   $('.mission-deck').addEventListener('keydown',e=>{const step={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!step)return;e.preventDefault();const ids=Object.keys(MISSION_WORLDS);currentTheme=ids[(ids.indexOf(currentTheme)+step+ids.length)%ids.length];swap(render);root.querySelector(`[data-select-world="${currentTheme}"]`).focus({preventScroll:true});});
@@ -117,10 +129,6 @@ export function mountPlayerFront({ getProject, change, play, remix, build, toast
   // Asset counts drive a real progress bar; other phases show an indeterminate sweep.
   function status(text){$('#front-build-status').textContent=text;const m=/(\d+)\s*\/\s*(\d+)/.exec(text),bar=$('.build-progress'),done=/^Ready/.test(text);bar.classList.toggle('indeterminate',!m&&!done);if(m||done)bar.style.setProperty('--progress',done?1:Math.min(.9,.9*(m[1]-1)/m[2]));}
   return {render,status,mode,
-    /** The one seed of the tool: World mode shows its world, Play's missions stand on it. Returns it normalised. */
-    seed:()=>seed,setSeed(value){seed=worldMission(currentTheme,value).seed;challenge=null;$('#mission-seed').value=seed;render();return seed;},
-    /** Play the mission card on the current seed (World mode's "Play here"). */
-    playHere(){mode('play');$('.featured-mission [data-play-world]')?.click();},
     building(value){busy=value;$('.front-build').hidden=!value;$('.front-main').inert=value;$('.front-nav').inert=value;if(value){$('.front-alert').hidden=true;$('.front-build .eyebrow').textContent=`Preparing mission · ${MISSION_WORLDS[currentTheme].title}`.toUpperCase();$('.front-build h2').textContent=mission(currentTheme).name;$('.build-art').style.cssText=artStyle(visual(mission(currentTheme)));status('Loading environment…');$('.front-build h2').focus({preventScroll:true});}render();},
     failed(detail){status(detail);$('#front-alert-detail').textContent=detail;$('.front-alert').hidden=false;$('.front-alert').scrollIntoView({block:'nearest'});$('[data-retry]').focus({preventScroll:true});},result(p,stats){const result=['VICTORY','PLAYER_DEAD'].includes(stats.state),won=stats.state==='VICTORY',overlay=document.querySelector('#play-overlay');document.querySelector('#mission-result').hidden=!result;document.querySelector('#result-actions').hidden=!result;if(overlay)overlay.dataset.outcome=result?(won?'victory':'failed'):'';if(!result)return;
       // A failed run has no time to show; a win that beats the stored best says so.

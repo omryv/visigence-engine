@@ -25,12 +25,13 @@
 // params: it reloads identically, rides into VSight, and exports.
 
 import * as THREE from "three";
+import { Fn, uniform, vec3, vec4, float, sin, max, mix, smoothstep, materialColor, varying } from "three/tsl";
+import { instanceMatrixNode, syncInstances, ownPosition, heatField } from "../render/nodes.js";
 import { channelRng } from "../../kernel/seed.js";
 import { cullSpecies, speciesRadius, shadowThrow } from "./scatter-cull.js";
 
 // Matches the grass system's cap, and for the same reason: the shader loops
 // this many times per vertex whether or not anything is alight.
-const MAX_BURN = 12;
 
 /* Which parts of a plant move in the wind. The trunk is rigid, the canopy is
    not, and the difference is most of what sells it — a tree swaying as one
@@ -65,10 +66,9 @@ export class Scatter {
     this._planes = new Float32Array(24);
     this._visibleTotal = 0;
 
-    this.windU = { value: 0 };
-    this.swayU = { value: 1 };
-    this.burnU = { value: new Float32Array(MAX_BURN * 4) };
-    this.burnCountU = { value: 0 };
+    this.windU = uniform(0);
+    this.swayU = uniform(1);
+    this.heat = heatField();
   }
 
   /* The parts of one species, resolved once. Built through the ordinary
@@ -159,7 +159,8 @@ export class Scatter {
       this._species.set(id, species);
 
       for (const p of parts) {
-        const mesh = new THREE.InstancedMesh(p.geometry, this._material(p), list.length);
+        const mesh = new THREE.InstancedMesh(p.geometry, p.material.clone(), list.length);
+        this._material(mesh, p);
         mesh.name = "scatter:" + id;
         mesh.castShadow = this._shadows;
         mesh.receiveShadow = this._shadows;
@@ -201,7 +202,7 @@ export class Scatter {
       }
       placed += list.length;
     }
-    for (const b of this._batches) b.mesh.instanceMatrix.needsUpdate = true;
+    for (const b of this._batches) { b.mesh.instanceMatrix.needsUpdate = true; syncInstances(b.mesh); }
     this._total = placed;
     this._visibleTotal = placed;
     return placed;
@@ -266,6 +267,7 @@ export class Scatter {
           for (let e = 0; e < 16; e++) dst[to + e] = src[from + e];
         }
         b.mesh.instanceMatrix.needsUpdate = true;
+        syncInstances(b.mesh);
         if (b.srcColor && b.mesh.instanceColor) {
           const cd = b.mesh.instanceColor.array, cs = b.srcColor;
           for (let j = 0; j < vis; j++) {
@@ -281,55 +283,45 @@ export class Scatter {
     return changed;
   }
 
-  /* Wind and heat, injected into the species material. The wind is the same
+  /* Wind and heat, in the batch's own material. The wind is the same
      traveling-gust model the grass runs, at a much lower frequency and
      amplitude — a canopy answers a gust slowly and a blade answers it at
      once, and matching the two rates is what makes them look like the same
-     weather. */
-  _material(part) {
-    const mat = part.material;
+     weather. Each batch has its own material (cloned from the species part
+     when the batch is made): the graph reads THIS mesh's instance matrices
+     (render/nodes.js instanceMatrixNode). */
+  _material(mesh, part) {
+    const mat = mesh.material;
     mat.vertexColors = false; // the batch tints per instance, not per vertex
-    const swayU = { value: part.sway };
-    mat.onBeforeCompile = (sh) => {
-      sh.uniforms.uScTime = this.windU;
-      sh.uniforms.uScSway = swayU;
-      sh.uniforms.uScStrength = this.swayU;
-      sh.uniforms.uScBurn = this.burnU;
-      sh.uniforms.uScBurnCount = this.burnCountU;
-      sh.vertexShader = ("uniform float uScTime; uniform float uScSway; uniform float uScStrength;\n" +
-        `uniform vec4 uScBurn[${MAX_BURN}]; uniform int uScBurnCount; varying float vScBurn;\n` +
-        sh.vertexShader).replace(
-        "#include <begin_vertex>",
-        /* glsl */`#include <begin_vertex>
-        vec3 scOrigin = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-        // Gusts travel across the world rather than everything breathing in
-        // unison — the phase runs on world position, so a wood ripples.
-        float scPh = scOrigin.x * 0.021 + scOrigin.z * 0.017;
-        float scGust = sin(uScTime * 0.55 + scPh) * 0.62
-                     + sin(uScTime * 1.13 + scPh * 2.3 + 1.1) * 0.27
-                     + sin(uScTime * 2.7 + scPh * 0.7) * 0.11;
-        // Higher parts move more: the lean is taken about the plant's base,
-        // which is where transformed.y already measures from.
-        float scLean = uScSway * uScStrength * 0.055 * max(transformed.y, 0.0);
-        transformed.x += scGust * scLean;
-        transformed.z += scGust * scLean * 0.7;
-        // Heat, on the same field the grass burns from (engine/fx/fire.js).
-        vScBurn = 0.0;
-        for (int i = 0; i < ${MAX_BURN}; i++) {
-          if (i >= uScBurnCount) break;
-          vec4 b = uScBurn[i];
-          vScBurn = max(vScBurn, (1.0 - smoothstep(0.0, b.z, distance(scOrigin.xz, b.xy))) * b.w);
-        }`
-      );
-      sh.fragmentShader = ("varying float vScBurn;\n" + sh.fragmentShader).replace(
-        "#include <color_fragment>",
-        /* glsl */`#include <color_fragment>
-        // Scorched, then charred — the same two-stage ramp the grass uses,
-        // so a burnt wood and the burnt ground under it agree.
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.16, 0.09, 0.03), smoothstep(0.0, 0.5, vScBurn));
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.03, 0.026, 0.023), smoothstep(0.4, 1.0, vScBurn));`
-      );
-    };
+    // clone() carried the part's userData but not the node properties the
+    // atmosphere gave it: clear the mark so the engine conditions this one.
+    delete mat.userData.atmos;
+    const sway = uniform(part.sway);
+    const M = instanceMatrixNode(mesh);
+    const origin = M.mul(vec4(0, 0, 0, 1)).xyz;
+    const p = ownPosition;
+    // Gusts travel across the world rather than everything breathing in
+    // unison — the phase runs on world position, so a wood ripples.
+    const ph = origin.x.mul(0.021).add(origin.z.mul(0.017));
+    const t = this.windU;
+    const gust = sin(t.mul(0.55).add(ph)).mul(0.62)
+      .add(sin(t.mul(1.13).add(ph.mul(2.3)).add(1.1)).mul(0.27))
+      .add(sin(t.mul(2.7).add(ph.mul(0.7))).mul(0.11));
+    // Higher parts move more: the lean is taken about the plant's base.
+    const lean = sway.mul(this.swayU).mul(0.055).mul(max(p.y, 0));
+    const local = p.add(vec3(gust.mul(lean), 0, gust.mul(lean).mul(0.7)));
+    mat.positionNode = M.mul(vec4(local, 1)).xyz;
+    // Heat, on the same field the grass burns from (fx/fire.js): scorched,
+    // then charred, the same two-stage ramp, so a burnt wood and the burnt
+    // ground under it agree.
+    const burn = varying(this.heat.at(origin.xz));
+    const base = mat.colorNode ?? materialColor;
+    mat.colorNode = Fn(() => {
+      const c = vec4(base).toVar();
+      c.rgb.assign(mix(c.rgb, vec3(0.16, 0.09, 0.03), smoothstep(0, 0.5, burn)));
+      c.rgb.assign(mix(c.rgb, vec3(0.03, 0.026, 0.023), smoothstep(0.4, 1.0, burn)));
+      return c;
+    })();
     mat.needsUpdate = true;
     return mat;
   }
@@ -337,14 +329,7 @@ export class Scatter {
   // The fires currently scorching the world (FireFX.burnField()).
   setBurnField(field) {
     if (!this._batches.length) return false;
-    const count = Math.min(((field?.length ?? 0) / 4) | 0, MAX_BURN);
-    const buf = this.burnU.value;
-    let changed = count !== this.burnCountU.value;
-    for (let i = 0; i < count * 4; i++) {
-      if (buf[i] !== field[i]) { buf[i] = field[i]; changed = true; }
-    }
-    this.burnCountU.value = count;
-    return changed;
+    return this.heat.set(field);
   }
 
   /* The plants in the world, which is NOT the plants being drawn — reading
@@ -363,6 +348,7 @@ export class Scatter {
     for (const b of this._batches) {
       this.group.remove(b.mesh);
       b.mesh.dispose();          // the per-instance buffers; geometry is the prototype's
+      b.mesh.material.dispose(); // the material is the batch's own
     }
     this._batches = [];
     this.materials = [];

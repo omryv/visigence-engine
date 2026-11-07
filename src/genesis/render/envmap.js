@@ -7,9 +7,8 @@
 // only when the light actually changes (the engine debounces refresh()).
 //
 // The capture shares the live Sky material, so there is exactly one
-// definition of what the sky looks like. During capture uWfPost is forced to
-// 1: the dome must emit linear radiance into the PMREM regardless of which
-// render path the frame itself uses.
+// definition of what the sky looks like. The node renderer tone maps only on
+// the way to the canvas, so the dome reaches the PMREM as linear radiance.
 
 import * as THREE from "three";
 
@@ -46,15 +45,9 @@ export class SkyEnvironment {
       this._proxy.frustumCulled = false;
       this._scene.add(this._proxy);
     }
-    const post = this.atmos.uniforms.uWfPost;
-    const prev = post.value;
-    post.value = 1; // linear radiance into the PMREM, always
-    let rt = null;
-    try {
-      rt = this._pmrem.fromScene(this._scene, 0, 1, 10, { size });
-    } finally {
-      post.value = prev;
-    }
+    // The dome is a node material the renderer tone maps only on the way to
+    // the canvas, so what reaches the PMREM is linear radiance already.
+    const rt = this._pmrem.fromScene(this._scene, 0, 1, 10, { size });
     if (!rt) return;
     this.size = size;
     const old = this._rt;

@@ -10,6 +10,7 @@ import { SITE_KINDS, makePlan } from "../../src/genesis/world/worldplan.js";
 import { screenSeed } from "../../src/kernel/core/survey.js";
 import { composeSite } from "../../src/genesis/world/compose.js";
 import { WORLDS, WORLD_IDS, buildWorld } from "../../src/genesis/world/worlds.js";
+import { encodeWorldLink } from "../../src/world/worldLink.js";
 import { groundBuildings } from "../../src/genesis/world/footing.js";
 import { isPinnable, PIN_LEGIBLE_MAX } from "../../src/genesis/world/pinnable.js";
 import { assertGlb } from "../../src/genesis/world/glb-compat.js";
@@ -43,7 +44,7 @@ import { categoryColor, phrase, subjectOf, varyTransform, formatXZ } from "../..
 const PROC_BY_ID = new Map(allItems().map((i) => [i.id, i.proc]));
 
 const $ = (s) => document.querySelector(s);
-const canvas = $("#viewport");
+let canvas = $("#viewport");
 
 /* ── session preferences ──
    Memory only: what the editor learns about a session (sound off, advanced
@@ -102,7 +103,8 @@ console.info("[studio] landing world", params.seed,
 // under-detect; QA needs determinism), not world state. Nothing world-shaped
 // is read from the URL at all.
 const gfx = new URLSearchParams(location.search).get("gfx");
-const engine = new Engine(canvas, params, gfx ? { quality: gfx } : {});
+const engine = await Engine.create(canvas, params, gfx ? { quality: gfx } : {});
+canvas = engine.canvas;   // the renderer may have needed a fresh canvas (core/Renderer.js)
 window.engine = engine; // console access is the debug UI
 // The scatter batcher builds its prototypes from the same catalog the
 // dock places from, so a scattered oak IS a placed oak.
@@ -194,6 +196,33 @@ $("#seed-chip").addEventListener("click", (e) => {
   if (input) engine.setSeed(input);
 });
 $("#seed-roll").addEventListener("click", () => engine.rollSeed());
+
+/* ── the rest of the tool ──
+   Play here hands THIS world to Play (src/world/worldLink.js): the seed, and the terrain and water a level's ground is
+   cut from, in the link's fragment, because this page stores nothing. Play opens in a new tab so the world being made
+   stays here; the other modes carry the seed. And World opened with ?seed= travels to that seed. */
+function worldLink() {
+  return encodeWorldLink({
+    seed: engine.params.seed,
+    name: WORLDS[builtWorldId]?.label ?? null,
+    worldParams: { terrain: engine.params.terrain, water: engine.params.water },
+  });
+}
+$("#play-here").addEventListener("click", () => {
+  try { window.open(`/?mode=play#world=${worldLink()}`, "_blank"); }
+  catch (e) { announce("Play here", `This world cannot be handed to Play: ${e.message}`); }
+});
+for (const a of document.querySelectorAll("[data-mode-link]")) {
+  a.addEventListener("click", () => {
+    const u = new URL(a.getAttribute("href"), location.href);
+    u.searchParams.set("seed", engine.params.seed);
+    a.href = u.pathname + u.search;
+  });
+}
+{
+  const wanted = new URLSearchParams(location.search).get("seed");
+  if (wanted && wanted !== engine.params.seed) engine.setSeed(wanted);
+}
 
 /* ── undo / redo ──
    A linear stack of {label, undo, redo} pairs. Authored content only —

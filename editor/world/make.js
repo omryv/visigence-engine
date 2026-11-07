@@ -25,7 +25,7 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* The backdrop: the default world, dimmed under the ask card, so the machine
    opens onto a real place instead of a void — and so the engine is warm by
    the time the first brief lands. */
-const engine = new Engine($("#viewport"), paramsFromWorldFile(DEFAULT_WORLD));
+const engine = await Engine.create($("#viewport"), paramsFromWorldFile(DEFAULT_WORLD));
 window.engine = engine; // console access is the debug UI, as in the editor
 /* Pins are a finding aid for AUTHORED objects, and nothing on this page is
    authored — the editor turns them off after a generate for the same reason

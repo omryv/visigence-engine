@@ -182,10 +182,11 @@ cross-language vectors by `tools/test/test-kernel-parity.mjs`.
 
 ### Deliberately not imported
 
-- **The old renderer.** The archived Visigenesis drew its worlds with `WebGLRenderer` and ~230
-  lines of raw GLSL (`engine/Engine.js` there). This engine has one renderer, `WebGPURenderer`
-  with TSL node materials (WebGL2 only as the browser's fallback), and World mode draws the
-  kernel's ground with it (`src/render/WorldView.js`); the WebGL renderer was not brought.
+- **The old renderer.** The archived Visigenesis drew its worlds with `WebGLRenderer` and raw
+  GLSL. Its world engine is here (`src/genesis/`, World mode) and runs on the one renderer,
+  `WebGPURenderer` (WebGL2 only as the browser's fallback): every one of its shaders was
+  rewritten as a TSL node graph, term for term, and `tools/test/check-wgsl.mjs` compiles every
+  program a built world draws as WGSL.
 - **`src/kernel/core/reach.js`.** The right *idea* — flood the ground over the walk
   controller's own rules, because a graph can certify a building you cannot enter — and
   the wrong code for this engine, since it is coupled to the kernel's prop records and

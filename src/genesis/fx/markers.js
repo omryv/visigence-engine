@@ -34,6 +34,7 @@
  */
 
 import * as THREE from "three";
+import { Fn, If, Discard, uniform, uv, vec4, float, abs, dot, mix, pow, normalize, smoothstep, positionWorld, normalWorld, cameraPosition } from "three/tsl";
 
 const RIPPLES = 8;       // concurrent ground rings
 const SHAFTS = 6;        // concurrent placement pillars
@@ -46,39 +47,21 @@ const SHAFT_LIFE = 2.4;
 const CONFIRM = 0x8fe8c9;
 const SELECT = 0x7fd4ff;
 
-const SHAFT_VERT = /* glsl */`
-  varying vec3 vN;
-  varying vec3 vV;
-  varying float vH;
-  void main() {
-    vec4 wp = modelMatrix * vec4(position, 1.0);
-    vN = normalize(mat3(modelMatrix) * normal);
-    vV = normalize(cameraPosition - wp.xyz);
-    vH = uv.y;
-    gl_Position = projectionMatrix * viewMatrix * wp;
-  }
-`;
-
 /* The shaft is drawn as a tube seen from outside, so the silhouette is where
    the normal turns away from the eye. Brightening the FACING side rather
    than the silhouette is what makes it read as a column of light instead of
    a wireframe cylinder. */
-const SHAFT_FRAG = /* glsl */`
-  uniform vec3 uColor;
-  uniform float uOpacity;
-  varying vec3 vN;
-  varying vec3 vV;
-  varying float vH;
-  void main() {
-    float f = abs(dot(normalize(vN), normalize(vV)));
-    float body = mix(0.16, 1.0, f);
-    float top = pow(1.0 - vH, 1.7);          // dissolves into the air
-    float foot = smoothstep(0.0, 0.05, vH);  // and softens where it meets the ground
-    float a = uOpacity * body * top * foot;
-    if (a <= 0.003) discard;
-    gl_FragColor = vec4(uColor * (0.65 + 0.75 * f), a);
-  }
-`;
+function shaftNode(uColor, uOpacity) {
+  return Fn(() => {
+    const f = abs(dot(normalWorld, normalize(cameraPosition.sub(positionWorld))));
+    const body = mix(0.16, 1.0, f);
+    const top = pow(float(1).sub(uv().y), 1.7);        // dissolves into the air
+    const foot = smoothstep(0, 0.05, uv().y);          // and softens where it meets the ground
+    const a = uOpacity.mul(body).mul(top).mul(foot);
+    If(a.lessThanEqual(0.003), () => { Discard(); });
+    return vec4(uColor.mul(f.mul(0.75).add(0.65)), a);
+  })();
+}
 
 const easeOut = (k) => 1 - Math.pow(1 - k, 3);
 // Gentler than the textbook easeOutBack (c1 = 1.70158): a placed block should
@@ -129,12 +112,12 @@ export class Markers {
     return { mesh: this._mount(new THREE.Mesh(this._ringGeo, mat)), t: 0, life: 0, r0: 1, r1: 4 };
   }
   _makeShaft(color) {
-    const mat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(color) }, uOpacity: { value: 0 } },
-      vertexShader: SHAFT_VERT, fragmentShader: SHAFT_FRAG,
-      transparent: true, depthWrite: false, side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending,
+    const mat = new THREE.MeshBasicNodeMaterial({
+      transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: false,
     });
+    // The same `uniforms.uColor.value` / `uniforms.uOpacity.value` the pool drives.
+    mat.uniforms = { uColor: uniform(new THREE.Color(color)), uOpacity: uniform(0) };
+    mat.fragmentNode = shaftNode(mat.uniforms.uColor, mat.uniforms.uOpacity);
     return {
       mesh: this._mount(new THREE.Mesh(this._tubeGeo, mat)),
       t: 0, life: 0, peak: 0.85, x: 0, y: 0, z: 0,

@@ -12,7 +12,6 @@ import { parseProjectText, packageProject } from '../src/world/projectSchema.js'
 import { GENRES, genreOf } from '../src/genres/registry.js';
 import { installModelCards } from './modelCards.js';
 import { visionFromURL, arriveWithVision } from './visionArrival.js';
-import { mountWorldMode } from './worldMode.js';
 
 const $ = selector => document.querySelector(selector);
 const paths = {
@@ -296,19 +295,13 @@ function queueBuild(play = false) {
       if(snapshot.importedProps?.length && !standalone){const {prepareImportedAssets}=await import('./assetImport.js');await prepareImportedAssets(snapshot);}
       if(snapshot.presentation?.artwork||snapshot.presentation?.logo){const {preparePresentation}=await import('./creatorTools.js');await preparePresentation(snapshot);}
       await ensureSession(); await session.build(snapshot,{isCurrent:()=>version===buildVersion});
-      // Cancelled (World was entered): the build stopped at its next check, before it built or drew a scene.
-      if (version === buildVersion) {
-        completedBuild = snapshot;
-        log(`${environmentName(snapshot)} compiled: ${snapshot.enemyCount} enemies, ${session.level.blueprint.mission.length} mission steps`);
-      }
-    } catch (error) { if (version === buildVersion) failure = error; }
+      completedBuild = snapshot;
+      log(`${environmentName(snapshot)} compiled: ${snapshot.enemyCount} enemies, ${session.level.blueprint.mission.length} mission steps`);
+    } catch (error) { failure = error; }
     finally {
       building = false; playerFront?.building(false);
       updateDraftState();
     }
-    // Left for World while it was being prepared: the build was cancelled, the mission does not open over the world,
-    // and its renderer goes.
-    if (version !== buildVersion || document.body.dataset.mode === 'world') { releaseSession(); return; }
     if (failure) { errorDisplay(failure); return; }
     if (play && !isDraftDirty()) openPlay();
     else {
@@ -462,23 +455,7 @@ $('#look-sensitivity').addEventListener('input',e=>{const n=Math.max(.5,Math.min
 document.title = standalone ? project.name : 'Visigence Engine';
 if (standalone) $('#preview-panel h2').textContent = `${THEMES[project.theme]} / Mission`;
 installModelCards();
-/**
- * ONE RENDERER AT A TIME. World mode (editor/worldMode.js) makes its renderer when it is shown and disposes it when it
- * is left; Play's session makes its own when a mission is prepared, and lets it go when World is entered. A mission
- * still being prepared then is cancelled (its build stops at its next check, before it builds or draws a scene) and
- * its session goes when the build returns, so the two never draw at once.
- */
-function releaseSession() {
-  if (building || !session) return;
-  if (expanded) closePlay();
-  session.dispose(); session = null; boot = null; completedBuild = null;
-  // The disposed renderer may have lost the canvas's context, and a canvas keeps the context it first handed out.
-  const canvas = $('#game-canvas'); canvas.replaceWith(canvas.cloneNode());
-}
-let world = null;
-playerFront=mountPlayerFront({getProject:()=>project,change,play:()=>queueBuild(true),remix:()=>{render();requestAnimationFrame(fitGraph);},build:()=>enterBuild(),toast,download:downloadGame,
-  onMode:(next,prev)=>{if(prev==='world')world?.leave();if(next==='world'){if(building)buildVersion++;releaseSession();world?.enter();}}});
-if (!standalone && playerFront) world = mountWorldMode({ getSeed: () => playerFront.seed(), setSeed: s => playerFront.setSeed(s), play: () => playerFront.playHere(), toast });
+playerFront=mountPlayerFront({getProject:()=>project,change,play:()=>queueBuild(true),remix:()=>{render();requestAnimationFrame(fitGraph);},build:()=>enterBuild(),toast,download:downloadGame});
 render(); save();
 if (standalone) queueBuild(true);
 // Arriving from the landing page with a vision: build it and open the canvas on it (docs/VISION.md).
@@ -492,11 +469,9 @@ if (vision) arriveWithVision(vision, { change, toast, fitGraph, enterCanvas: () 
 // off the address, so a reload does not, say, copy the template again.
 if (!standalone && typeof location !== 'undefined') {
   const link = new URLSearchParams(location.search), HUB = ['mode', 'template', 'game', 'new', 'genre', 'world'];
-  // The tool opens on World, the seed's whole world, unless a link names another mode or brings a mission to play.
   const linked = link.get('mode');
   if (!vision && linked === 'build') enterBuild(null, { template: link.get('template'), game: link.get('game'), blank: link.get('new') });
   else if (!vision && linked === 'remix') playerFront.mode('remix');
-  else if (!vision && linked !== 'play' && !link.has('mission')) playerFront.mode('world');
   if (HUB.some(k => link.has(k))) {
     for (const k of HUB) link.delete(k);
     const rest = link.toString();

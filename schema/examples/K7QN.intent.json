@@ -1,0 +1,14 @@
+{
+  "$schema": "../intent.schema.json",
+  "kind": "visigenesis.intent",
+  "version": 2,
+  "seed": "K7QN-3F2A-9XBD",
+  "world": null,
+  "title": "A town, a road and the hill it climbs",
+  "statements": [
+    { "type": "pad", "x": -600, "z": -400, "r": 96, "h": 80 },
+    { "type": "summit", "x": 400, "z": -200, "h": 180 },
+    { "type": "corridor", "points": [[-600, -400], [-200, -300], [200, -250], [400, -200]], "maxGrade": 0.15 },
+    { "type": "ray", "eye": [-600, 82, -400], "at": [400, -200], "h": 180, "contact": true }
+  ]
+}

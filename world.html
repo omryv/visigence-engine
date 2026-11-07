@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#08090b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Visigenesis Editor</title>
+<title>Visigence Engine — World</title>
 <meta name="description" content="A browser-native world engine: terrain generated from a seed, tools that shape and build on it, and the same world booted as a playable game. Nothing to download.">
 
 <!-- ══ TRUSTED TYPES ══
@@ -37,7 +37,9 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "/vendor/three/build/three.module.min.js",
+    "three": "/vendor/three/build/three.webgpu.min.js",
+    "three/webgpu": "/vendor/three/build/three.webgpu.min.js",
+    "three/tsl": "/vendor/three/build/three.tsl.min.js",
     "three/addons/": "/vendor/three/examples/jsm/"
   }
 }
@@ -65,9 +67,18 @@
 <header id="readout" class="mod bar">
   <!-- The mark is ENGRAVED, not printed: type cut into the chassis, not an
        illustrated object in a machined room. -->
-  <span id="mark" aria-label="Visigenesis editor">
-    <b>VISIGENESIS</b><i>EDITOR</i>
+  <span id="mark" aria-label="Visigence Engine: World">
+    <b>VISIGENCE</b><i>WORLD</i>
   </span>
+
+  <!-- The tool's modes. World is this page; Play, Remix and Build are the studio (index.html). The studio is opened
+       in a new tab: this page stores nothing, so leaving it would lose the world being made. -->
+  <nav id="modes" aria-label="Mode">
+    <a class="on" aria-current="page" href="/world.html">World</a>
+    <a href="/?mode=play" target="_blank" rel="opener" data-mode-link>Play</a>
+    <a href="/?mode=remix" target="_blank" rel="opener" data-mode-link>Remix</a>
+    <a href="/?mode=build" target="_blank" rel="opener" data-mode-link>Build</a>
+  </nav>
 
   <div class="rd-rule" aria-hidden="true"></div>
 
@@ -97,6 +108,11 @@
 
 </header>
 
+
+<!-- Play here: a mission on THIS world, its params handed over in the link (src/world/worldLink.js). -->
+<button id="play-here" class="mod bar" type="button" title="Play a mission on this world (opens in a new tab; this world stays here)">
+  <span>Play here</span><small>A mission on this world</small>
+</button>
 
 <div id="actions">
   <!-- Undo, Redo, and the one that undoes all of it. Reset belongs beside

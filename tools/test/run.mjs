@@ -4,8 +4,9 @@
  *   node tools/test/run.mjs            # all of them
  *   node tools/test/run.mjs kernel     # only the ones whose name contains "kernel"
  *
- * Four groups. KERNEL suites hold the Genesis Kernel (src/kernel/) to its own records: seed vectors, terrain, intent,
- * reach, claims. ATLAS is the reconstruction's suites (src/atlas/), run by their own runner, the slowest job here
+ * Five groups. KERNEL suites hold the Genesis Kernel (src/kernel/) to its own records: seed vectors, terrain, intent,
+ * reach, claims. GENESIS suites hold the world engine World mode runs (src/genesis/): its composition (named worlds,
+ * towns, roads, footings), the world file and its certificate, the exporters, the genesis CLI and MCP server. ATLAS is the reconstruction's suites (src/atlas/), run by their own runner, the slowest job here
  * (minutes, not seconds). PURE suites import src/ modules that import nothing from three, so they run
  * under bare node. VENDORED suites load src/ modules that import `three`, resolved to
  * vendor/three by tools/lib/_three-real-hook.mjs — the same bytes a page would load. Neither
@@ -85,8 +86,8 @@ const PURE = [
   'test-kernel-parity', 'test-mission-intent',
   /** See yourself: the reconstruction's boundary in the studio, and a figure from a photograph through the importer. */
   'test-see-yourself',
-  /** World mode's data: the seed's canonical ground, its colours, and the sites a level stands on (world/worldMap.js). */
-  'test-world-map',
+  /** Play here: a level cut from the world World mode made (its params, its own intent, its sculpt), and the link. */
+  'test-world-handoff',
   /** Generated houses: the grammar, its Python port's parity fixtures and a constraint sweep. */
   'test-house-grammar',
   /** Generated trees: the L-system, its Python port's parity fixtures and a constraint sweep. */
@@ -129,8 +130,6 @@ const VENDORED = [
    * the kernel's walker and the nav grid agree, and the real body walks inside par.
    */
   'test-kernel-ground',
-  /** World mode's drawing: the mesh is the bake's lattice, a site's curtain stands on that ground (render/WorldView.js). */
-  'test-world-view',
 ];
 
 /**
@@ -157,11 +156,14 @@ const filter = process.argv.slice(2).find(a => !a.startsWith('--')) || '';
 const results = [];
 const skipped = [];
 let artSkips = 0;
-/** The kernel's suites: each a bare .js file run under node with the harness's one-global shim. */
+/** The kernel's suites, and the world engine's (src/genesis/: the world editor's engine, its composition, the world
+ *  file, certificates, the genesis CLI and MCP server): each a bare .js file run under node with the harness's shim. */
 const KERNEL = fs.readdirSync(path.join(ROOT, 'tools/test/kernel')).filter(f => f.endsWith('.test.js')).sort();
+const GENESIS = fs.readdirSync(path.join(ROOT, 'tools/test/genesis')).filter(f => f.endsWith('.test.js')).sort();
 const jobs = [
   ...CHECKS.map(([name, file]) => ({ name, file, args: [] })),
   ...KERNEL.map(f => ({ name: 'kernel-' + f.replace(/\.test\.js$/, ''), file: `tools/test/kernel/${f}`, args: ['--import', './tools/test/kernel/shim.mjs'] })),
+  ...GENESIS.map(f => ({ name: 'genesis-' + f.replace(/\.test\.js$/, ''), file: `tools/test/genesis/${f}`, args: ['--import', './tools/test/kernel/shim.mjs'] })),
   ...PURE.map(name => ({ name, file: `tools/test/${name}.mjs`, args: [] })),
   ...VENDORED.map(name => ({ name, file: `tools/test/${name}.mjs`, args: ['--import', HOOK] })),
   { name: 'atlas', file: 'tools/test/atlas/run.mjs', args: [] },

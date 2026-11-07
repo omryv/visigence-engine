@@ -10,6 +10,7 @@
 // stays wet.
 
 import * as THREE from "three";
+import { instancedBufferAttribute } from "three/tsl";
 
 const POOL = 8;
 const LIFE = 1.1;         // seconds
@@ -27,11 +28,17 @@ export class SplashFX {
         color: 0xdff4f0, transparent: true, opacity: 0, depthWrite: false,
       }));
       ring.visible = false;
-      const dropGeo = new THREE.BufferGeometry();
-      dropGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(DROPS_PER * 3), 3));
-      const drops = new THREE.Points(dropGeo, new THREE.PointsMaterial({
+      // World-sized droplets: an instanced sprite per drop (WebGPU draws a
+      // point one pixel wide), sized and attenuated exactly as PointsMaterial
+      // sized a point.
+      const dropPos = new THREE.InstancedBufferAttribute(new Float32Array(DROPS_PER * 3), 3);
+      const dropMat = new THREE.PointsNodeMaterial({
         color: 0xeaf6f4, size: 0.16, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true,
-      }));
+      });
+      dropMat.positionNode = instancedBufferAttribute(dropPos);
+      const drops = new THREE.Sprite(dropMat);
+      drops.count = DROPS_PER;
+      drops.userData.position = dropPos;
       drops.visible = false;
       drops.frustumCulled = false;
       this.group.add(ring, drops);
@@ -50,7 +57,7 @@ export class SplashFX {
     s.ring.scale.setScalar(0.3);
     s.ring.material.opacity = 0.85;
     s.ring.visible = true;
-    const pos = s.drops.geometry.attributes.position.array;
+    const pos = s.drops.userData.position.array;
     for (let i = 0; i < DROPS_PER; i++) {
       const a = Math.random() * Math.PI * 2, r0 = Math.random() * 0.3 * strength;
       pos[i * 3] = x + Math.cos(a) * r0;
@@ -62,7 +69,7 @@ export class SplashFX {
       s.vel[i * 3 + 1] = up;
       s.vel[i * 3 + 2] = Math.sin(a) * out;
     }
-    s.drops.geometry.attributes.position.needsUpdate = true;
+    s.drops.userData.position.needsUpdate = true;
     s.drops.material.opacity = 0.9;
     s.drops.visible = true;
     this._live.push(s);
@@ -83,14 +90,14 @@ export class SplashFX {
       }
       s.ring.scale.setScalar(0.3 + k * 4.2 * s.r);
       s.ring.material.opacity = 0.85 * (1 - k) * (1 - k);
-      const pos = s.drops.geometry.attributes.position.array;
+      const pos = s.drops.userData.position.array;
       for (let i = 0; i < DROPS_PER; i++) {
         pos[i * 3] += s.vel[i * 3] * dt;
         s.vel[i * 3 + 1] -= 9.8 * dt;
         pos[i * 3 + 1] += s.vel[i * 3 + 1] * dt;
         pos[i * 3 + 2] += s.vel[i * 3 + 2] * dt;
       }
-      s.drops.geometry.attributes.position.needsUpdate = true;
+      s.drops.userData.position.needsUpdate = true;
       s.drops.material.opacity = 0.9 * (1 - k);
     }
     return true;
@@ -100,8 +107,7 @@ export class SplashFX {
     this._ringGeo.dispose();
     for (const s of [...this._live, ...this._free]) {
       s.ring.material.dispose();
-      s.drops.geometry.dispose();
-      s.drops.material.dispose();
+      s.drops.material.dispose();   // the sprite's quad is three's, shared by every sprite
     }
   }
 }

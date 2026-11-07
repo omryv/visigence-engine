@@ -8,9 +8,10 @@
  * comments stripped, boundary.test.js-style, because this cannot be asked by
  * running anything.
  *
- * The allowlist is every file that legitimately SAYS a resolution: the two
- * definition sites, sculpt.js's own documented grid and the level spec's
- * named bake field. A decimal (0.513) is not a grid. The scan covers the
+ * The allowlist is every file that legitimately SAYS a resolution: the three
+ * definition sites, sculpt.js's own documented grid, the level spec's named
+ * bake field, the exporter's named mesh resolution and one saved world
+ * document. A decimal (0.513) is not a grid. The scan covers the
  * whole engine (src/, the kernel inside it, and editor/).
  */
 import { test, ok, report } from "./harness.js";
@@ -25,6 +26,9 @@ const ALLOWED = new Set([
   "src/kernel/terrain/skyvis.js",      // SKYVIS_RES = 257, the definition
   "src/kernel/terrain/sculpt.js",      // its own 257² offset grid, documented there
   "src/world/buildSpec.js",            // a game level's bake (heightRes), a named field of the level spec
+  "src/genesis/Engine.js",             // QUICK_FIELD_RES = 257, the definition
+  "src/genesis/world/export-world.js", // EXPORT_MESH_RES = 257, a named presentation choice
+  "src/genesis/world/default-world.js",// a checked-in SAVED DOCUMENT, pasted verbatim
 ]);
 
 // The same stripper idea as boundary.test.js: comments go, strings stay.

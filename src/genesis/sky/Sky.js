@@ -4,116 +4,88 @@
 // colour — all driven by params.sky.timeOfDay.
 
 import * as THREE from "three";
+import {
+  Fn, vec2, vec3, float, positionLocal, screenCoordinate, normalize, clamp, mix, pow, max, dot, smoothstep, abs, step,
+  sin, floor,
+} from "three/tsl";
+import { uniform } from "three/tsl";
 import { Atmosphere } from "../render/atmosphere.js";
-import "../render/chunks.js";   // registers wg_output / wg_noise
+import { wgNoise, wgHash } from "../render/nodes.js";
 import { sunDirection, sunAltitudeSine } from "./sun.js";
 
-const VERT = /* glsl */`
-  varying vec3 vDir;
-  void main() {
-    vDir = normalize(position);
-    vec4 p = modelViewMatrix * vec4(position, 1.0);
-    gl_Position = (projectionMatrix * p).xyww; // depth = far plane
+/* The dome's own fbm STAYS here, deliberately. It is not the water's fbm under
+   another name: this one steps at lacunarity 2.03 with a +19.7 offset per
+   octave and is left unnormalised, and the volumetric tier buys two more
+   octaves. Water's runs three unrolled octaves at 2.13/4.41 with weights that
+   sum to one. Same shape, different function. `extra` (0 or 1) weighs octaves
+   five and six in, which is the GLSL's dynamic octave count without a loop
+   that compiles differently on the two backends. */
+function fbm(p, oct, extra = float(0)) {
+  let s = float(0), a = 0.5, q = p;
+  for (let i = 0; i < oct; i++) {
+    const term = wgNoise(q).mul(a);
+    s = s.add(i >= 4 ? term.mul(extra) : term);
+    q = q.mul(2.03).add(19.7); a *= 0.5;
   }
-`;
+  return s;
+}
 
-const FRAG = /* glsl */`
-  precision highp float;
-#include <wg_output>
-#include <wg_noise>
-  varying vec3 vDir;
-  uniform vec3 uSunDir;
-  uniform vec3 uHorizon;
-  uniform vec3 uZenith;
-  uniform vec3 uHaze;         // matches the aerial-perspective haze exactly
-  uniform float uHazeAmt;     // author's haze dial, 0 = clear sky to the horizon
-  uniform float uNight;       // 0 day … 1 night
-  uniform float uCloudCover;  // 0..1
-  uniform float uCloudScale;
-  uniform float uTime;
-  uniform float uVolumetric;  // 0 or 1
+/* The dome, as a colour node over the sphere's own direction: term for term
+   the GLSL FRAG this replaced, without its tone map (the renderer gives every
+   node material, this one included, the same ACES and sRGB) and with the
+   dither applied in linear before it. */
+function skyColor(u) {
+  return Fn(() => {
+    const d = normalize(positionLocal);
+    const t = clamp(d.y.mul(0.5).add(0.5), 0, 1);
+    const col = mix(u.uHorizon, u.uZenith, pow(t, 0.62)).toVar();
 
-  /* The dome's own fbm STAYS here, deliberately. It is not the water's fbm
-     under another name: this one takes a dynamic octave count (the volumetric
-     tier buys extra octaves), steps at lacunarity 2.03 with a +19.7 offset per
-     octave, and is left unnormalised. Water's runs three unrolled octaves at
-     2.13/4.41 with weights that sum to one. Same shape, different function —
-     merging them would be a merge of two tunings, not of two copies. */
-  float fbm(vec2 p, int oct) {
-    float s = 0.0, a = 0.5;
-    for (int i = 0; i < 6; i++) {
-      if (i >= oct) break;
-      s += a * wgNoise(p); p = p * 2.03 + 19.7; a *= 0.5;
-    }
-    return s;
-  }
+    // Horizon haze: the last few degrees above the skyline blend into the SAME
+    // colour the aerial perspective fades land into.
+    const band = float(1).sub(smoothstep(0, 0.16, abs(d.y)));
+    col.assign(mix(col, u.uHaze, band.mul(0.72).mul(u.uHazeAmt)));
 
-  void main() {
-    vec3 d = normalize(vDir);
-    float t = clamp(d.y * 0.5 + 0.5, 0.0, 1.0);
-    vec3 col = mix(uHorizon, uZenith, pow(t, 0.62));
+    // Sun disc + halo: limb-darkened, inside a broad forward-scattered glow
+    // that swells and reddens as the sun nears the horizon.
+    const sd = max(dot(d, u.uSunDir), 0);
+    const low = clamp(float(1).sub(u.uSunDir.y.mul(2.2)), 0, 1);
+    const disc = pow(sd, mix(1400, 520, low)).mul(float(0.75).add(pow(sd, 5000).mul(0.25)));
+    const halo = pow(sd, mix(30, 9, low)).mul(float(0.34).add(low.mul(0.5))).add(pow(sd, 3).mul(0.05).mul(low));
+    const sunCol = mix(vec3(1.0, 0.96, 0.88), vec3(1.0, 0.46, 0.22), low);
+    col.addAssign(sunCol.mul(disc.mul(3.4).add(halo)).mul(float(1).sub(u.uNight)));
 
-    // Horizon haze: the last few degrees above the skyline blend into the
-    // SAME colour the aerial perspective fades land into, so the world edge
-    // dissolves instead of ending on a hard line.
-    float band = 1.0 - smoothstep(0.0, 0.16, abs(d.y));
-    col = mix(col, uHaze, band * 0.72 * uHazeAmt);
+    // Moon: the sun path mirrored, cold and dim.
+    const md = max(dot(d, u.uSunDir.negate()), 0);
+    col.addAssign(vec3(0.55, 0.62, 0.75).mul(pow(md, 260).mul(1.4).add(pow(md, 24).mul(0.06))).mul(u.uNight));
 
-    // Sun disc + halo. The disc is limb-darkened (brighter core, softer rim)
-    // and sits inside a broad forward-scattered glow that swells and reddens
-    // as the sun nears the horizon — the dusty look of real low sun.
-    float sd = max(dot(d, uSunDir), 0.0);
-    float low = clamp(1.0 - uSunDir.y * 2.2, 0.0, 1.0);
-    float disc = pow(sd, mix(1400.0, 520.0, low));
-    disc *= 0.75 + 0.25 * pow(sd, 5000.0);            // limb darkening
-    float halo = pow(sd, mix(30.0, 9.0, low)) * (0.34 + low * 0.5)
-               + pow(sd, 3.0) * 0.05 * low;           // wide dusk scatter
-    vec3 sunCol = mix(vec3(1.0, 0.96, 0.88), vec3(1.0, 0.46, 0.22), low);
-    col += sunCol * (disc * 3.4 + halo) * (1.0 - uNight);
-
-    // Moon: reuse the sun path mirrored, cold and dim
-    float md = max(dot(d, -uSunDir), 0.0);
-    col += vec3(0.55, 0.62, 0.75) * (pow(md, 260.0) * 1.4 + pow(md, 24.0) * 0.06) * uNight;
-
-    // Stars fade in at night, only above the horizon
-    if (uNight > 0.02 && d.y > 0.0) {
-      vec2 sp = d.xz / (d.y + 0.35) * 140.0;
-      float star = step(0.9985, wgHash(floor(sp)));
-      float tw = 0.6 + 0.4 * sin(uTime * 2.0 + wgHash(floor(sp) + 7.0) * 40.0);
-      col += vec3(star) * tw * uNight * smoothstep(0.0, 0.15, d.y);
-    }
+    // Stars fade in at night, only above the horizon.
+    const sp = d.xz.div(d.y.add(0.35)).mul(140);
+    const star = step(0.9985, wgHash(floor(sp)));
+    const tw = float(0.6).add(sin(u.uTime.mul(2).add(wgHash(floor(sp).add(7)).mul(40))).mul(0.4));
+    col.addAssign(vec3(star).mul(tw).mul(u.uNight).mul(smoothstep(0, 0.15, d.y)).mul(step(0.02, u.uNight)).mul(step(0, d.y)));
 
     // Clouds: fbm slab projected on the dome, softened at the edges and
     // silver-lined where the sun sits behind them.
-    if (d.y > 0.015 && uCloudCover > 0.01) {
-      vec2 cp = d.xz / (d.y + 0.22) * 1.7 * uCloudScale + vec2(uTime * 0.008, uTime * 0.003);
-      int oct = uVolumetric > 0.5 ? 6 : 4;
-      float c = fbm(cp, oct);
-      // Wider ramp than before: wispy edges instead of a hard cut-out.
-      float cov = smoothstep(1.0 - uCloudCover, 1.0 - uCloudCover + 0.42, c);
-      // Cheap self-shadowing: resample toward the sun for a lit edge
-      float lit = fbm(cp + uSunDir.xz * 0.35, 3);
-      vec3 cloudCol = mix(vec3(0.5, 0.53, 0.6), vec3(1.06, 1.01, 0.97), clamp(lit + 0.25, 0.0, 1.0));
-      // Sun behind cloud → bright rim; low sun tints the whole underside.
-      float rim = pow(max(dot(d, uSunDir), 0.0), 14.0) * (1.0 - cov * 0.55);
-      cloudCol += mix(vec3(1.0, 0.92, 0.8), vec3(1.0, 0.6, 0.34), low) * rim * 0.9 * (1.0 - uNight);
-      cloudCol = mix(cloudCol, cloudCol * vec3(0.28, 0.3, 0.4), uNight);
-      float horizonFade = smoothstep(0.015, 0.12, d.y);
-      col = mix(col, cloudCol, cov * horizonFade * 0.92);
-      // Distant clouds sink into the same haze the land uses.
-      col = mix(col, uHaze, band * 0.5 * uHazeAmt);
-    }
+    const cp = d.xz.div(d.y.add(0.22)).mul(1.7).mul(u.uCloudScale).add(vec2(u.uTime.mul(0.008), u.uTime.mul(0.003)));
+    const c = fbm(cp, 6, u.uVolumetric);
+    const cov = smoothstep(float(1).sub(u.uCloudCover), float(1).sub(u.uCloudCover).add(0.42), c);
+    const lit = fbm(cp.add(u.uSunDir.xz.mul(0.35)), 3);
+    const cloudCol = mix(vec3(0.5, 0.53, 0.6), vec3(1.06, 1.01, 0.97), clamp(lit.add(0.25), 0, 1)).toVar();
+    const rim = pow(max(dot(d, u.uSunDir), 0), 14).mul(float(1).sub(cov.mul(0.55)));
+    cloudCol.addAssign(mix(vec3(1.0, 0.92, 0.8), vec3(1.0, 0.6, 0.34), low).mul(rim).mul(0.9).mul(float(1).sub(u.uNight)));
+    cloudCol.assign(mix(cloudCol, cloudCol.mul(vec3(0.28, 0.3, 0.4)), u.uNight));
+    const horizonFade = smoothstep(0.015, 0.12, d.y);
+    const clouds = step(0.015, d.y).mul(step(0.01, u.uCloudCover));
+    const withClouds = mix(mix(col, cloudCol, cov.mul(horizonFade).mul(0.92)), u.uHaze, band.mul(0.5).mul(u.uHazeAmt));
+    col.assign(mix(col, withClouds, clouds));
 
-    col = mix(col, col * vec3(0.09, 0.11, 0.19), uNight * (1.0 - t * 0.4));
-    // Same ACES + sRGB transform three gives the lit materials: the sun can
-    // now blow past 1.0 and roll off into white instead of clipping flat.
-    col = wfOutput(col);
+    col.assign(mix(col, col.mul(vec3(0.09, 0.11, 0.19)), u.uNight.mul(float(1).sub(t.mul(0.4)))));
     // Dither: a smooth gradient across a whole sky is exactly where 8-bit
     // banding shows, and it is very visible on phone OLEDs.
-    col += (wgHash(gl_FragCoord.xy) - 0.5) * 0.0035;
-    gl_FragColor = vec4(col, 1.0);
-  }
-`;
+    col.addAssign(wgHash(screenCoordinate.xy).sub(0.5).mul(0.0035));
+    return col;
+  })();
+}
 
 /* How hazy the dome is: the author's fog dial, scaled by how thick the air
    is. `turbidity` is the number a sky model uses for exactly this — how much
@@ -138,9 +110,8 @@ export class Sky {
     // Shares the engine's exposure so the dome tone-maps exactly like the
     // land does (standalone use gets a default rig).
     this.atmos = atmos || new Atmosphere(params);
+    const U = (v) => uniform(v);
     this.uniforms = {
-      uExposure: this.atmos.uniforms.uExposure,
-      uWfPost: this.atmos.uniforms.uWfPost, // linear output under the HDR pipeline
       uSunDir: { value: new THREE.Vector3(0, 1, 0) },
       uHorizon: { value: new THREE.Color(palette.sky.horizon) },
       uZenith: { value: new THREE.Color(palette.sky.zenith) },
@@ -152,10 +123,12 @@ export class Sky {
       uTime: { value: 0 },
       uVolumetric: { value: quality.cloudsVolumetric && params.sky.volumetric ? 1 : 0 },
     };
-    this.mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 32, 16),
-      new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms: this.uniforms, side: THREE.BackSide, depthWrite: false })
-    );
+    for (const k of Object.keys(this.uniforms)) this.uniforms[k] = U(this.uniforms[k].value);
+    // A dome drawn first (renderOrder −10) and never written to depth, so the
+    // world draws over it wherever it stands. The air is its own: no fog.
+    const material = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, depthWrite: false, fog: false });
+    material.colorNode = skyColor(this.uniforms);
+    this.mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16), material);
     this.mesh.frustumCulled = false;
     this.mesh.scale.setScalar(params.terrain.size * 4);
     this.mesh.renderOrder = -10;
@@ -178,6 +151,10 @@ export class Sky {
       // Terrain casts onto itself at grazing sun angles; normalBias is the
       // knob that kills the resulting acne without detaching contact shadows.
       this.sun.shadow.normalBias = 1.2;
+      // Redrawn only when a caster or the box moved: the engine sets
+      // needsUpdate (Engine._frame, _needsShadow).
+      this.sun.shadow.autoUpdate = false;
+      this.sun.shadow.needsUpdate = true;
       this._setShadowRadius(Math.min(params.terrain.size * 0.06, 260));
     }
     this.hemi = new THREE.HemisphereLight(palette.sky.zenith, 0x4a4038, 0.55);

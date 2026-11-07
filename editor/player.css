@@ -234,3 +234,10 @@ body:is([data-mode=play],[data-build=standalone]) .preview-panel.expanded :is(.g
 @media(max-width:600px){#player-front .front-brand>span{display:none}#player-front .front-nav{gap:14px}#player-front .front-nav nav{gap:4px;min-width:0}#player-front .front-nav nav button{padding:0 7px}}
 .genre-switch{flex-wrap:wrap;min-width:0;max-width:100%}.genre-switch button{white-space:nowrap}
 @media(max-width:600px){.genre-switch button{flex:1 1 auto;padding:0 12px}}
+
+/* A world handed over by World mode ("Play here"): named under the seed, with the way back to the seed's own world. */
+.carried-world{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:12px;padding:10px 12px;border:1px solid #ed9f5966;border-radius:6px;background:#ed9f5914}
+.carried-world span{font-size:9px;font-weight:700;letter-spacing:1.6px;color:#c9a27e}
+.carried-world strong{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;color:#f2f2ef}
+.carried-world button{margin-left:auto;border:1px solid #ffffff2e;background:none;color:#cfd3d8;font-size:11px;padding:5px 9px;border-radius:4px;cursor:pointer}
+.carried-world button:hover{color:#fff;border-color:#ffffff66}

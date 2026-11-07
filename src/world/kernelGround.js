@@ -66,12 +66,39 @@
  *
  * Pure: no three, no DOM, no clock, no Math.random. The same inputs give the same ground, bit for bit.
  */
-import { makeParams } from '../kernel/presets.js';
+import { makeParams, mergeParams } from '../kernel/presets.js';
+import { SculptLayer } from '../kernel/terrain/sculpt.js';
 import { createHeightSampler, EDGE_START } from '../kernel/terrain/heightfield.js';
 import { terrainParameterHash, hex } from '../kernel/terrain/fingerprint.js';
 import { compileMissionIntent, PLAYABLE_SCALE } from './missionIntent.js';
 import { r4, gridHash } from './layoutCore.js';
 import { DEFAULT_START } from './level/edits.js';
+
+/**
+ * THE WORLD A LEVEL IS CUT FROM. By default the seed's own (makeParams({ seed })). A project can carry instead the
+ * params of a world made in World mode (`worldParams`: its terrain and water, as the world editor holds them): a
+ * named world's grammar, its own intent, its sculpt strokes. Merged over the seed's defaults exactly as the world
+ * editor reads a world file, so the level stands on the ground the editor showed.
+ */
+export function worldParamsFor(seed, patch = null) {
+  const base = makeParams({ seed });
+  return patch ? mergeParams(base, patch) : base;
+}
+
+/**
+ * The world's height sampler, as the world editor draws it: the kernel's sampler (the world's own intent in it), plus
+ * its sculpt layer replayed over that base (src/kernel/terrain/sculpt.js SculptLayer, the editor's own replay).
+ */
+function worldSampler(params) {
+  const base = createHeightSampler(params);
+  const strokes = params.terrain?.sculpt;
+  if (!Array.isArray(strokes) || !strokes.length) return base;
+  const layer = new SculptLayer({ size: params.terrain.size });
+  layer.replay(strokes, base);
+  const h = (x, z) => base(x, z) + layer.offsetAt(x, z);
+  h.conditioning = base.conditioning;
+  return h;
+}
 
 /** Bump when a change makes the same inputs give a different ground. */
 export const KERNEL_GROUND_VERSION = 1;
@@ -204,7 +231,7 @@ export function groundSteps(mission, { places = [], square }) {
 export function groundInputs(project, blueprint, placements, rules) {
   const places = placements.filter(p => p.stepId && p.interaction).map(p => ({ step: p.stepId, x: p.x, z: p.z }));
   return {
-    seed: project.seed, size: rules.size, cell: rules.terrain.grid,
+    seed: project.seed, size: rules.size, cell: rules.terrain.grid, worldParams: project.worldParams ?? null,
     steps: groundSteps(blueprint.mission, { places, square: { x: 0, z: rules.paths.square.z } }),
     spawn: { x: DEFAULT_START.x, z: DEFAULT_START.z }, maxSlope: rules.terrain.traversal.maxSlope,
   };
@@ -229,17 +256,23 @@ const median = values => {
  *   heightHash: string, world: object, site: object, frame: object, intent: object, conditioning: object}
  *   | {ok: false, version: number, reason: string, world: object}}
  */
-export function kernelGround({ seed, size, cell, steps, spawn, maxSlope }) {
-  const params = makeParams({ seed });
-  const plain = createHeightSampler(params);
-  const world = { seed: params.seed, size: params.terrain.size, parameterHash: hex(terrainParameterHash(params)) };
+export function kernelGround({ seed, size, cell, steps, spawn, maxSlope, worldParams = null }) {
+  const params = worldParamsFor(seed, worldParams);
+  const plain = worldSampler(params);
+  const world = { seed: params.seed, size: params.terrain.size, parameterHash: hex(terrainParameterHash(params)),
+    ...(worldParams ? { params: worldParams } : {}) };
+  // A world that states its own ground (a named world's intent) keeps every statement; the mission's are added.
+  const own = Array.isArray(params.terrain.intent) ? params.terrain.intent : [];
   const span = size * SITE_SCALE;
   const ranked = rankSites(plain, params.terrain, span);
   if (!ranked.sites.length) {
     return { ok: false, version: KERNEL_GROUND_VERSION, world,
       reason: `no ${span} m site on this world stands ${SITE_DRY} m clear of the sea at a grade under ${SITE_SLOPE}` };
   }
-  // The first site of the ranking the mission's ground costs no more than SITE_NATS, converged and met.
+  // The first site of the ranking the mission's ground costs no more than SITE_NATS, converged and met. On a world
+  // that states its own ground the solve meets the world's statements and the mission's together, and the mission is
+  // charged only its own share (the joint cost less the world's alone, which is 0 on a seed's plain world).
+  const ownNats = plain.conditioning?.nats ?? 0;
   const tried = [];
   let site = null, frame = null, mission = null, conditioned = null, H = null;
   for (const candidate of ranked.sites.slice(0, SITE_TRIES)) {
@@ -248,9 +281,9 @@ export function kernelGround({ seed, size, cell, steps, spawn, maxSlope }) {
     const floor = Math.round(median(stands.map(([x, z]) => plain(...toPlate(x, z)))) * 100) / 100;
     const f = { originX: candidate.x, originZ: candidate.z, rotation: 0, scale: SITE_SCALE, h: floor, size: params.terrain.size };
     const m = compileMissionIntent({ mission: steps }, { frame: f, traversal: { maxSlope }, spawn: [spawn.x, spawn.z], seed });
-    const cp = { ...params, terrain: { ...params.terrain, intent: m.intent } };
-    const h = m.intent.length ? createHeightSampler(cp) : plain, c = h.conditioning;
-    const cost = c ? { nats: Math.round(c.nats * 100) / 100, miss: Math.round(c.miss * 1e4) / 1e4, converged: c.converged } : { nats: 0, miss: 0, converged: true };
+    const cp = { ...params, terrain: { ...params.terrain, intent: [...own, ...m.intent] } };
+    const h = m.intent.length ? worldSampler(cp) : plain, c = m.intent.length ? h.conditioning : null;
+    const cost = c ? { nats: Math.round((c.nats - ownNats) * 100) / 100, miss: Math.round(c.miss * 1e4) / 1e4, converged: c.converged } : { nats: 0, miss: 0, converged: true };
     tried.push({ x: candidate.x, z: candidate.z, ...cost });
     if (cost.converged && cost.nats <= SITE_NATS && cost.miss <= SITE_MET) { site = candidate; frame = f; mission = m; conditioned = cp; H = h; break; }
   }
@@ -268,13 +301,14 @@ export function kernelGround({ seed, size, cell, steps, spawn, maxSlope }) {
     if (v < min) min = v;
     if (v > max) max = v;
   }
-  const c = H.conditioning;
+  const c = mission.intent.length ? H.conditioning : null;
   return {
     ok: true, version: KERNEL_GROUND_VERSION, res, size, cell, heights, min, max, heightHash: hex(gridHash(heights)),
     world: { ...world, conditionedHash: hex(terrainParameterHash(conditioned)) },
     site: { ...site, candidates: ranked.candidates, dry: ranked.dry }, frame, tried,
     intent: { records: mission.intent, sources: mission.sources, rows: mission.rows, notes: mission.notes, maxGrade: mission.maxGrade },
-    conditioning: c ? { nats: c.nats, miss: c.miss, rows: c.rows, converged: c.converged, dropped: c.dropped } : null,
+    conditioning: c ? { nats: c.nats - ownNats, miss: c.miss, rows: c.rows, converged: c.converged, dropped: c.dropped,
+      ...(ownNats ? { worldNats: ownNats } : {}) } : null,
   };
 }
 
@@ -291,9 +325,10 @@ export function kernelGround({ seed, size, cell, steps, spawn, maxSlope }) {
  *   metres (past them is open sea)
  */
 export function worldAround(report) {
-  const params = makeParams({ seed: report.world.seed }), records = report.intent?.records ?? [];
+  const params = worldParamsFor(report.world.seed, report.world.params ?? null), records = report.intent?.records ?? [];
   if (!Array.isArray(records)) throw new TypeError('worldAround: the ground report carries no intent records');
-  const H = records.length ? createHeightSampler({ ...params, terrain: { ...params.terrain, intent: records } }) : createHeightSampler(params);
+  const own = Array.isArray(params.terrain.intent) ? params.terrain.intent : [];
+  const H = worldSampler(records.length ? { ...params, terrain: { ...params.terrain, intent: [...own, ...records] } } : params);
   const { originX, originZ, scale, h: floor } = report.frame, half = params.terrain.size / 2;
   const water = Number.isFinite(params.water?.level) ? params.water.level : 0;
   return {

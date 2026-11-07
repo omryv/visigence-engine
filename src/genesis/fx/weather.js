@@ -12,126 +12,76 @@
 // in over seconds instead of snapping.
 
 import * as THREE from "three";
+import {
+  Fn, If, Discard, uniform, texture, attribute, instancedBufferAttribute, uv, varying, vec2, vec3, vec4, float,
+  fract, sin, cos, mod, abs, max, pow, length, normalize, smoothstep, step, cameraPosition, positionView,
+} from "three/tsl";
 
 // The volume that follows the camera. Tall enough that streaks never pop
 // into existence inside the frame at walking eye height.
 const BOX_R = 42;
 const BOX_H = 34;
 
-const PRECIP_VERT = /* glsl */`
-  attribute vec3 aSeed;    // x, z in [0,1) column position, y = phase
-  attribute vec2 aCorner;  // quad corner in [-0.5, 0.5]
-  varying vec2 vUv;
-  varying float vAlpha;
-  uniform float uTime;
-  uniform vec3 uCenter;
-  uniform float uFall;     // metres per second, downward
-  uniform float uSway;     // horizontal drift amplitude
-  uniform float uSize;     // particle width
-  uniform float uLen;      // particle height (streak length)
-  /* Shelter: the same window on the world the materials read (js/shelter.js).
-     A drop under a roof is not drawn. This is the visible half of a building
-     being part of the weather — before it, rain fell through every roof in
-     the world and stood in the middle of the room with you. */
-  uniform sampler2D uShelter;
-  uniform float uShelterOn;
-  uniform vec2 uShelterOrigin;
-  uniform float uShelterScale;
-  uniform float uShelterBase;
-  uniform float uShelterRange;
-  float sheltered(vec3 p) {
-    if (uShelterOn < 0.5) return 0.0;
-    vec2 uv = (p.xz - uShelterOrigin) * uShelterScale;
-    if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) return 0.0;
-    vec4 t = texture2D(uShelter, uv);
-    if (t.a < 0.5) return 0.0;
-    float roofY = uShelterBase + (t.r + t.g / 255.0) * uShelterRange;
-    // No floor test: a drop is stopped by the roof whatever is under it, and
-    // one that has already fallen past the ceiling was never drawn.
-    return p.y <= roofY ? 1.0 : 0.0;
-  }
-  void main() {
-    vUv = aCorner + 0.5;
-    float boxR = ${BOX_R.toFixed(1)};
-    float boxH = ${BOX_H.toFixed(1)};
-    // Fall: each column loops through the volume on its own phase and pace.
-    float y01 = fract(aSeed.y - uTime * (uFall / boxH) * (0.8 + 0.4 * fract(aSeed.x * 7.31)));
-    // Sway: snow meanders, rain barely moves off vertical.
-    float swayT = uTime * (0.6 + fract(aSeed.z * 3.7)) + aSeed.y * 40.0;
-    vec2 sway = vec2(sin(swayT), cos(swayT * 0.83)) * uSway;
-    // Particles are WORLD-anchored on a repeating lattice; each takes the
-    // lattice copy nearest the viewer, so walking never outruns the weather
-    // and nothing slides along with the camera.
-    vec2 seedXZ = vec2(aSeed.x, aSeed.z) * boxR * 2.0 + sway;
-    vec2 rel = mod(seedXZ - uCenter.xz, boxR * 2.0) - boxR;
-    vec3 world = vec3(uCenter.x + rel.x, uCenter.y + (y01 - 0.4) * boxH, uCenter.z + rel.y);
-    // Face the camera in the XZ plane; keep the streak vertical.
-    vec3 toCam = cameraPosition - world;
-    vec3 right = normalize(vec3(-toCam.z, 0.0, toCam.x) + vec3(1e-5));
-    world += right * (aCorner.x * uSize);
-    world.y += aCorner.y * uLen;
-    // Fade near the volume's vertical ends so recycling is invisible.
-    vAlpha = smoothstep(0.0, 0.08, y01) * smoothstep(1.0, 0.92, y01)
-           * (1.0 - sheltered(world));
-    gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
-  }
-`;
+/* The precipitation volume, as nodes: term for term the GLSL vertex program
+   (each column loops through the volume on its own phase and pace, sways,
+   takes the lattice copy nearest the viewer, faces the camera in XZ, and is
+   not drawn under a roof), and the two drop shapes. */
+function precipNodes(u, rain) {
+  const seed = attribute("aSeed", "vec3"), corner = attribute("aCorner", "vec2");
+  const boxR = float(BOX_R), boxH = float(BOX_H);
+  const y01 = fract(seed.y.sub(u.uTime.mul(u.uFall.div(boxH)).mul(float(0.8).add(fract(seed.x.mul(7.31)).mul(0.4)))));
+  const swayT = u.uTime.mul(float(0.6).add(fract(seed.z.mul(3.7)))).add(seed.y.mul(40));
+  const sway = vec2(sin(swayT), cos(swayT.mul(0.83))).mul(u.uSway);
+  const seedXZ = vec2(seed.x, seed.z).mul(boxR.mul(2)).add(sway);
+  const rel = mod(seedXZ.sub(u.uCenter.xz), boxR.mul(2)).sub(boxR);
+  const base = vec3(u.uCenter.x.add(rel.x), u.uCenter.y.add(y01.sub(0.4).mul(boxH)), u.uCenter.z.add(rel.y));
+  const toCam = cameraPosition.sub(base);
+  const right = normalize(vec3(toCam.z.negate(), 0, toCam.x).add(vec3(1e-5)));
+  const world = base.add(right.mul(corner.x.mul(u.uSize))).add(vec3(0, corner.y.mul(u.uLen), 0));
+  // The roof stops a drop whatever is under it (no floor test).
+  const suv = world.xz.sub(u.uShelterOrigin).mul(u.uShelterScale);
+  const t = u.uShelter.sample(suv);
+  const roofY = u.uShelterBase.add(t.r.add(t.g.div(255)).mul(u.uShelterRange));
+  const inside = step(0, suv.x).mul(step(0, suv.y)).mul(step(suv.x, 1)).mul(step(suv.y, 1));
+  const sheltered = u.uShelterOn.mul(inside).mul(step(0.5, t.a)).mul(step(world.y, roofY));
+  // Fade near the volume's vertical ends so recycling is invisible.
+  const alpha = varying(smoothstep(0, 0.08, y01).mul(smoothstep(1, 0.92, y01)).mul(float(1).sub(sheltered)));
+  const vUv = varying(corner.add(0.5));
+  const fragment = Fn(() => {
+    if (rain) {
+      If(alpha.lessThan(0.004), () => { Discard(); });   // sheltered, or recycling
+      const core = float(1).sub(abs(vUv.x.sub(0.5)).mul(2));
+      const tips = smoothstep(0, 0.15, vUv.y).mul(smoothstep(1, 0.85, vUv.y));
+      return vec4(vec3(0.75, 0.82, 0.9), core.mul(tips).mul(alpha).mul(0.32));
+    }
+    const d = length(vUv.sub(0.5));
+    const a = smoothstep(0.5, 0.18, d).mul(alpha);
+    If(a.lessThan(0.01), () => { Discard(); });
+    return vec4(vec3(0.95, 0.97, 1.0), a.mul(0.85));
+  })();
+  return { positionNode: world, fragment };
+}
 
-const RAIN_FRAG = /* glsl */`
-  precision highp float;
-  varying vec2 vUv;
-  varying float vAlpha;
-  void main() {
-    if (vAlpha < 0.004) discard;   // sheltered, or recycling
-    float core = 1.0 - abs(vUv.x - 0.5) * 2.0;
-    float tips = smoothstep(0.0, 0.15, vUv.y) * smoothstep(1.0, 0.85, vUv.y);
-    gl_FragColor = vec4(vec3(0.75, 0.82, 0.9), core * tips * vAlpha * 0.32);
-  }
-`;
-
-const SNOW_FRAG = /* glsl */`
-  precision highp float;
-  varying vec2 vUv;
-  varying float vAlpha;
-  void main() {
-    float d = length(vUv - 0.5);
-    float a = smoothstep(0.5, 0.18, d) * vAlpha;
-    if (a < 0.01) discard;
-    gl_FragColor = vec4(vec3(0.95, 0.97, 1.0), a * 0.85);
-  }
-`;
-
-const FIREFLY_VERT = /* glsl */`
-  attribute float aSeed;
-  varying float vGlow;
-  uniform float uTime;
-  uniform float uNight;
-  float fhash(float n) { return fract(sin(n) * 43758.5453); }
-  void main() {
-    // Slow Lissajous wander around the seeded anchor (the position attr).
-    float t = uTime * (0.24 + fhash(aSeed) * 0.2) + aSeed * 13.0;
-    vec3 p = position + vec3(
-      sin(t) * 2.6 + sin(t * 2.7) * 0.8,
-      sin(t * 1.31 + aSeed) * 0.9,
-      cos(t * 0.87) * 2.6 + cos(t * 2.3) * 0.7);
-    // Breathe: each firefly pulses on its own clock, gated by night.
-    vGlow = uNight * (0.25 + 0.75 * pow(0.5 + 0.5 * sin(uTime * (1.4 + fhash(aSeed + 1.0)) + aSeed * 51.0), 3.0));
-    vec4 mv = viewMatrix * vec4(p, 1.0);
-    gl_PointSize = 130.0 / max(-mv.z, 1.0);
-    gl_Position = projectionMatrix * mv;
-  }
-`;
-
-const FIREFLY_FRAG = /* glsl */`
-  precision highp float;
-  varying float vGlow;
-  void main() {
-    float d = length(gl_PointCoord - 0.5);
-    if (d > 0.5 || vGlow < 0.02) discard;
-    float a = smoothstep(0.5, 0.05, d) * vGlow;
-    gl_FragColor = vec4(vec3(1.9, 2.4, 0.7) * a, a);
-  }
-`;
+/* Fireflies: a slow Lissajous wander around each seeded anchor, breathing on
+   its own clock, gated by night. Sized sprites (WebGPU draws points one pixel
+   wide), one instance per firefly. */
+function fireflyNodes(material, anchors, seeds, u) {
+  const P = instancedBufferAttribute(anchors), s = instancedBufferAttribute(seeds);
+  const fhash = (n) => fract(sin(n).mul(43758.5453));
+  const t = u.uTime.mul(float(0.24).add(fhash(s).mul(0.2))).add(s.mul(13));
+  material.positionNode = P.add(vec3(
+    sin(t).mul(2.6).add(sin(t.mul(2.7)).mul(0.8)),
+    sin(t.mul(1.31).add(s)).mul(0.9),
+    cos(t.mul(0.87)).mul(2.6).add(cos(t.mul(2.3)).mul(0.7))));
+  const glow = varying(u.uNight.mul(float(0.25).add(pow(sin(u.uTime.mul(float(1.4).add(fhash(s.add(1)))).add(s.mul(51))).mul(0.5).add(0.5), 3).mul(0.75))));
+  material.sizeNode = float(130).div(max(positionView.z.negate(), 1));
+  material.fragmentNode = Fn(() => {
+    const d = length(uv().sub(0.5));
+    If(d.greaterThan(0.5).or(glow.lessThan(0.02)), () => { Discard(); });
+    const a = smoothstep(0.5, 0.05, d).mul(glow);
+    return vec4(vec3(1.9, 2.4, 0.7).mul(a), a);
+  })();
+}
 
 function precipGeometry(count) {
   const pos = new Float32Array(count * 4 * 3); // unused, three wants it
@@ -156,6 +106,9 @@ function precipGeometry(count) {
   return geo;
 }
 
+/* What the shelter node samples before a world exists (uShelterOn keeps it unread). */
+const NO_SHELTER = (() => { const t = new THREE.DataTexture(new Uint8Array(4), 1, 1); t.needsUpdate = true; return t; })();
+
 export class WeatherFX {
   constructor({ quality, layer = null }) {
     this.group = new THREE.Group();
@@ -163,20 +116,20 @@ export class WeatherFX {
     this.quality = quality;
     this.layer = layer; // meshes built later (setMode) must land on it too
     this.mode = "clear";
-    this._timeU = { value: 0 };
-    this._centerU = { value: new THREE.Vector3() };
-    this._nightU = { value: 0 };
+    this._timeU = uniform(0);
+    this._centerU = uniform(new THREE.Vector3());
+    this._nightU = uniform(0);
     this._precip = null;
     /* The shelter window, shared by reference with the atmosphere patch so
        the drops and the surfaces they wet can never disagree about where the
        roofs are. Handed over by the engine once a world exists. */
     this._shelterU = {
-      uShelter: { value: null },
-      uShelterOn: { value: 0 },
-      uShelterOrigin: { value: new THREE.Vector2() },
-      uShelterScale: { value: 1 / 160 },
-      uShelterBase: { value: 0 },
-      uShelterRange: { value: 64 },
+      uShelter: texture(NO_SHELTER),
+      uShelterOn: uniform(0),
+      uShelterOrigin: uniform(new THREE.Vector2()),
+      uShelterScale: uniform(1 / 160),
+      uShelterBase: uniform(0),
+      uShelterRange: uniform(64),
     };
 
     // Fireflies exist from the start (they cost one draw call and vanish by
@@ -188,14 +141,13 @@ export class WeatherFX {
       const seed = new Float32Array(n);
       this._flyPos = pos;
       for (let i = 0; i < n; i++) seed[i] = i * 1.618 + 0.5;
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
-      this._fireflies = new THREE.Points(geo, new THREE.ShaderMaterial({
-        vertexShader: FIREFLY_VERT, fragmentShader: FIREFLY_FRAG,
-        uniforms: { uTime: this._timeU, uNight: this._nightU },
-        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-      }));
+      this._flyAttr = new THREE.InstancedBufferAttribute(pos, 3);
+      const mat = new THREE.PointsNodeMaterial({
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: false, fog: false,
+      });
+      fireflyNodes(mat, this._flyAttr, new THREE.InstancedBufferAttribute(seed, 1), { uTime: this._timeU, uNight: this._nightU });
+      this._fireflies = new THREE.Sprite(mat);
+      this._fireflies.count = n;
       this._fireflies.frustumCulled = false;
       this._fireflies.visible = false;
       this.group.add(this._fireflies);
@@ -217,7 +169,7 @@ export class WeatherFX {
       pos[i * 3 + 1] = sampler(x, z) + 0.5 + Math.random() * 2.2;
       pos[i * 3 + 2] = z;
     }
-    this._fireflies.geometry.attributes.position.needsUpdate = true;
+    this._flyAttr.needsUpdate = true;
     this._flyAnchor = { x: cx, z: cz };
   }
 
@@ -239,20 +191,17 @@ export class WeatherFX {
     if (mode === "rain" || mode === "snow") {
       const rain = mode === "rain";
       const count = rain ? this.quality.rainCount : this.quality.snowCount;
-      this._precip = new THREE.Mesh(precipGeometry(count), new THREE.ShaderMaterial({
-        vertexShader: PRECIP_VERT,
-        fragmentShader: rain ? RAIN_FRAG : SNOW_FRAG,
-        uniforms: {
-          uTime: this._timeU,
-          uCenter: this._centerU,
-          uFall: { value: rain ? 34 : 2.6 },
-          uSway: { value: rain ? 0.25 : 2.2 },
-          uSize: { value: rain ? 0.018 : 0.062 },
-          uLen: { value: rain ? 0.62 : 0.062 },
-          ...this._shelterU,
-        },
-        transparent: true, depthWrite: false,
-      }));
+      const u = {
+        uTime: this._timeU, uCenter: this._centerU,
+        uFall: uniform(rain ? 34 : 2.6), uSway: uniform(rain ? 0.25 : 2.2),
+        uSize: uniform(rain ? 0.018 : 0.062), uLen: uniform(rain ? 0.62 : 0.062),
+        ...this._shelterU,
+      };
+      const nodes = precipNodes(u, rain);
+      const material = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false });
+      material.positionNode = nodes.positionNode;
+      material.fragmentNode = nodes.fragment;
+      this._precip = new THREE.Mesh(precipGeometry(count), material);
       this._precip.frustumCulled = false;
       if (this.layer !== null) this._precip.layers.set(this.layer);
       this.group.add(this._precip);
@@ -264,7 +213,7 @@ export class WeatherFX {
      so later redraws need no second call. */
   setShelter(texture, field) {
     const u = this._shelterU;
-    u.uShelter.value = texture;
+    u.uShelter.value = texture || NO_SHELTER;
     u.uShelterOn.value = texture && field ? 1 : 0;
     if (!field) return;
     const f = field.uniforms();

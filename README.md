@@ -1,100 +1,109 @@
 # Visigence Engine
 
-One tool, one engine. **Every seed is a world**: the Genesis Kernel grows a 4 km world from a seed, and everything
-here stands on that world. You see it whole, play a mission on a site of it, remix the mission, build your own
-levels on it, and put yourself in it from a photograph. One page, one renderer (three.js `WebGPURenderer`, WebGPU
-first and WebGL2 only where the browser has no WebGPU), one kernel, one repository.
+One tool, one engine. **Every seed is a world**: the Genesis Kernel grows a world from a seed, the world engine
+lets you shape it (named worlds with towns and roads, sculpting, rivers, props, weather, walking and flying), and
+the game engine plays missions on it, a level cut from the very ground you made. One repository, one kernel, one
+renderer: three.js `WebGPURenderer` (WebGPU, with WebGL2 only where a browser has no WebGPU), and every shader is a
+TSL node graph that compiles to WGSL and, for that fallback, to GLSL.
 
-This repository replaces four: `omryv/Visigenesis` (the kernel and its world engine), `omryv/3dgen` (Visigames, the
-game engine this is built on), `omryv/3d` (atlas-core, the photograph reconstruction) and `omryv/2dgen` (the 2D
-builder, **not yet brought**: see below). Those are archived. Nothing here imports anything outside this repository.
+This repository replaces four: `omryv/Visigenesis` (the kernel and its world engine and editor), `omryv/3dgen`
+(Visigames, the game engine), `omryv/3d` (atlas-core, the photograph reconstruction) and `omryv/2dgen` (the 2D
+builder; its core is here, its mode is not yet: see below). Those are archived. Nothing here imports anything outside
+this repository.
 
 ## The modes
 
 | Mode | What it does | Where |
 |---|---|---|
-| **World** | The seed's whole world: the kernel's canonical ground (513², eroded by droplets, flooded from the sea, drained), drawn on the engine's renderer, with the sites a level can stand on marked. Change the seed and a new world grows. **Play here** opens a mission on it. The page opens here. | `editor/worldMode.js`, `src/world/worldMap.js`, `src/world/worldWorker.js`, `src/render/WorldView.js` |
-| **Play** | A ready mission in one of five genres (shooter, exploration, action adventure, arena, collect-a-thon), standing on a 640 m site of the seed's world, played at 1:8. | `editor/playerFront.js`, `src/game/`, [docs/GENRES.md](docs/GENRES.md) |
+| **World** (`/world`) | The world engine's editor: a seed's world with its sky, sea, weather and time of day; named worlds (Farshore, Lonepalm) with their towns, roads and props; sculpting, rivers, grass and scatter; orbit, walk and fly; the world file, its certificate and the exporters. **Play here** plays a mission on this world. | `world.html`, `editor/world/`, `src/genesis/` |
+| **Play** (`/`) | A ready mission in one of five genres (shooter, exploration, action adventure, arena, collect-a-thon). It stands on a 640 m site of the world, played at 1:8: the seed's own world, or the world World handed over. | `index.html`, `editor/playerFront.js`, `src/game/`, [docs/GENRES.md](docs/GENRES.md) |
 | **Remix** | The mission as a node graph: pools, steps, rules. | `editor/studio.js`, [docs/STUDIO.md](docs/STUDIO.md) |
 | **Build** | The 3D level editor: games of several levels, live checks, playtests, export with portal hooks. | `editor/build/`, [docs/EDITOR.md](docs/EDITOR.md) |
+| *Make* (`/make`) | A world from a sentence: a brief becomes a named world's dressing. | `make.html`, `editor/world/make.js` |
 | *See yourself* | A photograph becomes a figure on this device and a prop in a level (inside Play's prop importer, for now). | `src/atlas/`, below |
 
-The seed is one seed for the whole tool: the one World shows is the one Play's missions stand on. Only one GPU
-context is held at a time: World makes its renderer when it is shown and disposes it when it is left, and Play's
-session is let go (a mission still being prepared is cancelled) when World is entered.
+**Play here.** The world editor stores nothing on the visitor's machine (no local storage, no cookies), so it hands
+its world to Play in the link's fragment (`/?mode=play#world=…`, `src/world/worldLink.js`): the seed and the world's
+terrain and water params, about 700 characters for Farshore. Play opens in a new tab so the world being made stays
+open. The mission's ground is then cut from that world (`src/world/kernelGround.js` `worldParamsFor`): the named
+world's grammar, its own intent statements together with the mission's, and the author's sculpt strokes. The level
+carries the world it was cut from (`ground.world.params`), so the world drawn past its rim is the same world.
 
 ## What is not in yet
 
-Said plainly, because this is phase 1 of putting four repositories into one engine:
+Said plainly, because this replaces four repositories and not everything has arrived:
 
-- **2D** (`omryv/2dgen`: platformers, adventures, arena shooters, mazes and block puzzles on a grid, its solver and
-  generator, its iOS shell) is not here. It is the next mode to bring, onto this page and this seed.
-- **Me** (atlas-core's own page: the full reconstruction with its certificate, multi-view, the rig) is not here as a
-  mode. The reconstruction itself is (`src/atlas/`, with all eleven of its suites), and *See yourself* uses it.
-- **The world document and its tools** from Visigenesis: the `.world.json` file, the signed certificate, the
-  `genesis` CLI and its MCP server, the JSON schemas. The kernel's own records are here (`src/kernel/core/claims.js`,
-  `ground.js`'s manifest); the file format and the tools around it are not.
-- **Towns and roads.** Visigenesis composed named worlds (Farshore, Lonepalm) with settlements, roads and footings
-  (`js/landform.js`, `compose.js`, `roadnet.js` there). World mode shows the ground, the sea and the drainage, not
-  towns. Play's villages are the game's own, laid on the world's ground.
-- **Editing the world.** The kernel can sculpt (`src/kernel/terrain/sculpt.js`) and meet statements about the ground
-  (`condition.js`); World mode only shows.
-- **Four kernel suites** (ground, condition, overworld, ports) test the kernel through the world document and the
-  town builder above, so they wait for those. Their modules are here and covered by the other kernel suites.
-- **The WebGL renderer** Visigenesis drew with is not brought, on purpose: one renderer.
+- **2D** (`omryv/2dgen`): its core (`src/play2d/core/`: the grid, the catalog, the solver, the generator) is here,
+  because the world engine's 2D overworld projection uses it; the 2D builder's editor, runtime, templates and iOS
+  shell are not, so there is no 2D mode yet.
+- **Me** (atlas-core's own page: the full reconstruction with its certificate, multi-view, the rig) is not a mode yet.
+  The reconstruction itself is here (`src/atlas/`, all eleven of its suites), and *See yourself* uses it.
+- **visigenesis.com's front page** (the production blueprint with the live hero) stayed in the archived repository.
+- **Seeing a WebGPU frame in this repository's own checks.** Headless Chromium's WebGPU adapter (SwiftShader) loses
+  its device as soon as anything presents to a canvas, so the checks here prove the WebGPU programs another way:
+  `tools/test/check-wgsl.mjs` has three generate the WGSL for every material in a live world and compiles each one,
+  and the pixels are checked on the renderer's WebGL2 backend (the same node graphs, compiled to GLSL). On a real GPU
+  WebGPU runs the programs proved valid; nothing in this sandbox could show one running.
+- **The old editor's WebGL renderer** is not here, on purpose: the world engine's GLSL (terrain, sea, sky, air,
+  grass, scatter, fire, weather, pins and markers) was rewritten as TSL, term for term, and runs on the one renderer.
 
 ## Run it
 
 ```sh
-python3 tools/test/serve.py 8099      # then open http://localhost:8099/
+python3 tools/test/serve.py 8099      # then open http://localhost:8099/ (Play) or /world.html (World)
 node tools/build/build-preview.mjs    # the deployable site, in dist/
 ```
 
-Serve the repository root with anything that serves files (`serve.py` adds no-store caching); there is no install
-and no build step to run it, because three.js is vendored (`vendor/three/`) and every import is a relative file. The
-game's art is on R2 (`src/config/assetDelivery.js`); see [Assets and R2](#assets-and-r2).
+Serve the repository root with anything that serves files; there is no install and no build step to run it, because
+three.js is vendored (`vendor/three/`) and every import is a relative file. The game's art is on R2
+(`src/config/assetDelivery.js`); see [Assets and R2](#assets-and-r2). The world engine needs no art: everything it
+draws is generated.
 
-**Deploying.** Import this repository into Vercel with the repository root as the Root Directory. `vercel.json`
-skips installation, builds with `node tools/build/build-preview.mjs` and serves `dist/`: the tool at `/`.
+**Deploying.** Import this repository into Vercel with the repository root as the Root Directory. `vercel.json` skips
+installation, builds with `node tools/build/build-preview.mjs` and serves `dist/`: Play at `/`, World at `/world`.
 
 ## Layout
 
 | Path | What it is |
 |---|---|
-| `index.html` | The tool: one page, every mode |
-| `editor/` | The page's modes and dialogs: World (`worldMode.js`, `world.css`), the Play launcher, Remix, Build (`build/`), import, export |
-| `src/` | The engine: game, simulation, rendering (`render/`, one `WebGPURenderer` set up in `core/Renderer.js`), worlds and levels (`world/`), genres |
+| `index.html`, `world.html`, `make.html` | The tool's pages: the studio (Play, Remix, Build), World, and Make |
 | `src/kernel/` | The Genesis Kernel: seed, terrain, intent, erosion, flood, reach, claims. Pure: no three, no DOM, no clock, no randomness of its own, imports nothing outside itself |
-| `src/atlas/` | The single-image reconstruction (from atlas-core), with its browser half in `src/atlas/web/`. Pure in the same sense; reached only by the import dialog |
-| `packs/`, `specs/` | The Arcade content pack and level build specs |
-| `vendor/three/` | three.js r185, vendored, with its patches listed in `vendor/three/PATCHES.md` |
-| `tools/` | Checks, tests (`tools/test/`, with `kernel/` and `atlas/`), builds, the kernel's vector writers and Python port (`tools/kernel/`), the Blender kit |
+| `src/genesis/` | The world engine: `Engine.js` (one public API, on-demand rendering), terrain LOD, sea, rivers, sky, the air (`render/atmosphere.js`), props, grass, scatter, fire, weather, controllers; `render/nodes.js` is the TSL its shaders share |
+| `src/genesis/world/` | World composition: named worlds, landform, towns, roads and footings, interiors, the world file, its certificate, the exporters |
+| `src/` (the rest) | The game engine: game, simulation, rendering (`render/`, the one `WebGPURenderer` set up in `core/Renderer.js`), levels and their ground (`world/`), genres |
+| `src/atlas/` | The single-image reconstruction (from atlas-core), with its browser half in `src/atlas/web/` |
+| `src/play2d/core/` | The 2D builder's core (from 2dgen) |
+| `editor/`, `editor/world/` | The studio's page code; the world editor's page code and CSS |
+| `bin/`, `schema/` | The `genesis` CLI, its MCP server and verifier; the JSON schemas a world, its ground and its intent are held to |
+| `packs/`, `specs/`, `vendor/three/` | The Arcade content pack; level build specs; three.js r185, vendored, patches in `vendor/three/PATCHES.md` |
+| `tools/` | Checks, tests (`tools/test/`, with `kernel/`, `genesis/` and `atlas/`), builds, the kernel's vector writers and Python port, the Blender kit |
 
 ## Checking it
 
 There is no CI, on purpose. `sh check.sh` is the gate; run it before you push.
 
 ```sh
-sh check.sh                        # = node tools/test/run.mjs: the import and three checks, then every offline suite
-node tools/test/run.mjs kernel     # only the suites whose name contains "kernel"
-node tools/test/e2e-world.mjs      # World in headless Chromium: the kernel's world, drawn, handed to Play and back
-node tools/test/e2e-world.mjs --webgpu   # the same on WebGPU (see the harness for what this adapter cannot show)
-node tools/test/e2e-world.mjs --dist     # against the deployable build
-node tools/test/e2e-genres.mjs     # one mission per genre in headless Chromium
+sh check.sh                              # = node tools/test/run.mjs: the import and three checks, then every offline suite
+node tools/test/run.mjs genesis          # only the suites whose name contains "genesis"
+node tools/test/check-wgsl.mjs --world farshore   # every program a built world draws, compiled as WGSL
+node tools/test/e2e-world.mjs            # World builds Farshore, Play here plays a mission on it
+node tools/test/e2e-genres.mjs           # one mission per genre in headless Chromium
 node tools/test/e2e-see-yourself.mjs     # the photograph to a figure, through the studio's own dialog
 ```
 
-`tools/test/run.mjs` runs, in order: `tools/check-imports.mjs` (every import resolves inside the repository, as a
-file and as a URL alike; only three.js is external; the kernel and the reconstruction import nothing outside
-themselves) and the vendored-three check; the kernel's suites (`tools/test/kernel/`, including its boundary: no DOM,
-storage, network, clock or `Math.random` inside it, and a manifest that is exactly its files); the engine's suites;
-and the reconstruction's eleven suites (`tools/test/atlas/`, the slow part: about four minutes). Eight suites read the
+`tools/test/run.mjs` runs, in order: `tools/check-imports.mjs` (every import resolves inside the repository, as a file
+and as a URL alike; only three.js is external; the kernel and the reconstruction import nothing outside themselves)
+and the vendored-three check; the kernel's suites (`tools/test/kernel/`, its boundary included: no DOM, storage,
+network, clock or `Math.random` inside it, and a manifest that is exactly its files); the world engine's suites
+(`tools/test/genesis/`: composition, the world file, certificates, exporters, the CLI and MCP server); the game
+engine's suites; and the reconstruction's eleven (`tools/test/atlas/`, about four minutes). Eight suites read the
 game's art and skip, loudly, until the R2 cache exists (`npm run assets:fetch`; `--require-assets` makes a skip a
-failure).
+failure). The browser harnesses need Chromium and are not in the runner.
 
-The browser harnesses need Chromium (pre-installed where this was written) and are not in the runner. In headless
-Chromium the WebGPU adapter is SwiftShader's, which can neither show nor return a WebGPU frame, so
-`e2e-world.mjs` checks pixels on the renderer's WebGL2 backend, the same TSL scene compiled to GLSL, and says so.
+**Known failing:** `node tools/test/e2e-genres.mjs --only exploration` fails its scripted walk (7 checks) in headless
+Chromium, the same way in the archived repository before any of this work; the same mission's walk passes in Node
+(the walker reaches the station in 181 ticks), so the fault is in how the harness drives the browser session, not in
+the game. It is the next thing to fix.
 
 ## Standing on the world
 

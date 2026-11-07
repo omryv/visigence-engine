@@ -13,8 +13,10 @@ writeAssetManifest(); // Validate the committed inventory; art is served from R2
 // This path is fixed to the repository's generated output; never take it from user input.
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
-// The one tool is the site: index.html at the root, exactly as in a checkout.
-cpSync(path.join(root, 'index.html'), path.join(output, 'index.html'));
+// The one tool is the site, exactly as in a checkout: the studio (Play, Remix, Build) at index.html, World (the world
+// engine's editor) at world.html, the brief-to-world page at make.html, and the icons they link.
+for (const page of ['index.html', 'world.html', 'make.html', 'favicon.png', 'apple-touch-icon.png'])
+  cpSync(path.join(root, page), path.join(output, page));
 for (const directory of directories) {
   cpSync(path.join(root, directory), path.join(output, directory), {
     recursive: true,
@@ -24,4 +26,4 @@ for (const directory of directories) {
     },
   });
 }
-console.log('Visigence Engine built in dist/ (the tool at /index.html; the kernel at src/kernel/, the reconstruction at src/atlas/; art served from R2)');
+console.log('Visigence Engine built in dist/ (Play, Remix and Build at /, World at /world; the kernel at src/kernel/, the world engine at src/genesis/, the reconstruction at src/atlas/; art served from R2)');

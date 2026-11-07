@@ -46,6 +46,8 @@ import { OrbitEditor, WalkController, FlyController } from "./player/controllers
 import { TouchControls, isTouchDevice } from "./player/touch-controls.js";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { scriptURL } from "./trusted.js";
+import { createRenderer } from "../core/Renderer.js";
+import { worldFog } from "./render/atmosphere.js";
 
 // See _kickErosion: the quadtree depth ceiling while erosion is in flight.
 const EROSION_DEPTH_CAP = 2;
@@ -84,6 +86,30 @@ const MAX_FRAME_DT = 0.25;
 export { DEFAULT_PARAMS, THEMES, PALETTES, makeParams, mergeParams, randomSeed, normalizeSeed, elevNorm, bakeHeightField, createHeightSampler, resolveDetail, DETAIL_PROTOTYPES, WIND_DEFAULTS };
 
 export class Engine {
+  /**
+   * The engine on the engine's one renderer (core/Renderer.js): WebGPU, or
+   * WebGL2 only where the browser offers no WebGPU (and on WebKit, where that
+   * backend is the one seen to render correctly). The renderer initialises
+   * asynchronously, so this is the way to make an engine; the constructor
+   * takes the finished renderer.
+   */
+  static async create(canvas, params = null, opts = {}) {
+    const probe = probeDevice(opts.quality);
+    const tier = opts.quality || probe.tier;
+    const preset = resolveQuality(null, tier);
+    let engine = null;
+    const boot = await createRenderer({
+      canvas,
+      tier: { antialias: true, maxPixelRatio: preset.pixelRatio, shadows: preset.shadows,
+        shadowMapSize: preset.shadowRes || 2048, softShadows: false },
+      onDeviceLost: (info) => engine?._deviceLost(info),
+      onNeedFreshCanvas: () => { const next = canvas.cloneNode(); canvas.replaceWith(next); canvas = next; return next; },
+    });
+    const { renderer, backend } = await boot.settle();
+    engine = new Engine(renderer.domElement, params, { ...opts, renderer, backend, quality: tier });
+    return engine;
+  }
+
   constructor(canvas, params = null, opts = {}) {
     this.canvas = canvas;
     this.params = params || structuredClone(DEFAULT_PARAMS);
@@ -99,10 +125,11 @@ export class Engine {
     this._adoptedGround = null;
     if (opts.ground) this.adoptGround(opts.ground);
 
-    const probe = probeDevice(opts.quality);
-    this.renderer = new THREE.WebGLRenderer({
-      canvas, antialias: true, powerPreference: "high-performance",
-    });
+    if (!opts.renderer) throw new Error("Engine: make one with `await Engine.create(canvas, params, opts)` — the renderer initialises asynchronously");
+    const probe = { tier: opts.quality || "medium" };
+    this.renderer = opts.renderer;
+    /** "webgpu" or "webgl2": which backend the one renderer is running on. */
+    this.backend = opts.backend || "webgpu";
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
     // The probed tier is reused rather than re-detected, so the tier the
@@ -117,10 +144,10 @@ export class Engine {
     // Driven explicitly (see _needsShadow): with autoUpdate the 2048² cascade
     // is re-rendered on every single draw, and ambient animation means every
     // frame — a full shadow pass over every terrain tile and every placed
-    // block, 60 times a second, for a world that has not moved.
-    this.renderer.shadowMap.autoUpdate = false;
-    this.renderer.shadowMap.needsUpdate = true;
-    console.info("[engine] quality preset:", this.quality.tier);
+    // block, 60 times a second, for a world that has not moved. Under the
+    // node renderer that switch is the light's own (LightShadow.autoUpdate,
+    // set where the sun is made: sky/Sky.js), not the renderer's.
+    console.info("[engine] quality preset:", this.quality.tier, "· backend:", this.backend);
 
     this.scene = new THREE.Scene();
     /* Near 0.22, and the number is load-bearing: walk-mode collision holds
@@ -137,6 +164,11 @@ export class Engine {
     // thin floor above water and takes over entirely when submerged.
     this.atmos = new Atmosphere(this.params);
     this.scene.fog = new THREE.FogExp2(0xffffff, this._fogDensity());
+    // One fog node for every material: the aerial perspective and this thin
+    // ground fog, composed the way the patched materials composed them
+    // (render/atmosphere.js worldFog). It reads scene.fog's live colour and
+    // density, so every place below that sets them still drives the frame.
+    this.scene.fogNode = worldFog(this.atmos, this.scene.fog);
 
     /* ── the graphics-boost rigs (all tier-gated, all optional) ──
        post: HDR bloom + god rays + cinematic finish. When it constructs
@@ -317,40 +349,12 @@ export class Engine {
     };
     addEventListener("keydown", this._onInteractKey);
 
-    /* ── GPU context loss ──
-       The WebGL equivalent of a lost device, and it is not exotic: phones drop
-       the context under memory pressure and desktops drop it on a driver
-       update. Without preventDefault() the browser will not even try to give
-       it back, so the canvas stays black for the rest of the session while the
-       loop keeps issuing draws into a dead context. */
-    this._onContextLost = (e) => {
-      e.preventDefault(); // REQUIRED — without it there is no restore event
-      this._running = false;
-      console.warn("[engine] WebGL context lost — pausing");
-      this._emit("context-lost", null);
-    };
-    this._onContextRestored = () => {
-      console.info("[engine] WebGL context restored — rebuilding GPU state");
-      this.renderer.resetState();
-      // Everything is still described in JS; three re-uploads on next use.
-      // What must be forced is what the engine caches itself.
-      if (this.terrain) this.terrain.rebuild();
-      if (this.grass) this.grass.rebuild();
-      // Render targets don't survive a lost context: rebuild the water
-      // mirror and recapture the sky IBL.
-      if (this.waterRefl) {
-        this.waterRefl.dispose();
-        this.waterRefl = new WaterReflection(this.quality.reflectionRes);
-      }
-      this._envDirty = true;
-      this._running = true;
-      this.invalidate();
-      this._schedule();   // no-op if the frame from before the loss is still queued
-      this._emit("context-restored", null);
-    };
-    canvas.addEventListener("webglcontextlost", this._onContextLost, false);
-    canvas.addEventListener("webglcontextrestored", this._onContextRestored, false);
-
+    /* ── losing the GPU ──
+       Phones drop the device under memory pressure and desktops drop it on a
+       driver update. core/Renderer.js reports it (onDeviceLost, wired in
+       Engine.create); the engine pauses rather than issue draws into a dead
+       device, and says so, so the shell can offer a reload. A lost WebGPU
+       device does not come back: a new renderer is a new engine. */
     this._clock = new THREE.Clock();
     this._running = true;
     /* ── exactly one loop, and the flag that makes it structural ──
@@ -382,6 +386,13 @@ export class Engine {
       this._frame();
     };
     this._schedule();
+  }
+
+  _deviceLost(info) {
+    this._running = false;
+    const why = typeof info === "string" ? info : info?.message || info?.reason || "no reason given";
+    console.warn("[engine] GPU device lost — pausing:", why);
+    this._emit("context-lost", { reason: why });
   }
 
   /** Ask for the next frame, unless one is already on its way. */
@@ -2622,7 +2633,7 @@ export class Engine {
     // Redraw the shadow map only when a caster (or the shadow box) actually
     // moved — not for wind, waves or drifting cloud.
     if (this._needsShadow) {
-      this.renderer.shadowMap.needsUpdate = true;
+      if (this.sky?.sun) this.sky.sun.shadow.needsUpdate = true;
       this._needsShadow = false;
       /* A stale history is worse than no history: quadtree tiles swapping
          LOD, a rebuilt grass field or a newly placed block all change what
@@ -2643,15 +2654,14 @@ export class Engine {
       // Dense enough that the murk closes in within ~60m — unmistakably
       // submerged, with the water's underside as a lit ceiling overhead.
       this.scene.fog.density = under ? Math.max(this._fogDensity() * 70, 0.018) : this._fogDensity();
-      this.renderer.toneMappingExposure = under ? 0.62 : 1.05;
-      this.atmos.uniforms.uExposure.value = this.renderer.toneMappingExposure; // sky + water follow
+      this.renderer.toneMappingExposure = under ? 0.62 : 1.05;   // the sky and the sea are tone mapped with the rest
     }
 
     // Planar water mirror, rendered first so the sea reflects THIS frame's
     // world. Only on frames that draw anyway, only from above the surface.
     if (this.waterRefl && this.water.mesh.visible && !under) {
       const hidden = [this.water.mesh, this._ghost?.object];
-      const ok = this.waterRefl.render(this.renderer, this.scene, this.camera, this.water.level, hidden);
+      const ok = this.waterRefl.render(this.renderer, this.scene, this.camera, this.water.level, hidden, this.sky?.sun);
       this.water.setReflection(ok ? this.waterRefl.target.texture : null, this.waterRefl.textureMatrix);
     } else if (this.waterRefl) {
       this.water.setReflection(null);
@@ -2695,8 +2705,6 @@ export class Engine {
     this._running = false;
     removeEventListener("resize", this._resize);
     removeEventListener("keydown", this._onInteractKey);
-    this.canvas.removeEventListener("webglcontextlost", this._onContextLost);
-    this.canvas.removeEventListener("webglcontextrestored", this._onContextRestored);
     this.clearGhost();
     if (this._gizmo) this._gizmo.dispose();
     if (this.touch) this.touch.dispose();

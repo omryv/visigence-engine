@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:visigenesis:schema:intent:2",
+  "title": "Visigenesis intent document",
+  "description": "A world asked for in statements about its ground. Each statement is a record engine/terrain/condition.js makes true by the least improbable change to the seed's own lattice; bin/genesis.mjs compile (or the genesis_compile MCP tool) turns a document into a world file, a certificate and a report of what every statement cost and missed. All coordinates are world metres on the plate, centred on (0, 0), +x east and +z south; all heights are metres above the world's sea level of 0.",
+  "$comment": "Version 2: the vocabulary of condition.js INTENT_VERSION 2. What a schema cannot state, and js/author.js intentDocumentErrors checks instead (tests/intent-schema.test.js holds the two to the same answer): every coordinate must lie on the plate, |x| and |z| at most size/2 (4096 m by default, 3072 m for farshore, 2048 m for lonepalm), a pad's whole ring included; a shoreline with a side must go somewhere and never turn straight back on itself; the whole list must state at most 640 rows (condition.js MAX_ROWS) and, with the records a named world brings, at most 48 records; and a document needs a seed, here or from the caller.",
+  "type": "object",
+  "required": ["kind", "version", "statements"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "description": "This schema's location, for an editor that reads it. Ignored by the compiler." },
+    "kind": { "const": "visigenesis.intent", "description": "What this object is." },
+    "version": { "const": 2, "description": "The statement vocabulary's version (condition.js INTENT_VERSION)." },
+    "seed": {
+      "type": "string", "minLength": 1, "maxLength": 64, "pattern": "[A-Za-z0-9]",
+      "description": "The world's name, e.g. \"K7QN-3F2A-9XBD\". Normalised the way engine/seed.js normalizeSeed does (\"k7qn\" is \"K7QN-2222-2222\"). Optional here when the caller passes one (--seed)."
+    },
+    "world": {
+      "enum": ["farshore", "lonepalm", null],
+      "description": "A world grammar (js/worlds.js) whose terrain, biome and water the statements are solved on, with the grammar's own bar intent ahead of them. null or absent: the engine's default params."
+    },
+    "title": { "type": "string", "maxLength": 48, "description": "A name for the world, carried into the compile report." },
+    "statements": {
+      "type": "array",
+      "maxItems": 48,
+      "description": "The statements, in order. Empty is the seed's own ground.",
+      "items": { "$ref": "#/$defs/statement" }
+    }
+  },
+  "$defs": {
+    "statement": {
+      "oneOf": [
+        { "$ref": "#/$defs/point" }, { "$ref": "#/$defs/summit" }, { "$ref": "#/$defs/flat" }, { "$ref": "#/$defs/level" },
+        { "$ref": "#/$defs/shoreline" }, { "$ref": "#/$defs/ray" }, { "$ref": "#/$defs/corridor" }, { "$ref": "#/$defs/pad" }
+      ]
+    },
+    "metres": { "type": "number", "description": "World metres." },
+    "op": { "enum": ["=", ">=", "<="], "description": "Equal to, at least, or at most. Default \"=\"." },
+    "xz": {
+      "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" },
+      "description": "A point on the plate: [x, z] in world metres."
+    },
+    "polyline": {
+      "type": "array", "minItems": 2, "maxItems": 64, "items": { "$ref": "#/$defs/xz" },
+      "description": "2 to 64 [x, z] vertices, sampled every 48 m (a shoreline) or 32 m (a corridor) between them."
+    },
+    "point": {
+      "type": "object", "required": ["type", "x", "z", "h"], "additionalProperties": false,
+      "description": "The ground at (x, z) stands at h metres — or at least or at most h, with op.",
+      "properties": {
+        "type": { "const": "point" },
+        "x": { "$ref": "#/$defs/metres" }, "z": { "$ref": "#/$defs/metres" }, "h": { "$ref": "#/$defs/metres" },
+        "op": { "$ref": "#/$defs/op" }
+      }
+    },
+    "summit": {
+      "type": "object", "required": ["type", "x", "z", "h"], "additionalProperties": false,
+      "description": "A point at h with no slope at it: a crest, a knoll.",
+      "properties": {
+        "type": { "const": "summit" },
+        "x": { "$ref": "#/$defs/metres" }, "z": { "$ref": "#/$defs/metres" }, "h": { "$ref": "#/$defs/metres" }
+      }
+    },
+    "flat": {
+      "type": "object", "required": ["type", "x", "z", "r"], "additionalProperties": false,
+      "description": "A level pad of radius r, at height h when given, at whatever height the ground chooses when not.",
+      "properties": {
+        "type": { "const": "flat" },
+        "x": { "$ref": "#/$defs/metres" }, "z": { "$ref": "#/$defs/metres" },
+        "r": { "type": "number", "minimum": 48, "description": "Radius, metres; at least 48 (two gradient steps)." },
+        "h": { "$ref": "#/$defs/metres" }
+      }
+    },
+    "pad": {
+      "type": "object", "required": ["type", "x", "z", "r", "h"], "additionalProperties": false,
+      "description": "A flat whose height is required.",
+      "properties": {
+        "type": { "const": "pad" },
+        "x": { "$ref": "#/$defs/metres" }, "z": { "$ref": "#/$defs/metres" },
+        "r": { "type": "number", "minimum": 48, "description": "Radius, metres; at least 48." },
+        "h": { "$ref": "#/$defs/metres" }
+      }
+    },
+    "level": {
+      "type": "object", "required": ["type", "h"], "additionalProperties": false,
+      "description": "The mean datum height over a centred square `inset` of the world wide (the height the ground would have if the sea floor were not compressed). Regional, not local.",
+      "properties": {
+        "type": { "const": "level" },
+        "h": { "$ref": "#/$defs/metres" },
+        "op": { "$ref": "#/$defs/op" },
+        "inset": { "type": "number", "minimum": 0.05, "maximum": 1, "description": "Share of the world's width; default 0.76." }
+      }
+    },
+    "shoreline": {
+      "type": "object", "required": ["type", "points"], "additionalProperties": false,
+      "description": "The waterline runs here: every sample along the line stands at the waterline, and with a side the ground `offset` metres that way is land (at least 2 m above) and the same distance the other way sea (at least 2 m below). Left and right are seen from above walking the line from its first point.",
+      "properties": {
+        "type": { "const": "shoreline" },
+        "points": { "$ref": "#/$defs/polyline" },
+        "side": { "enum": ["left", "right"], "description": "Which side is land." },
+        "offset": { "type": "number", "minimum": 12, "description": "How far either side the land and the sea are held, metres; default 40. Needs a side." },
+        "level": { "$ref": "#/$defs/metres", "description": "The waterline, metres; default the world's water level. Write it: then the record says everything the ground depends on." }
+      },
+      "dependentRequired": { "offset": ["side"] }
+    },
+    "ray": {
+      "type": "object", "required": ["type", "eye", "at"], "additionalProperties": false,
+      "description": "A sightline: the ground stays under the straight line from the eye to the far point, so the far point can be seen. With h and contact: true the line grazes the ground there — a silhouette.",
+      "properties": {
+        "type": { "const": "ray" },
+        "eye": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" }, "description": "[x, y, z]: the eye's position, y its height in metres." },
+        "at": { "$ref": "#/$defs/xz" },
+        "h": { "$ref": "#/$defs/metres", "description": "The far end's height. Without it the line ends on the conditioned ground at `at`." },
+        "contact": { "type": "boolean", "description": "With h: the ground at the far end stands at h (an equality, not a bound)." },
+        "samples": { "type": "integer", "minimum": 2, "maximum": 64, "description": "Points along the line, the eye's foot first; default 12." }
+      }
+    },
+    "corridor": {
+      "type": "object", "required": ["type", "points"], "additionalProperties": false,
+      "description": "A road's worth of ground: between neighbouring samples along the line the ground climbs or falls by at most maxGrade times their distance.",
+      "properties": {
+        "type": { "const": "corridor" },
+        "points": { "$ref": "#/$defs/polyline" },
+        "maxGrade": { "type": "number", "minimum": 0, "description": "Rise over run; default 0.12 (about 7 degrees)." }
+      }
+    }
+  }
+}

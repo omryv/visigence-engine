@@ -11,7 +11,11 @@ import { gridTexMapping } from "./texmap.js";
 import { PALETTES, paletteLut, shadeInto, shadeIntoBlend } from "../style/palettes.js";
 import { LAYER_INDEX, LAYER_PARAMS, LAYER_NAMES } from "./detail-layers.js";
 import { createBiomeField } from "../../kernel/terrain/climate.js";
-import "../render/chunks.js";   // registers wg_noise / wg_triplanar / wg_heightblend5
+import {
+  Fn, uniform, texture, attribute, vec2, vec3, vec4, float, positionWorld, normalLocal, normalView, cameraPosition, cameraViewMatrix,
+  dot, mix, max, min, clamp, exp, length, normalize, smoothstep, inverseSqrt, select,
+} from "three/tsl";
+import { wgNoise, wgTriWeights, wgTriSign, wgHeightBlend5 } from "../render/nodes.js";
 
 /* The four splat slots, in the order the shader's weight vector uses them.
    Named here rather than spelled out at each use because the SAME order has
@@ -80,6 +84,156 @@ function borderRing(res) {
   for (let i = res - 2; i >= 0; i--) border.push((res - 1) * res + i); // bottom
   for (let j = res - 2; j >= 1; j--) border.push(j * res);             // left
   return border;
+}
+
+/* Stand-ins a texture node samples until the real map lands; the `…On`
+   uniforms keep them from being read as data, and the neutral values match
+   the GLSL's defaults (flat ground, open sky, nothing moved). */
+const blankTex = (bytes) => { const t = new THREE.DataTexture(new Uint8Array(bytes), 1, 1); t.needsUpdate = true; return t; };
+const BLANK_CTRL = blankTex([0, 128, 255, 0]);
+const BLANK_EROS = blankTex([128, 0, 0, 255]);
+const BLANK_ARRAY = (() => {
+  const t = new THREE.DataArrayTexture(new Uint8Array([128, 128, 128, 255]), 1, 1, 1);
+  t.needsUpdate = true; return t;
+})();
+
+/* THE GROUND, as a node graph: colour, roughness and normal. Term for term
+   the GLSL this engine shipped (in this file's history at the commit that
+   brought the engine in, where every term's reasoning is written out at
+   length); the comments here say what each block is. Two differences, both
+   forced and neither visible:
+   - the vertex colour is read here rather than multiplied in by the material
+     afterwards, because the shader replaces the colour wholesale;
+   - the detail taps are taken unconditionally and gated by their weights.
+     The GLSL skipped them past the detail range to save the fetches; WGSL
+     forbids implicitly-derived texture reads under a branch that varies per
+     pixel, and a level-of-detail sample would alias. */
+function terrainNodes(u) {
+  const P = positionWorld, Wn = normalLocal;   // tiles are world space: identity model matrix
+  const layer = (s, idx, uv) => s.sample(uv).depth(idx).rgb;
+  const layerTri = (s, idx, tri, w, sg, p, scale) => {
+    const flat = layer(s, idx, p.xz.div(scale));
+    const three = layer(s, idx, vec2(p.z.mul(sg.x), p.y).div(scale)).mul(w.x)
+      .add(layer(s, idx, vec2(p.x, p.z.mul(sg.y)).div(scale)).mul(w.y))
+      .add(layer(s, idx, vec2(p.x.mul(sg.z.negate()), p.y).div(scale)).mul(w.z));
+    return mix(flat, three, tri);
+  };
+  const third = vec3(0.3333);
+
+  {
+    // Detail gate: every procedural term fades out with distance.
+    const tDist = length(cameraPosition.sub(P));
+    const tDet = exp(tDist.negate().mul(0.0016));
+    const grain = wgNoise(P.xz.mul(0.35)).mul(0.6).add(wgNoise(P.xz.mul(2.7)).mul(0.4));
+
+    // The macro map: value drift, a warm/cool drift, weight jitter, and a
+    // domain warp on the coarse detail tap.
+    const macro = wgNoise(P.xz.mul(0.0035));
+    const macroC = wgNoise(P.xz.mul(0.0021).add(31.7));
+    const macroW = wgNoise(P.xz.mul(0.0090).add(11.3));
+    const macroWarp = vec2(wgNoise(P.xz.mul(0.0042).add(57.3)), wgNoise(P.xz.mul(0.0042).sub(19.1))).sub(0.5);
+
+    // The control map (slope, curvature, AO, flow) and the erosion map
+    // (deposition, wetness), neutral until the bake lands.
+    const tUv = P.xz.div(u.uWorldSize).add(0.5).mul(u.uCtrlK).add(u.uCtrlB);
+    const tCtrl = mix(vec4(0, 0.5, 1, 0), u.uCtrl.sample(tUv), u.uCtrlOn);
+    const mSlope = tCtrl.r, mCurv = tCtrl.g.mul(2).sub(1), mAO = tCtrl.b, mFlow = tCtrl.a;
+    const tEros = mix(vec2(0.5, 0), u.uEros.sample(tUv).rg, u.uErosOn);
+    const mDep = tEros.r.mul(2).sub(1), mWetM = tEros.g;
+    const tScour = smoothstep(0.08, 0.55, mDep.negate());
+    const tSilt = smoothstep(0.08, 0.55, mDep);
+
+    // Layer weights: steepness (the interpolated normal OR the bake's grade,
+    // in the same 1 − cos θ units), altitude, drainage; thresholds jittered.
+    const steepGeo = float(1).sub(clamp(Wn.y, 0, 1));
+    const steepBake = float(1).sub(inverseSqrt(float(1).add(mSlope.mul(mSlope))));
+    const steep = max(steepGeo, steepBake);
+    const wJit = macroW.sub(0.5).mul(0.10);
+    const rockAmt = max(smoothstep(wJit.add(0.26), wJit.add(0.62), steep), tScour.mul(smoothstep(0.10, 0.34, steep)));
+    const sandAmt = max(
+      float(1).sub(smoothstep(0.6, wJit.mul(22).add(4.5), P.y)).mul(float(1).sub(rockAmt)).mul(smoothstep(0, 0.4, Wn.y)),
+      tSilt.mul(float(1).sub(rockAmt)).mul(smoothstep(0.15, 0.5, Wn.y)).mul(0.75));
+    const wetAmt = max(smoothstep(0.50, 0.86, mFlow), smoothstep(0.30, 0.78, mWetM)).mul(float(1).sub(rockAmt)).mul(smoothstep(0.12, 0.45, Wn.y));
+    const hiW = u.uHigh2.w.sub(u.uHigh2.z).mul(0.8);
+    const highAmt = u.uHighOn.mul(smoothstep(u.uHigh2.z.add(macro.sub(0.5).mul(hiW)), u.uHigh2.w.add(macro.sub(0.5).mul(hiW)), P.y))
+      .mul(smoothstep(0.12, 0.5, Wn.y)).mul(float(1).sub(rockAmt));
+
+    // Detail, from the layer stack, at two scales (the coarse tap warped).
+    const tDetF = exp(tDist.negate().mul(0.0011)).mul(u.uDetOn);
+    const bw = wgTriWeights(Wn), sg = wgTriSign(Wn);
+    const pC = P.add(vec3(macroWarp.x, 0, macroWarp.y).mul(46));
+    const C = COARSE;
+    const dGround = layerTri(u.uLayerAlb, u.uLayerIdx.x, u.uLayerTri.x, bw, sg, P, u.uLayerTile.x)
+      .mul(layerTri(u.uLayerAlb, u.uLayerIdx.x, u.uLayerTri.x, bw, sg, pC, u.uLayerTile.x.mul(C))).mul(u.uLayerNorm.x.mul(u.uLayerNorm.x));
+    const dSteep = layerTri(u.uLayerAlb, u.uLayerIdx.y, u.uLayerTri.y, bw, sg, P, u.uLayerTile.y)
+      .mul(layerTri(u.uLayerAlb, u.uLayerIdx.y, u.uLayerTri.y, bw, sg, pC, u.uLayerTile.y.mul(C))).mul(u.uLayerNorm.y.mul(u.uLayerNorm.y));
+    const dLow = layerTri(u.uLayerAlb, u.uLayerIdx.z, u.uLayerTri.z, bw, sg, P, u.uLayerTile.z)
+      .mul(layerTri(u.uLayerAlb, u.uLayerIdx.z, u.uLayerTri.z, bw, sg, pC, u.uLayerTile.z.mul(C))).mul(u.uLayerNorm.z.mul(u.uLayerNorm.z));
+    const dWet = layerTri(u.uLayerAlb, u.uLayerIdx.w, u.uLayerTri.w, bw, sg, P, u.uLayerTile.w).mul(u.uLayerNorm.w);
+    const dHighRaw = layerTri(u.uLayerAlb, u.uHigh1.x, u.uHigh2.x, bw, sg, P, u.uHigh1.y)
+      .mul(layerTri(u.uLayerAlb, u.uHigh1.x, u.uHigh2.x, bw, sg, pC, u.uHigh1.y.mul(C))).mul(u.uHigh2.y.mul(u.uHigh2.y));
+    // Outside the detail range (and with no stack) every tap is the neutral 0.5.
+    const on = select(tDetF.greaterThan(0.01), float(1), float(0));
+    const dG = mix(vec3(0.5), dGround, on), dS = mix(vec3(0.5), dSteep, on), dL = mix(vec3(0.5), dLow, on), dW = mix(vec3(0.5), dWet, on);
+    const dH = mix(vec3(0.5), dHighRaw, on.mul(select(highAmt.greaterThan(0.002), float(1), float(0))));
+
+    // Normals: ground and low blended, the steep layer fully triplanar with
+    // its tangents sign-corrected, strength modulated by the coarse albedo.
+    const nrm = (idx, uv) => layer(u.uLayerNrm, idx, uv).mul(2).sub(1);
+    const nG = nrm(u.uLayerIdx.x, P.xz.div(u.uLayerTile.x)), nL = nrm(u.uLayerIdx.z, P.xz.div(u.uLayerTile.z));
+    const nTop = mix(nG, nL, sandAmt);
+    const nX = nrm(u.uLayerIdx.y, vec2(P.z.mul(sg.x), P.y).div(u.uLayerTile.y));
+    const nY = nrm(u.uLayerIdx.y, vec2(P.x, P.z.mul(sg.y)).div(u.uLayerTile.y));
+    const nZ = nrm(u.uLayerIdx.y, vec2(P.x.mul(sg.z.negate()), P.y).div(u.uLayerTile.y));
+    const steepN = vec3(0, nX.y, nX.x.mul(sg.x)).mul(bw.x)
+      .add(vec3(nY.x, 0, nY.y.mul(sg.y)).mul(bw.y))
+      .add(vec3(nZ.x.mul(sg.z.negate()), nZ.y, 0).mul(bw.z));
+    const nAmp = float(0.65).add(clamp(dot(dG, third), 0, 1.4).mul(0.7));
+    const tDetN = mix(vec3(nTop.x, 0, nTop.y), steepN, rockAmt).mul(tDetF).mul(nAmp).mul(on);
+
+    // Height-aware blending, faded in as far as the detail that justifies it.
+    const hL = vec4(dot(dG, third), dot(dS, third), dot(dL, third), dot(dW, third)).add(u.uLayerH);
+    const hH = dot(dH, third).add(u.uHigh1.w);
+    const wRaw0 = vec4(max(float(1).sub(rockAmt).sub(sandAmt).sub(wetAmt).sub(highAmt), 0), rockAmt, sandAmt, wetAmt);
+    const wTot = max(wRaw0.x.add(wRaw0.y).add(wRaw0.z).add(wRaw0.w).add(highAmt), 1e-4);
+    const wRaw = wRaw0.div(wTot), w5Raw = highAmt.div(wTot);
+    const hb = wgHeightBlend5(wRaw, w5Raw, hL, hH, float(0.22));
+    const hbAmt = clamp(tDetF.mul(2), 0, 1);
+    const wH = mix(wRaw, hb.w, hbAmt);
+    const wH5 = mix(w5Raw, hb.w5, hbAmt);
+
+    // Colour: turf (the ramp), rock with its strata, sand, the wet bed, and
+    // the altitude slot (the ramp's own peak stop, grain-nudged).
+    const ramp = attribute("color", "vec3");
+    const strata = wgNoise(P.xz.mul(0.06).add(P.y.mul(0.12))).mul(0.5).add(wgNoise(P.xz.mul(0.24).add(P.y.mul(0.5))).mul(0.5));
+    const cTurf = ramp.mul(float(1).sub(float(0.12).sub(grain.mul(0.20)).mul(tDet)));
+    const cRock = u.uRock.mul(float(0.80).add(mix(0.5, strata, tDet).mul(0.40)));
+    const cSand = u.uSand.mul(float(0.9).add(grain.mul(0.2).mul(tDet)));
+    const cWet = mix(ramp, mix(u.uRock, u.uSand, 0.4), 0.62).mul(0.72);
+    const cHigh = ramp.mul(float(1).add(grain.sub(0.5).mul(0.10).mul(tDet)));
+    const det = dG.mul(wH.x).add(dS.mul(wH.y)).add(dL.mul(wH.z)).add(dW.mul(wH.w)).add(dH.mul(wH5));
+    const tCol = cTurf.mul(wH.x).add(cRock.mul(wH.y)).add(cSand.mul(wH.z)).add(cWet.mul(wH.w)).add(cHigh.mul(wH5))
+      .mul(mix(vec3(1), det, tDetF.mul(0.82).mul(float(0.78).add(macroW.mul(0.44)))))
+      .mul(mix(1.0, 0.86, mWetM.mul(smoothstep(0.12, 0.5, Wn.y))))           // ground water still sits in
+      .mul(float(1).sub(mCurv.mul(0.16)))                                      // curvature
+      .mul(mix(1.0, mAO, 0.3))                                                 // valley-scale AO
+      .mul(float(1).add(macro.sub(0.5).mul(0.13)))                            // macro value
+      .mul(mix(vec3(0.972, 0.994, 1.030), vec3(1.034, 1.006, 0.966), macroC)) // macro warm/cool
+      .mul(mix(0.66, 1.0, smoothstep(u.uWaterY, u.uWaterY.add(1.6), P.y)));  // the tide line
+
+    // Roughness: each layer's own, pulled down by rain on upward faces, by a
+    // drainage bed, and by ground the bake says holds water; never mirror-flat.
+    const tRough = dot(wH, u.uLayerRough).add(wH5.mul(u.uHigh1.z));
+    const tWetK = max(max(u.uWet.mul(smoothstep(0.25, 0.85, clamp(Wn.y, 0, 1))), wH.w), mWetM.mul(0.8));
+    const rough = clamp(mix(tRough, 0.24, tWetK.mul(0.88)), 0.08, 1.0);
+
+    // The lighting normal, bent by the detail relief (world, then view space).
+    const bent = normalize(cameraViewMatrix.mul(vec4(normalize(Wn.add(tDetN.mul(0.85))), 0)).xyz);
+    const useBent = u.uDetOn.greaterThan(0.5).and(dot(tDetN, tDetN).greaterThan(1e-6));
+    // One graph, three outputs: the colour, roughness and normal agree on
+    // every weight, and the builder computes each shared term once.
+    return { color: vec4(tCol, 1), roughness: rough, normal: select(useBent, bent, normalView) };
+  }
 }
 
 export class QuadtreeTerrain {
@@ -203,473 +357,21 @@ export class QuadtreeTerrain {
     // (terrain/detail-textures.js) sampled triplanar with their normal maps,
     // which is what makes the ground read as turf/strata/ripples instead of
     // tinted clay when you stand on it. Tile positions are world-space
-    // (identity model matrix), so `transformed` IS the world position.
-    this.material.onBeforeCompile = (sh) => {
-      Object.assign(sh.uniforms, this._u);
-      // Tiles are built in world space with an identity model matrix, so the
-      // position and normal attributes ARE world-space.
-      sh.vertexShader = "varying vec3 vWp;\nvarying vec3 vWn;\n" + sh.vertexShader.replace(
-        "#include <begin_vertex>",
-        "#include <begin_vertex>\n vWp = transformed;\n vWn = normal;"
-      );
-      sh.fragmentShader = ("varying vec3 vWp;\nvarying vec3 vWn;\n" +
-        "uniform vec3 uRock;\nuniform vec3 uSand;\n" +
-        "uniform float uDetOn;\n" +
-        "uniform sampler2DArray uLayerAlb;\nuniform sampler2DArray uLayerNrm;\n" +
-        "uniform vec4 uLayerIdx;\nuniform vec4 uLayerTile;\nuniform vec4 uLayerRough;\n" +
-        "uniform vec4 uLayerH;\nuniform vec4 uLayerTri;\nuniform vec4 uLayerNorm;\n" +
-        "uniform sampler2D uCtrl;\nuniform float uCtrlOn;\n" +
-        "uniform sampler2D uEros;\nuniform float uErosOn;\n" +
-        "uniform vec4 uHigh1;\nuniform vec4 uHigh2;\nuniform float uHighOn;\n" +
-        "uniform float uWorldSize;\nuniform float uCtrlK;\nuniform float uCtrlB;\n" +
-        "uniform float uWet;\nuniform float uWaterY;\n" +
-        "#include <wg_noise>\n#include <wg_triplanar>\n#include <wg_heightblend5>\n" +
-        /* One layer of the stack, sampled at one scale.
-           `texture2D` on a sampler2DArray is not a mistake: three compiles
-           this material as `#version 300 es` and prepends
-           `#define texture2D texture`, so this is GLSL3's overloaded
-           texture(sampler2DArray, vec3). Spelling it the same way as every
-           other fetch in this shader is deliberate — see detail-textures.js. */
-        "vec3 wgLayer(sampler2DArray s, float idx, vec2 uv){ return texture2D(s, vec3(uv, idx)).rgb; }\n" +
-        /* A layer projected on whichever axes it asked for. Flat ground pays
-           for one tap; rock and cliff pay for three, because a stratum that
-           slides down a vertical face is the single most obvious thing a
-           terrain shader can get wrong. `tri` is 0 or 1 and comes from a
-           uniform, so the branch is uniform control flow and the implicit
-           derivative rule is satisfied.
-
-           `sg` is the per-axis sign of the world normal (chunks.js
-           wgTriSign), and it is what stops a cliff from being MIRRORED
-           through its own ridge. The three projections are taken in world
-           space, so without it the +X face reads the texture back to front
-           against the −X face: a stratum running uphill on one side of a
-           spur runs downhill on the other, and the seam along the crest is
-           the giveaway that the rock is a projection rather than a rock. */
-        "vec3 wgLayerTri(sampler2DArray s, float idx, float tri, vec3 w, vec3 sg, vec3 p, float scale){\n" +
-        "  if (tri < 0.5) return wgLayer(s, idx, p.xz / scale);\n" +
-        "  return wgLayer(s, idx, vec2(p.z * sg.x, p.y) / scale) * w.x\n" +
-        "       + wgLayer(s, idx, vec2(p.x, p.z * sg.y) / scale) * w.y\n" +
-        "       + wgLayer(s, idx, vec2(p.x * -sg.z, p.y) / scale) * w.z;\n" +
-        "}\n" +
-        sh.fragmentShader).replace(
-        "#include <color_fragment>",
-        `#include <color_fragment>
-         // Detail gate — the same rule the water shader lives by: every
-         // procedural noise term fades out with distance or it aliases into
-         // per-pixel static across the far field.
-         float tDist = length(cameraPosition - vWp);
-         float tDet = exp(-tDist * 0.0016);
-         float grain = wgNoise(vWp.xz * 0.35) * 0.6 + wgNoise(vWp.xz * 2.7) * 0.4;
-
-         /* ── the macro map, taken FIRST because it drives more than colour ──
-            These four samples used to be two, taken at the very bottom of the
-            block, and they only ever scaled the finished colour. That is the
-            weakest thing a macro variation can do: the terms it competes with
-            (curvature ±16%, ambient occlusion up to −30%) own the same
-            channel at twice the amplitude, so the one term whose job is to
-            break up the ground was the quietest voice in the conversation.
-
-            Hoisted here, the same field also decides WHERE the materials
-            change and WHAT the detail taps repeat, which is where a macro map
-            earns its name:
-              macro   value drift, hundreds of metres across
-              macroC  a warm/cool drift at a different wavelength
-              macroW  weight jitter — it moves the sand line and the rock
-                      line off the exact contour they otherwise trace
-              warp    a domain warp on the COARSE detail tap, so the pattern
-                      the fine tap repeats is itself displaced over hundreds
-                      of metres. This is the one that actually kills the
-                      lattice at distance: the fine period is unchanged, but
-                      what fills it stops being the same square. */
-         float macro  = wgNoise(vWp.xz * 0.0035);
-         float macroC = wgNoise(vWp.xz * 0.0021 + 31.7);
-         float macroW = wgNoise(vWp.xz * 0.0090 + 11.3);
-         vec2  macroWarp = vec2(wgNoise(vWp.xz * 0.0042 + 57.3),
-                                wgNoise(vWp.xz * 0.0042 - 19.1)) - 0.5;
-
-         /* ── the control map ──
-            Four things the fragment cannot work out for itself. Slope it
-            could — and does, from the interpolated normal — but the bake sees
-            an EIGHT METRE footprint where the normal sees one fragment, and
-            those answer different questions: the normal says "this pixel
-            faces steeply", the bake says "this is the side of a hill". A
-            boulder on a meadow is the first and not the second; a smooth LOD
-            tile on a mountainside is the second and not the first. Both are
-            reasons to show rock, so both are read and the stronger wins.
-            The other three need to look further than one fragment anyway:
-            curvature is a Laplacian, AO is a valley-radius probe, and flow
-            accumulation needs every cell in the world sorted by height.
-            Neutral defaults so a world whose bake has not landed yet
-            renders exactly as it did before this existed. */
-         vec2 tUv = (vWp.xz / uWorldSize + 0.5) * uCtrlK + uCtrlB;
-         vec4 tCtrl = vec4(0.0, 0.5, 1.0, 0.0);
-         if (uCtrlOn > 0.5) tCtrl = texture2D(uCtrl, tUv);
-         float mSlope = tCtrl.r;              // grade, in units of 45°
-         float mCurv = tCtrl.g * 2.0 - 1.0;   // -1 convex ridge · +1 concave hollow
-         float mAO   = tCtrl.b;               // 1 = open sky (see aoFromConcavity's cap)
-         float mFlow = tCtrl.a;               // log-normalised drainage
-
-         /* ── and what the water DID, which is a different question ──
-            Same texel, same bake, second texture. Deposition is signed about
-            0.5; wetness is where water lingers rather than where it runs.
-            (0.5, 0.0) is the neutral pair, so a world with erosion switched
-            off takes every line below and changes nothing. */
-         vec2 tEros = vec2(0.5, 0.0);
-         if (uErosOn > 0.5) tEros = texture2D(uEros, tUv).rg;
-         float mDep  = tEros.r * 2.0 - 1.0;   // -1 scoured … +1 buried
-         float mWetM = tEros.g;
-         float tScour = smoothstep(0.08, 0.55, -mDep);   // stripped to bedrock
-         float tSilt  = smoothstep(0.08, 0.55,  mDep);   // sediment laid down
-
-         /* ── layer weights ──
-            Steepness decides rock, altitude decides sand and the high slot,
-            drainage decides wet. Every one of those thresholds is jittered by
-            the macro field, because a threshold on a smooth quantity draws a
-            CONTOUR: without it the sand line is a perfect level curve around
-            every island and the rock line a perfect isocline around every
-            hill, which is the tell that the ground was computed rather than
-            weathered. */
-         float steepGeo = 1.0 - clamp(vWn.y, 0.0, 1.0);
-         /* The bake's grade, converted into the same "1 − cos θ" units the
-            interpolated normal is in, so the two are the SAME MEASUREMENT of
-            the same thing rather than two numbers that both happen to be
-            large on a slope. That conversion is what lets them be combined
-            with a plain max() and no tuning constant: on ground where both
-            are right they agree exactly and the max changes nothing, and each
-            wins only where the other is blind — the normal on a boulder finer
-            than the bake's 8 m step, the bake on a coarse LOD tile whose
-            vertex normals have smoothed the hillside flat. That second case
-            is why distant mountainsides used to lose their rock as they
-            dropped a LOD level while the near ones kept it. */
-         float steepBake = 1.0 - inversesqrt(1.0 + mSlope * mSlope);
-         float steep = max(steepGeo, steepBake);
-         float wJit = (macroW - 0.5) * 0.10;
-         float rockAmt = smoothstep(0.26 + wJit, 0.62 + wJit, steep);
-         // Ground the water stripped shows its bedrock at a gentler grade than
-         // ground that was never touched — that is what scour IS.
-         rockAmt = max(rockAmt, tScour * smoothstep(0.10, 0.34, steep));
-         float sandAmt = (1.0 - smoothstep(0.6, 4.5 + wJit * 22.0, vWp.y)) * (1.0 - rockAmt);
-         sandAmt *= smoothstep(0.0, 0.4, vWn.y);
-         // And sediment is the low slot's material wherever the pass laid it,
-         // shore or no shore: an alluvial fan is sand a long way inland.
-         sandAmt = max(sandAmt, tSilt * (1.0 - rockAmt) * smoothstep(0.15, 0.5, vWn.y) * 0.75);
-         // Channels cut through turf and sand but not through a cliff face,
-         // and only where the ground is flat enough for water to have stayed.
-         // Flow says where water RAN; the wetness mask says where it stayed,
-         // and a bed is either.
-         float wetAmt = max(smoothstep(0.50, 0.86, mFlow), smoothstep(0.30, 0.78, mWetM))
-                      * (1.0 - rockAmt) * smoothstep(0.12, 0.45, vWn.y);
-         /* ── altitude ──
-            The band undulates with the macro field by most of its own width,
-            so a snowline follows the weather rather than a spirit level. It
-            is a mantle, so it wants an upward face, and it loses to a cliff
-            outright rather than trying to lie on one. */
-         float hiW = (uHigh2.w - uHigh2.z) * 0.8;
-         float highAmt = uHighOn * smoothstep(uHigh2.z + (macro - 0.5) * hiW,
-                                              uHigh2.w + (macro - 0.5) * hiW, vWp.y)
-                       * smoothstep(0.12, 0.5, vWn.y) * (1.0 - rockAmt);
-
-         /* ── detail, from the layer stack, at two scales ──
-            One tiling scale is a visible grid the moment you look along the
-            ground: the same square, edge to edge, to the horizon. Multiplying
-            a fine tap by a coarse one costs a second fetch and breaks the
-            period — the pattern still repeats at the fine scale, but WHAT it
-            repeats is modulated over six times that distance, so the eye
-            stops finding the lattice. Both are world-space, so they are
-            stable across tile boundaries and across every LOD.
-
-            The four taps are now four DIFFERENT materials out of a ten-layer
-            array rather than three fixed ones, and which four is a uniform.
-            Nothing here knows what turf is. */
-         vec3 dGround = vec3(0.5), dSteep = vec3(0.5), dLow = vec3(0.5), dWet = vec3(0.5);
-         vec3 dHigh = vec3(0.5);
-         vec3 tDetN = vec3(0.0);
-         float tDetF = exp(-tDist * 0.0011) * uDetOn;
-         if (tDetF > 0.01) {
-           vec3 bw = wgTriWeights(vWn);
-           vec3 sg = wgTriSign(vWn);
-           /* The coarse tap reads a WARPED position (see the macro block).
-              Dual-scale breaks the period of the fine tap by modulating it
-              with something six times longer; warping the modulator breaks
-              the modulator's own period as well, which is what was still
-              showing at distance — the far field had a visible six-times grid
-              in place of the one-times grid it was built to hide. The warp is
-              tens of metres, so nothing moves under a walking camera. */
-           vec3 pC = vWp + vec3(macroWarp.x, 0.0, macroWarp.y) * 46.0;
-           /* Each tap is scaled by its layer's own measured reciprocal, so it
-              has mean 1.0 and the product of two does as well. That is the
-              identity for a multiplier — see the uLayerNorm declaration for
-              the quarter-brightness bug the old hardcoded ×2 was causing. */
-           dGround = wgLayerTri(uLayerAlb, uLayerIdx.x, uLayerTri.x, bw, sg, vWp, uLayerTile.x)
-                   * wgLayerTri(uLayerAlb, uLayerIdx.x, uLayerTri.x, bw, sg, pC, uLayerTile.x * ${COARSE})
-                   * (uLayerNorm.x * uLayerNorm.x);
-           dSteep  = wgLayerTri(uLayerAlb, uLayerIdx.y, uLayerTri.y, bw, sg, vWp, uLayerTile.y)
-                   * wgLayerTri(uLayerAlb, uLayerIdx.y, uLayerTri.y, bw, sg, pC, uLayerTile.y * ${COARSE})
-                   * (uLayerNorm.y * uLayerNorm.y);
-           dLow    = wgLayerTri(uLayerAlb, uLayerIdx.z, uLayerTri.z, bw, sg, vWp, uLayerTile.z)
-                   * wgLayerTri(uLayerAlb, uLayerIdx.z, uLayerTri.z, bw, sg, pC, uLayerTile.z * ${COARSE})
-                   * (uLayerNorm.z * uLayerNorm.z);
-           /* The wet slot takes ONE tap. Its materials are the fine sediments
-              — silt, gravel — which carry the least structure in the stack,
-              so they are the least able to show a lattice and the cheapest
-              place to stop paying for one. One tap, so one reciprocal. */
-           dWet    = wgLayerTri(uLayerAlb, uLayerIdx.w, uLayerTri.w, bw, sg, vWp, uLayerTile.w) * uLayerNorm.w;
-           /* The altitude slot, gated on the BAND and not only on the uniform.
-              A palette that names a high layer would otherwise pay two fetches
-              on every fragment of its coastline for a material that cannot
-              reach it; gated, the cost lands on the summits where the layer
-              is actually visible. */
-           if (highAmt > 0.002) {
-             dHigh = wgLayerTri(uLayerAlb, uHigh1.x, uHigh2.x, bw, sg, vWp, uHigh1.y)
-                   * wgLayerTri(uLayerAlb, uHigh1.x, uHigh2.x, bw, sg, pC, uHigh1.y * ${COARSE})
-                   * (uHigh2.y * uHigh2.y);
-           }
-
-           /* Normals. Three taps, not four: the ground and low layers each
-              get their own, blended by the weight that decides between them,
-              and the steep layer keeps the full triplanar treatment because
-              that is the one standing on a wall. The wet slot borrows the low
-              slot's normal — silt and sand are both fine sediment, and a
-              fourth fetch to say so would be paying for a difference nobody
-              can see under water. The high slot borrows the ground's for the
-              same reason it borrows its colour: the altitude layer's value is
-              WHERE it is, and its own relief arrives through the height blend
-              and the roughness. */
-           vec3 nG = wgLayer(uLayerNrm, uLayerIdx.x, vWp.xz / uLayerTile.x) * 2.0 - 1.0;
-           vec3 nL = wgLayer(uLayerNrm, uLayerIdx.z, vWp.xz / uLayerTile.z) * 2.0 - 1.0;
-           vec3 nTop = mix(nG, nL, sandAmt);
-           /* The steep normal's three projections carry the same sign
-              correction the albedo does, and their TANGENT directions carry
-              it too — flipping the UV without flipping the perturbation it
-              drives lights the far side of a spur as though the sun had moved.
-              (chunks.js wgTriSign for why the UV is flipped at all.) */
-           vec3 nX = wgLayer(uLayerNrm, uLayerIdx.y, vec2(vWp.z * sg.x, vWp.y) / uLayerTile.y) * 2.0 - 1.0;
-           vec3 nY = wgLayer(uLayerNrm, uLayerIdx.y, vec2(vWp.x, vWp.z * sg.y) / uLayerTile.y) * 2.0 - 1.0;
-           vec3 nZ = wgLayer(uLayerNrm, uLayerIdx.y, vec2(vWp.x * -sg.z, vWp.y) / uLayerTile.y) * 2.0 - 1.0;
-           vec3 steepN = vec3(0.0, nX.y, nX.x * sg.x) * bw.x
-                       + vec3(nY.x, 0.0, nY.y * sg.y) * bw.y
-                       + vec3(nZ.x * -sg.z, nZ.y, 0.0) * bw.z;
-           /* ── and the repetition break has to reach the NORMALS ──
-              Dual-scale was applied to albedo only, and albedo is the weaker
-              cue by a long way: these maps are near-neutral by design, while
-              the relief they drive is lit by a directional sun. Under that
-              sun the micro-shadowing is what the eye reads as pattern, so a
-              perfectly de-latticed albedo over a normal map repeating every
-              2.75 m still reads as a grid.
-
-              Three more fetches would fix it properly and cost a third of the
-              stack's bandwidth. This modulates the normal's STRENGTH by the
-              coarse albedo tap already in hand — the relief still repeats,
-              but how deep it bites varies over six times the distance, which
-              is enough to stop the run of identical highlights that gives the
-              lattice away. Free, and it uses a value that would otherwise
-              have been fetched and half-forgotten. */
-           float nAmp = 0.65 + 0.7 * clamp(dot(dGround, vec3(0.3333)), 0.0, 1.4);
-           tDetN = mix(vec3(nTop.x, 0.0, nTop.y), steepN, rockAmt) * tDetF * nAmp;
-         }
-
-         /* ── height-aware blending ──
-            The detail maps are generated from a height field, so their
-            luminance IS the material's relief. Feeding that to the blend is
-            what turns a crossfade into an interlock: gravel comes up through
-            the gaps between grass clumps rather than the two averaging into
-            a band of neither. Silt is given a low flat height on purpose —
-            it is the thing that fills in around the others. */
-         /* Each layer's relief, plus the bias it declares. The bias is what
-            lets a palette say "gravel comes up THROUGH turf" and "silt fills
-            in around everything" without either material's map being redrawn:
-            gravel carries +0.10 and silt −0.10, so at equal weight the gravel
-            wins the high pixels and the silt takes the low ones. */
-         vec4 hL = vec4(dot(dGround, vec3(0.3333)), dot(dSteep, vec3(0.3333)),
-                        dot(dLow, vec3(0.3333)), dot(dWet, vec3(0.3333))) + uLayerH;
-         float hH = dot(dHigh, vec3(0.3333)) + uHigh1.w;
-         vec4 wRaw = vec4(max(1.0 - rockAmt - sandAmt - wetAmt - highAmt, 0.0), rockAmt, sandAmt, wetAmt);
-         float w5Raw = highAmt;
-         float wTot = max(wRaw.x + wRaw.y + wRaw.z + wRaw.w + w5Raw, 1e-4);
-         wRaw /= wTot; w5Raw /= wTot;
-         /* Height blending needs heights to blend BY. Where the detail set is
-            absent — the low tier ships none, and every tier fades it out with
-            distance — the four heights are the same constant, and blending on
-            a constant is not a blend: it sharpens on weight alone and puts a
-            hard edge where there used to be a gradient. So the interlock is
-            faded in exactly as far as the information that justifies it,
-            which leaves the low tier and the far field rendering the ordinary
-            weighted mix they rendered before.
-
-            Five lanes, and with no altitude layer the fifth weight is
-            zero — at which point wgHeightBlend5 collapses to the four-lane
-            answer, so this is the same picture on every world that does
-            not use it. */
-         vec4 wHB; float wHB5;
-         wgHeightBlend5(wRaw, w5Raw, hL, hH, 0.22, wHB, wHB5);
-         float hbAmt = clamp(tDetF * 2.0, 0.0, 1.0);
-         vec4 wH = mix(wRaw, wHB, hbAmt);
-         float wH5 = mix(w5Raw, wHB5, hbAmt);
-
-         // Rock keeps its coarse banding; it is what reads as strata.
-         float strata = wgNoise(vec2(vWp.xz * 0.06) + vWp.y * 0.12) * 0.5
-                      + wgNoise(vec2(vWp.xz * 0.24) + vWp.y * 0.5) * 0.5;
-         vec3 cTurf = diffuseColor.rgb * (1.0 - (0.12 - 0.20 * grain) * tDet);
-         vec3 cRock = uRock * (0.80 + 0.40 * mix(0.5, strata, tDet));
-         vec3 cSand = uSand * (0.9 + 0.2 * grain * tDet);
-         // Wet channel bed: darker and desaturated toward silt, which is what
-         // a drainage line looks like from above even in dry weather.
-         vec3 cWet = mix(diffuseColor.rgb, mix(uRock, uSand, 0.4), 0.62) * 0.72;
-         /* The altitude slot takes the ramp's own colour and no new uniform.
-            The vertex ramp is ALREADY an elevation ramp — by the time this
-            weight is non-zero, diffuseColor is the palette's own peak stop —
-            so a "high colour" would be a second answer to a question already
-            answered, and the two would drift. What the slot contributes is
-            the MATERIAL: snow's crust normal, its roughness, its relief in
-            the interlock. Only the grain is nudged, so a drift reads as
-            wind-packed rather than as flat paint. */
-         vec3 cHigh = diffuseColor.rgb * (1.0 + 0.10 * (grain - 0.5) * tDet);
-
-         vec3 tCol = cTurf * wH.x + cRock * wH.y + cSand * wH.z + cWet * wH.w + cHigh * wH5;
-         // The wet slot contributes its OWN material now. It used to borrow
-         // the ground layer's detail, because a channel bed had no material
-         // of its own to show — it was a tint over grass.
-         vec3 det = dGround * wH.x + dSteep * wH.y + dLow * wH.z + dWet * wH.w + dHigh * wH5;
-         /* And how hard the detail bites is itself macro-varied. A constant
-            0.82 gives every square metre of the world the same amount of
-            texture, which is the other half of why a biome read as one
-            painted surface: the pattern was broken up but its STRENGTH was
-            not, so the eye still found a uniform field. */
-         tCol *= mix(vec3(1.0), det, tDetF * 0.82 * (0.78 + 0.44 * macroW));
-         // Ground the water is still sitting in reads darker whatever it is
-         // made of — before any of the colour terms below, because this is
-         // the material being wet rather than the light doing something.
-         tCol *= mix(1.0, 0.86, mWetM * smoothstep(0.12, 0.5, vWn.y));
-
-         /* ── curvature ──
-            The term that makes ground read as carved rather than lumpy.
-            Convex ridges catch light, concave hollows lose it — which is
-            true of real ground for reasons (rain, scree, shadow) the
-            renderer is not modelling, so it is applied directly. */
-         tCol *= 1.0 - mCurv * 0.16;
-
-         /* ── ambient occlusion, per fragment ──
-            The vertex colours already carry AO, and this is the SECOND term,
-            so what it adds has to be something the first cannot see.
-
-            It is: the two probes are deliberately different sizes. The vertex
-            bake's radius follows the tile's own spacing and clamps to 8 m on
-            every tier a person walks around in (shading.js aoRadiusFor), so
-            it reads gullies. The mask bake runs at 8 m spacing over the whole
-            plate and probes at 48 m, so it reads VALLEYS — occlusion from
-            ground far enough away that no tile-local probe reaches it. A
-            hollow that is both a gully and in a valley is darker than either,
-            which is correct.
-
-            What was not correct was the strength. Both terms floor at 0.5
-            (AO_CAP), so at 0.55 the pair bottomed out at 0.36 — a 64%
-            darkening from ambient occlusion alone, before the curvature term
-            below and the sky-visibility term in atmosphere.js take their own
-            bites out of the same hollow. At 0.3 the pair floors at 0.43,
-            which leaves the other two something to say.
-
-            It still cannot double-darken OPEN ground: aoFromConcavity returns
-            1.0 there and 1.0 is the identity here. */
-         tCol *= mix(1.0, mAO, 0.3);
-
-         /* ── macro colour ──
-            One wavelength, hundreds of metres across, at low amplitude. Its
-            job is to stop a biome reading as one flat painted surface from
-            the air without reading as noise from the ground, which is why it
-            is a single octave and why the amplitude is this small. Sampled at
-            the top of the block now, with the rest of the macro field.
-
-            ── and it has to be COLOUR, not only value ──
-            The first line is a scalar multiply: it varies brightness and
-            leaves hue and chroma exactly where they were, so it competes
-            directly with curvature (±16%) and ambient occlusion (up to −30%)
-            in the one channel those two already own, at a fifth of their
-            amplitude.
-
-            A second octave at a different wavelength, drifting warm against
-            cool, says something none of the other terms is saying. Warm and
-            cool rather than a named hue so it stays inside whatever the
-            palette already is: a green biome goes olive and sage, a red one
-            goes rust and clay. Biome identity survives because this scales
-            the colour the palette chose, never replaces it. */
-         tCol *= 1.0 + (macro - 0.5) * 0.13;
-         tCol *= mix(vec3(0.972, 0.994, 1.030), vec3(1.034, 1.006, 0.966), macroC);
-
-         // Wet strip right at the tide line, under everything else — and at
-         // the tide line the world actually has, not at y=0.
-         tCol *= mix(0.66, 1.0, smoothstep(uWaterY, uWaterY + 1.6, vWp.y));
-         diffuseColor.rgb = tCol;`
-      ).replace(
-        /* ── A3: roughness is a property of the material, not of the mesh ──
-           The whole terrain shipped at roughness 0.94, so wet river gravel,
-           dry sand and bare rock all returned the same specular lobe and the
-           ground read as one substance that had been painted different
-           colours. The weights that just decided the COLOUR decide this too,
-           which is what keeps the two from disagreeing.
-
-           `roughnessmap_fragment` runs after `color_fragment` in the standard
-           shader (map → color → alpha → roughness → metalness → normal), so
-           wH is already in scope here. That ordering is three's, not ours —
-           the include list is in vendor/three; if it ever changes, this
-           breaks loudly at compile rather than quietly at runtime. */
-        "#include <roughnessmap_fragment>",
-        `#include <roughnessmap_fragment>
-         /* The roughness of whatever this pixel is actually made of. These
-            four figures used to be constants on this line — turf .95, rock
-            .72, sand .92, wet .28 — which put the numbers here while the
-            MATERIALS lived somewhere else, so a biome floored with gravel and
-            silt still returned turf's specular lobe.
-
-            Now each layer brings its own and it arrives in the same uniform
-            block the colour did, so the two cannot disagree. Note what became
-            of the wet figure: .28 was doing two jobs, standing in for the
-            channel-bed material AND for the water lying on it. Those have
-            separated — the slot now carries silt's dry .55 or gravel's .88,
-            and the WETNESS term below is what pulls it down. A drainage line
-            in a dry season reads as the sediment it is, which is what the
-            flow mask was baked for in the first place. */
-         float tRough = dot(wH, uLayerRough) + wH5 * uHigh1.z;
-         /* Rain wets what faces the sky; a drainage channel is wet whichever
-            way it faces, because that is where the water actually went; and
-            ground the erosion pass says HOLDS water is wet in a dry season
-            too, which is the whole difference between a channel and a marsh.
-            All three are combined with max() rather than added: ground
-            already soaked by a river does not get wetter because it is also
-            raining. */
-         float tWetK = max(max(uWet * smoothstep(0.25, 0.85, clamp(vWn.y, 0.0, 1.0)), wH.w),
-                           mWetM * 0.8);
-         tRough = mix(tRough, 0.24, tWetK * 0.88);
-         /* ── and do not throw away what the atmosphere already said ──
-            engine/render/atmosphere.js patches this same material and anchors
-            on this same include, chaining AFTER this patch — so in the final
-            shader its two lines run first and this block runs last. It writes
-            the waterline gloss (the band within 1.2 m above the real water
-            level, which is the shoreline term this shader has no other way to
-            know) and the snow crust. A plain assignment here overwrote both:
-            on the terrain material, and only on the terrain material, wet
-            shores and snowfields have been returning dry ground's roughness.
-
-            Carried forward as a DELTA off the material's base roughness
-            rather than by naming the atmosphere's variables, because this
-            material must still compile if it is never atmosphere-patched —
-            the same reason uWet is declared here rather than borrowed. When
-            there is no atmosphere the delta is zero and this is exactly the
-            assignment it replaces. */
-         float tAtmos = roughnessFactor - roughness;
-         // Never fully smooth: a mirror-flat ground plane fireflies under the
-         // sun's specular and the bloom pass then smears it across the frame.
-         roughnessFactor = clamp(tRough + tAtmos, 0.08, 1.0);`
-      ).replace(
-        "#include <normal_fragment_begin>",
-        `#include <normal_fragment_begin>
-         // Bend the lighting normal by the detail relief (world space, then
-         // back to view space — three lights in view space).
-         if (uDetOn > 0.5 && dot(tDetN, tDetN) > 1e-6) {
-           vec3 tWn = normalize(vWn + tDetN * 0.85);
-           normal = normalize((viewMatrix * vec4(tWn, 0.0)).xyz);
-         }`
-      );
-    };
+    // (identity model matrix), so the position IS the world position. The
+    // graph and the reasoning behind every term: terrainNodes, below.
+    for (const k of Object.keys(this._u)) {
+      const v = this._u[k].value;
+      this._u[k] = k === "uLayerAlb" || k === "uLayerNrm" ? texture(BLANK_ARRAY)
+        : k === "uCtrl" ? texture(BLANK_CTRL) : k === "uEros" ? texture(BLANK_EROS) : uniform(v);
+    }
+    const nodes = terrainNodes(this._u);
+    // The vertex colour is read INSIDE the colour node (the shader replaces
+    // the colour wholesale: rock and sand are not tinted by the ramp), so the
+    // material must not multiply it in again afterwards.
+    this.material.vertexColors = false;
+    this.material.colorNode = nodes.color;
+    this.material.roughnessNode = nodes.roughness;
+    this.material.normalNode = nodes.normal;
     this._syncLayers();   // the vec4s must hold real values before first compile
     this._lastCamKey = "";
     // Which quadtree nodes were split last time — the memory the hysteresis
@@ -686,8 +388,8 @@ export class QuadtreeTerrain {
   setDetail(set) {
     const u = this._u;
     u.uDetOn.value = set ? 1 : 0;
-    u.uLayerAlb.value = set?.albedo ?? null;
-    u.uLayerNrm.value = set?.normal ?? null;
+    u.uLayerAlb.value = set?.albedo ?? BLANK_ARRAY;
+    u.uLayerNrm.value = set?.normal ?? BLANK_ARRAY;
     // The neutral-multiplier reciprocals are a property of the generated
     // PIXELS, so they arrive with the stack; which four of them are in play is
     // a property of the palette. _syncLayers is where the two meet.
@@ -776,7 +478,7 @@ export class QuadtreeTerrain {
      shader string. */
   setControlMap(tex, worldSize) {
     const u = this._u;
-    u.uCtrl.value = tex;
+    u.uCtrl.value = tex || BLANK_CTRL;
     u.uCtrlOn.value = tex ? 1 : 0;
     if (!tex) return;
     const { k, b } = gridTexMapping(tex.image?.width || 1);
@@ -796,7 +498,7 @@ export class QuadtreeTerrain {
      `null` restores exactly the pre-erosion-map appearance, because the
      shader's defaults are the neutral values for both channels. */
   setErosionMap(tex) {
-    this._u.uEros.value = tex || null;
+    this._u.uEros.value = tex || BLANK_EROS;
     this._u.uErosOn.value = tex ? 1 : 0;
   }
 

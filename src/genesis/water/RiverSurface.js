@@ -20,8 +20,12 @@
  */
 
 import * as THREE from "three";
-import "../render/chunks.js";   // registers wg_noise / wg_output
-import { ATMOS_GLSL } from "../render/atmosphere.js";
+import {
+  Fn, If, Discard, attribute, uniform, vec2, vec3, vec4, float, positionLocal, positionWorld, modelWorldMatrix, cameraPosition,
+  sin, abs, max, mix, clamp, dot, length, normalize, smoothstep, step,
+} from "three/tsl";
+import { atmApply } from "../render/atmosphere.js";
+import { wgNoise } from "../render/nodes.js";
 
 // Same pacing family as the sea's flood front (Water.js): metres per second,
 // clamped so a brook is watchable and a long river does not take a minute.
@@ -35,69 +39,40 @@ const BANK_OVERSHOOT = 0.3;
 // clear the 8 m grid's bilinear error, not enough to read as levitation.
 const SURFACE_LIFT = 0.22;
 
-const VERT = /* glsl */`
-  uniform float uTime;
-  attribute float aSide;   // -1..1 across the ribbon
-  attribute float aArc;    // 0..1 along the course
-  varying vec3 vWorld;
-  varying float vSide;
-  varying float vArc;
-  void main() {
-    vec4 w = modelMatrix * vec4(position, 1.0);
-    // The one motion a narrow water can afford: a few centimetres of ripple.
-    w.y += sin(w.x * 0.21 + w.z * 0.17 + uTime * 1.7) * 0.045;
-    vWorld = w.xyz;
-    vSide = aSide;
-    vArc = aArc;
-    gl_Position = projectionMatrix * viewMatrix * w;
-  }
-`;
-
-const FRAG = /* glsl */`
-  precision highp float;
-` + ATMOS_GLSL + /* glsl */`
-#include <wg_output>
-#include <wg_noise>
-  uniform vec3 uShallow; uniform vec3 uDeep; uniform vec3 uSunDir;
-  uniform float uTime;
-  uniform float uReveal;   // 0..1 of arc length that carries water yet
-  varying vec3 vWorld;
-  varying float vSide;
-  varying float vArc;
-
-  void main() {
+/* The ribbon as a node graph: term for term the GLSL it replaced, minus its
+   tone map (the renderer applies one to the whole frame). */
+function riverNodes(u) {
+  const side = attribute("aSide", "float"), arc = attribute("aArc", "float");
+  // The one motion a narrow water can afford: a few centimetres of ripple.
+  const w = modelWorldMatrix.mul(vec4(positionLocal, 1));
+  const positionNode = positionLocal.add(vec3(0, sin(w.x.mul(0.21).add(w.z.mul(0.17)).add(u.uTime.mul(1.7))).mul(0.045), 0));
+  const fragment = Fn(() => {
+    const W = positionWorld;
     // A river reads as its shallows with a darker thread down the middle.
-    float centre = 1.0 - abs(vSide);
-    vec3 col = mix(uShallow, uDeep, centre * 0.45);
-
-    // Downstream shimmer: noise advected ALONG the course (vArc), which is
-    // the one cue that says "moving water" without a flow map.
-    float run = wgNoise(vec2(vArc * 90.0 - uTime * 0.9, vWorld.x * 0.05 + vWorld.z * 0.05));
-    col += vec3(0.05, 0.06, 0.06) * (run - 0.5) * centre;
-
+    const centre = float(1).sub(abs(side));
+    const col = mix(u.uShallow, u.uDeep, centre.mul(0.45)).toVar();
+    // Downstream shimmer: noise advected ALONG the course.
+    const run = wgNoise(vec2(arc.mul(90).sub(u.uTime.mul(0.9)), W.x.mul(0.05).add(W.z.mul(0.05))));
+    col.addAssign(vec3(0.05, 0.06, 0.06).mul(run.sub(0.5)).mul(centre));
     // Sun glint, gated to face-on sun like the sea's.
-    vec3 V = normalize(cameraPosition - vWorld);
-    float sunFace = max(dot(normalize(vec3(uSunDir.x, 0.35, uSunDir.z)), V), 0.0);
-    col += vec3(0.22) * step(0.994, wgNoise(vWorld.xz * 1.4 + uTime * 0.5)) * max(uSunDir.y, 0.0) * sunFace;
-
-    // The banks feather to nothing — a wet margin, not a polygon edge — and
-    // the head of the course fades in rather than starting on a cut.
-    float alpha = smoothstep(0.0, 0.45, centre) * 0.82;
-    alpha *= smoothstep(0.0, 0.03, vArc);
-
+    const V = normalize(cameraPosition.sub(W));
+    const sunFace = max(dot(normalize(vec3(u.uSunDir.x, 0.35, u.uSunDir.z)), V), 0);
+    col.addAssign(vec3(0.22).mul(step(0.994, wgNoise(W.xz.mul(1.4).add(u.uTime.mul(0.5))))).mul(max(u.uSunDir.y, 0)).mul(sunFace));
+    // The banks feather to nothing, and the head of the course fades in.
+    const alpha = smoothstep(0, 0.45, centre).mul(0.82).mul(smoothstep(0, 0.03, arc)).toVar();
     // The run-in: water exists up to uReveal of the course, with a white
     // leading edge like the sea's flood front.
-    float ahead = vArc - uReveal;
-    if (ahead > 0.0) discard;
-    float front = smoothstep(-0.05, 0.0, ahead);
-    col = mix(col, vec3(0.93, 0.96, 0.95), front * 0.7);
-    alpha = max(alpha, front * 0.8);
-
-    vec3 hazed = atmApply(col, vWorld, cameraPosition);
-    float hazeAmt = clamp(length(hazed - col) * 2.5, 0.0, 1.0);
-    gl_FragColor = vec4(wfOutput(hazed), mix(alpha, 1.0, hazeAmt * 0.9));
-  }
-`;
+    const ahead = arc.sub(u.uReveal);
+    If(ahead.greaterThan(0), () => { Discard(); });
+    const front = smoothstep(-0.05, 0, ahead);
+    col.assign(mix(col, vec3(0.93, 0.96, 0.95), front.mul(0.7)));
+    alpha.assign(max(alpha, front.mul(0.8)));
+    const hazed = atmApply(u, col, W, cameraPosition);
+    const hazeAmt = clamp(length(hazed.sub(col)).mul(2.5), 0, 1);
+    return vec4(hazed, mix(alpha, 1, hazeAmt.mul(0.9)));
+  })();
+  return { positionNode, fragment };
+}
 
 /* One ribbon from one river record. `record.path` is [[x, z, yWater] …];
    the strip stops at the first point at or below `level` — the sea owns the
@@ -171,12 +146,14 @@ export class RiverSurface {
       uDeep: { value: new THREE.Color(palette.water.deep) },
       uSunDir: { value: new THREE.Vector3(0, 1, 0) },
     };
-    this.material = new THREE.ShaderMaterial({
-      vertexShader: VERT, fragmentShader: FRAG, uniforms: this.uniforms,
-      transparent: true, side: THREE.DoubleSide,
-      depthWrite: false,
+    for (const k of Object.keys(this.uniforms)) if (!this.uniforms[k].isNode) this.uniforms[k] = uniform(this.uniforms[k].value);
+    const nodes = riverNodes(this.uniforms);
+    this.material = new THREE.MeshBasicNodeMaterial({
+      transparent: true, side: THREE.DoubleSide, depthWrite: false, fog: false,
       polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
     });
+    this.material.positionNode = nodes.positionNode;
+    this.material.fragmentNode = nodes.fragment;
     this._revealSpeed = 0;
     this._longest = 0;
   }

@@ -25,84 +25,54 @@
  */
 
 import * as THREE from "three";
+import { Fn, If, Discard, uniform, attribute, uv, varying, vec2, vec3, vec4, float, fract, normalize, smoothstep, cameraPosition } from "three/tsl";
 
 const MAX_POOL = 6;
 // How far in from the opening the spray reaches, and the wet with it. Rain
 // does not blow four metres into a room through a cottage window.
 const REACH = 1.55;
 
-const SPRAY_VERT = /* glsl */`
-  attribute vec3 aSlot;    // xyz = opening origin (world, at the sill)
-  attribute vec4 aSpec;    // x,z = inward, y = width, w = height
-  attribute vec2 aSeed;    // per-drop column phase
-  attribute vec2 aCorner;
-  varying float vAlpha;
-  uniform float uTime;
-  uniform float uRain;
-  void main() {
-    vec2 inward = vec2(aSpec.x, aSpec.z);
-    vec2 along = vec2(-inward.y, inward.x);
-    // Fall on its own phase; drift inward as it falls, because what comes
-    // through an opening came through it sideways.
-    float y01 = fract(aSeed.x + uTime * (1.1 + fract(aSeed.y * 5.7) * 0.5));
-    float t = y01;
-    vec3 p = aSlot
-      + vec3(along.x, 0.0, along.y) * ((fract(aSeed.y * 13.1) - 0.5) * aSpec.y)
-      + vec3(inward.x, 0.0, inward.y) * (t * ${REACH.toFixed(2)})
-      + vec3(0.0, aSpec.w * (1.0 - t) - aSpec.w * 0.5, 0.0);
-    vec3 toCam = cameraPosition - p;
-    vec3 right = normalize(vec3(-toCam.z, 0.0, toCam.x) + vec3(1e-5));
-    p += right * (aCorner.x * 0.012);
-    p.y += aCorner.y * 0.34;
-    // Fades in at the opening and out where it lands.
-    vAlpha = uRain * smoothstep(0.0, 0.12, t) * smoothstep(1.0, 0.72, t);
-    gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
-  }
-`;
-
-const SPRAY_FRAG = /* glsl */`
-  precision highp float;
-  varying float vAlpha;
-  void main() {
-    if (vAlpha < 0.01) discard;
-    gl_FragColor = vec4(vec3(0.78, 0.85, 0.94), vAlpha * 0.3);
-  }
-`;
-
-// The wet floor. A flat quad, darkening what it lies on rather than painting
-// over it, so it reads as a damp board and not as a grey sticker.
-const WET_VERT = /* glsl */`
-  attribute vec3 aSlot;
-  attribute vec4 aSpec;
-  varying vec2 vUv;
-  varying float vWet;
-  uniform float uWet;
-  void main() {
-    vUv = uv;
-    vec2 inward = vec2(aSpec.x, aSpec.z);
-    vec2 along = vec2(-inward.y, inward.x);
-    vWet = uWet * aSpec.w;
-    vec3 p = aSlot
-      + vec3(along.x, 0.0, along.y) * ((uv.x - 0.5) * (aSpec.y + 0.5))
-      + vec3(inward.x, 0.0, inward.y) * (uv.y * ${REACH.toFixed(2)});
-    gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
-  }
-`;
-
-const WET_FRAG = /* glsl */`
-  precision highp float;
-  varying vec2 vUv;
-  varying float vWet;
-  void main() {
-    // Heaviest at the sill, ragged at its far edge — a puddle has no straight
-    // side away from where the water came in.
-    float e = smoothstep(1.0, 0.35, vUv.y) * smoothstep(0.0, 0.12, vUv.y);
-    float s = smoothstep(0.0, 0.16, vUv.x) * smoothstep(1.0, 0.84, vUv.x);
-    float a = e * s * vWet;
-    if (a < 0.01) discard;
-    gl_FragColor = vec4(0.0, 0.0, 0.0, a * 0.55);
-  }
-`;
+/* The spray through an opening and the wet floor inside it, as nodes: term
+   for term the GLSL programs. Spray: each drop falls on its own phase and
+   drifts inward as it falls (what comes through an opening came through it
+   sideways), faces the camera in XZ, fades in at the opening and out where it
+   lands. Wet: a flat quad that darkens what it lies on, heaviest at the sill
+   and ragged at its far edge. */
+function sprayNodes(u) {
+  const slot = attribute("aSlot", "vec3"), spec = attribute("aSpec", "vec4");
+  const seed = attribute("aSeed", "vec2"), corner = attribute("aCorner", "vec2");
+  const inward = vec2(spec.x, spec.z), along = vec2(inward.y.negate(), inward.x);
+  const t = fract(seed.x.add(u.uTime.mul(float(1.1).add(fract(seed.y.mul(5.7)).mul(0.5)))));
+  const base = slot
+    .add(vec3(along.x, 0, along.y).mul(fract(seed.y.mul(13.1)).sub(0.5).mul(spec.y)))
+    .add(vec3(inward.x, 0, inward.y).mul(t.mul(REACH)))
+    .add(vec3(0, spec.w.mul(float(1).sub(t)).sub(spec.w.mul(0.5)), 0));
+  const toCam = cameraPosition.sub(base);
+  const right = normalize(vec3(toCam.z.negate(), 0, toCam.x).add(vec3(1e-5)));
+  const p = base.add(right.mul(corner.x.mul(0.012))).add(vec3(0, corner.y.mul(0.34), 0));
+  const alpha = varying(u.uRain.mul(smoothstep(0, 0.12, t)).mul(smoothstep(1, 0.72, t)));
+  const fragment = Fn(() => {
+    If(alpha.lessThan(0.01), () => { Discard(); });
+    return vec4(vec3(0.78, 0.85, 0.94), alpha.mul(0.3));
+  })();
+  return { positionNode: p, fragment };
+}
+function wetNodes(u) {
+  const slot = attribute("aSlot", "vec3"), spec = attribute("aSpec", "vec4"), st = uv();
+  const inward = vec2(spec.x, spec.z), along = vec2(inward.y.negate(), inward.x);
+  const p = slot
+    .add(vec3(along.x, 0, along.y).mul(st.x.sub(0.5).mul(spec.y.add(0.5))))
+    .add(vec3(inward.x, 0, inward.y).mul(st.y.mul(REACH)));
+  const wet = varying(u.uWet.mul(spec.w));
+  const fragment = Fn(() => {
+    const e = smoothstep(1, 0.35, st.y).mul(smoothstep(0, 0.12, st.y));
+    const sd = smoothstep(0, 0.16, st.x).mul(smoothstep(1, 0.84, st.x));
+    const a = e.mul(sd).mul(wet);
+    If(a.lessThan(0.01), () => { Discard(); });
+    return vec4(0, 0, 0, a.mul(0.55));
+  })();
+  return { positionNode: p, fragment };
+}
 
 function sprayGeometry(slots, perSlot) {
   const n = slots * perSlot;
@@ -162,29 +132,29 @@ export class Ingress {
     this.slots = Math.max(0, Math.min(MAX_POOL, quality.ingressSlots ?? 0));
     this.perSlot = 26;
     this.apertures = [];
-    this._rainU = { value: 0 };
-    this._wetU = { value: 0 };
-    this._timeU = { value: 0 };
+    this._rainU = uniform(0);
+    this._wetU = uniform(0);
+    this._timeU = uniform(0);
     this._assigned = [];
     if (!this.slots) return;
 
-    this._spray = new THREE.Mesh(sprayGeometry(this.slots, this.perSlot), new THREE.ShaderMaterial({
-      vertexShader: SPRAY_VERT, fragmentShader: SPRAY_FRAG,
-      uniforms: { uTime: this._timeU, uRain: this._rainU },
-      transparent: true, depthWrite: false,
-    }));
+    const spray = sprayNodes({ uTime: this._timeU, uRain: this._rainU });
+    const sprayMat = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, fog: false });
+    sprayMat.positionNode = spray.positionNode; sprayMat.fragmentNode = spray.fragment;
+    this._spray = new THREE.Mesh(sprayGeometry(this.slots, this.perSlot), sprayMat);
     this._spray.frustumCulled = false;
     this.group.add(this._spray);
 
-    this._wet = new THREE.Mesh(wetGeometry(this.slots), new THREE.ShaderMaterial({
-      vertexShader: WET_VERT, fragmentShader: WET_FRAG,
-      uniforms: { uWet: this._wetU },
-      transparent: true, depthWrite: false,
+    const wet = wetNodes({ uWet: this._wetU });
+    this._wet = new THREE.Mesh(wetGeometry(this.slots), new THREE.MeshBasicNodeMaterial({
+      transparent: true, depthWrite: false, fog: false,
       // Multiply-ish: darken the boards, never lighten them.
       blending: THREE.CustomBlending,
       blendSrc: THREE.ZeroFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
       polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
     }));
+    this._wet.material.positionNode = wet.positionNode;
+    this._wet.material.fragmentNode = wet.fragment;
     this._wet.frustumCulled = false;
     this.group.add(this._wet);
   }
