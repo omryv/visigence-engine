@@ -131,6 +131,12 @@ try {
     ground ? `${ground.kind}: ${ground.world?.parameterHash} vs ${expected}${ground.reason ? '; ' + ground.reason : ''}` : 'no level');
   check('at the spawn marker', ground?.site && Math.abs(ground.site.x - settings.site.x) < 0.2 && Math.abs(ground.site.z - settings.site.z) < 0.2,
     `site (${ground?.site?.x}, ${ground?.site?.z})`);
+  // The game's art comes from the asset origin, as everywhere on the site, not from beside the page: a downloaded ZIP
+  // keeps its art next to it, the editor's game does not. (This server would answer /assets/ with stand-ins, so the
+  // address is checked, not the load.)
+  const art = await w.js(`(async () => { const d = await ${G}.eval("import('/src/config/assetDelivery.js')"); return JSON.stringify({ url: d.assetURL('assets/studio/visigames-mark.svg'), origin: d.ASSET_ORIGIN, packaged: d.isPackagedGame() }); })()`);
+  const artAt = JSON.parse(art);
+  check('the game loads its art from the art server, not from the site', artAt.url.startsWith(artAt.origin + '/') && !artAt.packaged, artAt.url);
   check('and nothing the game does is stored', await w.js(`${G}.localStorage !== localStorage && localStorage.length === 0`));
   await sleep(4000);
   const ps = await w.shot('play-in-the-editor');

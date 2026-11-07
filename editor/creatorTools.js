@@ -6,9 +6,10 @@ import { footprint } from '../src/world/importedProps.js';
 import { normalizePresentation, presentationFiles } from '../src/world/presentation.js';
 import { localFile, fileBytes } from './localFiles.js';
 import { localAssetURL, registerLocalAsset } from '../src/config/localAssets.js';
+import { isPackagedGame } from '../src/config/assetDelivery.js';
 
-export function presentationURL(asset){if(!asset)return null;return document.body.dataset.build==='standalone'?'/'+asset.model:localAssetURL(asset.model)??null;}
-export async function preparePresentation(project){if(document.body.dataset.build==='standalone')return;for(const a of presentationFiles(project))if(!localAssetURL(a.model))registerLocalAsset(a.model,await fileBytes(a));}
+export function presentationURL(asset){if(!asset)return null;return isPackagedGame()?'/'+asset.model:localAssetURL(asset.model)??null;}
+export async function preparePresentation(project){if(isPackagedGame())return;for(const a of presentationFiles(project))if(!localAssetURL(a.model))registerLocalAsset(a.model,await fileBytes(a));}
 function modal(title,content){const d=document.createElement('dialog');d.className='prop-dialog creator-dialog';d.setAttribute('aria-label',title);d.innerHTML=`<form method="dialog" class="import-heading"><div><span class="eyebrow">CREATOR TOOLS</span><h2>${title}</h2></div><button class="dialog-close" aria-label="Close creator tools">×</button></form>${content}`;document.body.append(d);d.showModal();d.addEventListener('close',()=>d.remove(),{once:true});return d;}
 export async function openPlacement({getProject,onChange,toast}){
  const project=structuredClone(getProject());if(!project.importedProps.length){toast('Import a prop before placing it.');return;}
