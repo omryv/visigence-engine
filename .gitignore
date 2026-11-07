@@ -1,0 +1,52 @@
+node_modules/
+dist/
+.r2-upload/
+*.blend1
+*.blend2
+.DS_Store
+
+# Baked levels are DERIVED, and saying so here is the architecture stating itself: a
+# level is `specs/*.build.json` run through tools/build/bake-level.mjs, and the spec is
+# three orders of magnitude smaller than what it produces (674 bytes -> 363 KB for the
+# default). Committing the output would make the spec decorative and invite someone to
+# hand-edit a generated file. Rebuild instead:
+#     node tools/build/bake-level.mjs specs/default.build.json
+src/world/levels/*.generated.js
+
+# Scratch level bakes from a pack spec — derived, like every other baked level.
+specs/*.local.json
+
+# Intermediate Blender inspection and gait baking data. Rebuild using tools/blender.
+tools/blender/*.png
+tools/blender/*-animation.json
+tools/blender/*-parts.json
+tools/blender/__pycache__/
+
+# Probe frames from tools/test/probe-render.mjs are scratch output.
+assets/review/shots/probe/
+
+# Runtime art lives on R2; local authoring and review media are optional caches.
+/assets/*
+
+# Review captures stay local; text verification reports remain in Git.
+/docs/reports/mission-polish/*.png
+
+# Readable three builds are for local debugging only: node tools/three/vendor.mjs --readable puts them here.
+vendor/three/build/three.webgpu.js
+vendor/three/build/three.core.js
+vendor/three/build/three.tsl.js
+
+# Stand-in art for the browser smoke harness (tools/test/stand-in-assets.mjs). Generated, never real.
+tools/test/.stand-ins/
+
+# First-person arms upload staging (R2, manual) and local backups.
+/R2-upload-fp/
+/.backup/
+# Report screenshots stay local.
+/docs/reports/**/*.png
+.mcp.json
+/R2-upload-arcade/
+
+# Python bytecode from the kernel's Python port and the Blender kit.
+__pycache__/
+*.pyc

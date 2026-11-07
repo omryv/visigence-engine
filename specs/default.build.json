@@ -1,0 +1,38 @@
+{
+  "kind": "shooter.build",
+  "fileVersion": 1,
+  "generatorVersion": 1,
+  "world": {
+    "seed": "K7QN-3F2A-9XBD",
+    "recipe": "highlands",
+    "terrain": {
+      "size": 420,
+      "height": 62,
+      "frequency": 3.1,
+      "octaves": 5,
+      "lacunarity": 2.03,
+      "gain": 0.5,
+      "warp": 0.5,
+      "ridged": 0.45,
+      "plateau": 0.05,
+      "island": 0,
+      "seaLevel": 0.42
+    }
+  },
+  "traversal": {
+    "stepUp": 0.55,
+    "maxSlope": 0.85,
+    "radius": 0.42,
+    "headroom": 1.9,
+    "wadeDepth": 0.9
+  },
+  "bake": {
+    "gridN": 320,
+    "heightRes": 257
+  },
+  "environment": {
+    "lightZones": []
+  },
+  "gameplay": {},
+  "presentation": {}
+}

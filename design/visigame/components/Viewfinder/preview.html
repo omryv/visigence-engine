@@ -1,0 +1,17 @@
+<!-- @dsCard group="Selection" height=150 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  var box = function (label) { return h('div', { style: { width: 180, height: 84, display: 'grid', placeItems: 'center', background: 'var(--surface-200)', border: '1px solid var(--line)', borderRadius: 'var(--radius-md)', color: 'var(--ink-muted)', font: '500 11px/16px var(--font-mono)', letterSpacing: '.08em', textTransform: 'uppercase' } }, label); };
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'vg-stage', style: { gap: 'var(--space-6)', padding: 'var(--space-6)' } },
+    h(V.Viewfinder, null, box('Idle')),
+    h(V.Viewfinder, { active: true }, box('Selected')),
+    h(V.Viewfinder, { active: true, tone: 'tungsten' }, box('Featured'))));
+
+</script>
+</body>
+</html>

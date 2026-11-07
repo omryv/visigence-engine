@@ -1,0 +1,596 @@
+{
+  "version": 1,
+  "totalBytes": 20081373,
+  "files": [
+    {
+      "path": "assets/audio/default/E-computer-activated.mp3",
+      "bytes": 49581,
+      "sha256": "383cacfc592f227202fb1301073b89e0fd51b6740df2e220b458bd65c47560a1"
+    },
+    {
+      "path": "assets/audio/default/E-door-opened.mp3",
+      "bytes": 49581,
+      "sha256": "e6b3725dd34420bd8c9bfccda0479b8d938906eab1eddff6de06094fb7e3ff9f"
+    },
+    {
+      "path": "assets/audio/default/E-loading-computer.mp3",
+      "bytes": 49581,
+      "sha256": "8d3e422e5709f9a4b883b501be7a5f8d551ef95b8a73bc1bafbef6a13d57b4ae"
+    },
+    {
+      "path": "assets/audio/default/door-unavailable.mp3",
+      "bytes": 49581,
+      "sha256": "622d799ed60988dfd850b957c8680264a65a7dea3cfe314f75d421402427b1f8"
+    },
+    {
+      "path": "assets/audio/default/grenade-exploaded.mp3",
+      "bytes": 49581,
+      "sha256": "2d494a3bcabdf055d4a28537f80545c06c3f4409c1171255d511de81f9e18e77"
+    },
+    {
+      "path": "assets/audio/default/jump.mp3",
+      "bytes": 49581,
+      "sha256": "1bbb46537fa0a2cbbbafcdc19a39072c6241ff99338835ce55b8710ca9c839da"
+    },
+    {
+      "path": "assets/audio/default/pistol-reload.mp3",
+      "bytes": 49581,
+      "sha256": "412829f2fa3754cc1630985004fc32174a43ceedf98fcfd495171d6da63d5b89"
+    },
+    {
+      "path": "assets/audio/default/pistol.mp3",
+      "bytes": 25389,
+      "sha256": "69f73c6b936d49c19426379ee2d101658d239fc228f776872180fdd12ed01e09"
+    },
+    {
+      "path": "assets/audio/default/rpg-impact.mp3",
+      "bytes": 70317,
+      "sha256": "c6a1be9aa85788194d0df2a2a07a15b1189fb374f673d0bbd7bd0a606b296a84"
+    },
+    {
+      "path": "assets/audio/default/rpg-reload.mp3",
+      "bytes": 78381,
+      "sha256": "f70214af7aa641224a96fe77e5bd7f8492f88eaf28b5e3e687c92ad30f587bfd"
+    },
+    {
+      "path": "assets/audio/default/rpg.mp3",
+      "bytes": 49581,
+      "sha256": "e402abea50b80468ffc7e13fa1a0636bcb772b3d1f0c2292994395797ebc7d34"
+    },
+    {
+      "path": "assets/audio/default/shotgun-reload.mp3",
+      "bytes": 107181,
+      "sha256": "66fad998d40743bca0873ebbd42601662d739fe488868cc4b7a8a1158a9c32e7"
+    },
+    {
+      "path": "assets/audio/default/shotgun.mp3",
+      "bytes": 49581,
+      "sha256": "64d1df71c7988ec6095453a975b2fe3bbab3e7fbd323cf5beabba49268f03dcc"
+    },
+    {
+      "path": "assets/audio/default/sniper-reload.mp3",
+      "bytes": 110637,
+      "sha256": "0bfd7d1a4bffed64ed1eeaf335a5095f133ea5a4ccb57471af8058ea16e4cf8e"
+    },
+    {
+      "path": "assets/audio/default/sniper.mp3",
+      "bytes": 49581,
+      "sha256": "5d915fff1f853fb45cfd18588054f2b79652953b1dbb86883f849be33d8ac46b"
+    },
+    {
+      "path": "assets/audio/default/steps.mp3",
+      "bytes": 49581,
+      "sha256": "9f44d7eb74686f28a8446354ae9aa43bc9e3a58cfedf40476241317e9e24d896"
+    },
+    {
+      "path": "assets/audio/default/ui-button-click.mp3",
+      "bytes": 25389,
+      "sha256": "44373c44244bda10f6c615368fa95ec0f732244a2e1a706edaa587c88f185f88"
+    },
+    {
+      "path": "assets/audio/default/ui-esc-button.mp3",
+      "bytes": 25389,
+      "sha256": "2473d7209913fa7347f8e1d9db7b69ae0a11c7ae95aaee6c9791fd4241c9adc1"
+    },
+    {
+      "path": "assets/audio/default/weapon-1-reload.mp3",
+      "bytes": 39789,
+      "sha256": "b74a226c442e473e3cf8068f64ec868a843149c5d0e30894bd2de876efcaad82"
+    },
+    {
+      "path": "assets/audio/default/weapon-switch.mp3",
+      "bytes": 34029,
+      "sha256": "8157297f01407a8e49057118c1e91f3fc7aecf975004d455f2c93199c942db60"
+    },
+    {
+      "path": "assets/audio/default/weapon1.mp3",
+      "bytes": 49581,
+      "sha256": "a93809cc09793bf5df4926519e258f728e2b9cd6fc842c00c4cf01a27239a837"
+    },
+    {
+      "path": "assets/studio/asset-cube.svg",
+      "bytes": 195,
+      "sha256": "f047c8c26fa2d10f8ddd2b1cc7a03bebf9ade5ceb0bb7d455848fc26e7dab651"
+    },
+    {
+      "path": "assets/studio/import-demo.glb",
+      "bytes": 72288,
+      "sha256": "fad666f5fd7166a8dc8cb4deb62e1bda3863349eba27e60dcd8e3bf1790af6e0"
+    },
+    {
+      "path": "assets/studio/mission-beacon.glb",
+      "bytes": 30644,
+      "sha256": "3e6cfd541bb3f5c95a80157037e34f1fad0e97a2654a9c50addc3dfe73ae68fd"
+    },
+    {
+      "path": "assets/studio/play.svg",
+      "bytes": 107,
+      "sha256": "b1046b4c987c4dec54ea4cbefab810f48f91388271a58e51b11eebf14ea3ac54"
+    },
+    {
+      "path": "assets/studio/shuffle.svg",
+      "bytes": 219,
+      "sha256": "a4e5855116ab2430c3c590f6bec4a04be9bf18fc53006adc8d9b33cf1888385c"
+    },
+    {
+      "path": "assets/studio/visigames-mark.svg",
+      "bytes": 168,
+      "sha256": "8fd2a3b16a2eb3702f656cad5fbd5484fe6bd7cce2fe39296f4472283ba15103"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-arbalest.glb",
+      "bytes": 105968,
+      "sha256": "2b7031ca9b5fa3a1cfee34a17f1e4145443236a416ea424c305cbee90949610a"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-barrel.glb",
+      "bytes": 20296,
+      "sha256": "948b9d75175a073c837ff946cd5d0856f0d854d7b40a823aded7e0888836385c"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-barricade.glb",
+      "bytes": 126548,
+      "sha256": "419986ba4c17c198ee4690f5aa80123010db11b790618803d0894562955ee0d8"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-blunderbuss.glb",
+      "bytes": 84792,
+      "sha256": "f2b51e420e71d990e951f07992f71b00c40f7b276fc768b52b93e147edbaf9fd"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-cannon.glb",
+      "bytes": 89664,
+      "sha256": "234b63a0897b11dbec49bae8df37c5e735fc4f5ade73c2566f500dbd310c60d6"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-creature-parts.glb",
+      "bytes": 893956,
+      "sha256": "b9c65a21d885a1b42c521b835cd914918395a59de6ec7c8d5c41512f35f00c57"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-fence.glb",
+      "bytes": 10104,
+      "sha256": "f303605a465c30fa62d27ed00d651ce82d5f083231a09fd152b02ebde7ead85c"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-gate.glb",
+      "bytes": 103812,
+      "sha256": "366f51e3e4dd7a320ee8c72aea069323261494de2ee9b4f56f6decd55e3bcdb9"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-ground.glb",
+      "bytes": 152948,
+      "sha256": "782e6c751b1e57ca64a8944f35f3bb33bd56b634013083d52442935ef4d658ce"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-house-parts.glb",
+      "bytes": 521484,
+      "sha256": "9eaf37a35c839fa061075f62b41317339195195ccf23c4b06b6ce0bd9e48da5d"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-nature-parts.glb",
+      "bytes": 308956,
+      "sha256": "17a281ce04795c5e7799f300f7057c4cd7bcdafd0567dd85c579dccdc59a6b8c"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-lookdev-review.png",
+      "bytes": 1270964,
+      "sha256": "15a778fd9e92632034381a1007c6abd1df99be50c2cc54729b6d025360cceac9"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-repeater.glb",
+      "bytes": 105480,
+      "sha256": "51cb521e01636a12de5288c96f96c287a4403257ed45fc6150c150ab7adf83d9"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-rocks.glb",
+      "bytes": 14792,
+      "sha256": "d4cb406eeae9f32d210f72ad55904e812df95c003c9c56020bcba3f9c71f66b2"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-shrine.glb",
+      "bytes": 63712,
+      "sha256": "60f4941d2aa75a58c9bcec0550eac19730b3d5fc067c61e43d4e0b5c24785d19"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-slingshot.glb",
+      "bytes": 83552,
+      "sha256": "1bf74e579f16f93391d52d4230e5641920cb47e9afe20d71bdb5787189a2563b"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-tree-parts.glb",
+      "bytes": 80516,
+      "sha256": "644d18611d9e0616f456d518683a67303b2512c56bce2d584a9a0c8370cd3797"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-landmark-parts.glb",
+      "bytes": 439296,
+      "sha256": "624d050c76e2c5b8d466d3015f75ab09502f6e97f47b142029f315c48ddc1020"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-pouch.glb",
+      "bytes": 45004,
+      "sha256": "0209e14bf43db8a22664410ede20fb79c13030e876d3ed15f8c50fbd14eddca4"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-honey.glb",
+      "bytes": 32224,
+      "sha256": "a0461190bb11b5000d688d9378978f96ef73f2a1f7be0ea21af41b0d34272b6f"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-fizzbomb.glb",
+      "bytes": 23000,
+      "sha256": "79a2b23a4768c39461925f765654ca855f32fc4c65192dbdefec48049221c6ac"
+    },
+    {
+      "path": "assets/v2/arcade/characters/arcade-hero.glb",
+      "bytes": 852484,
+      "sha256": "7dd45daf91612f7da73b3f470435b22013f3543655bb8190d29843e8b1b88603"
+    },
+    {
+      "path": "assets/v2/arcade/fp/slingshot.glb",
+      "bytes": 820184,
+      "sha256": "313fc72a1b431aa3fcc9a3f7cb4ccb679cb9d26b5659837ecbbdb9bdb3d49ed1"
+    },
+    {
+      "path": "assets/v2/arcade/fp/repeater.glb",
+      "bytes": 907512,
+      "sha256": "e684c522b42c6e147a1eca44f295db3b6015119673f3b860e03f04cd6e79e780"
+    },
+    {
+      "path": "assets/v2/arcade/fp/blunderbuss.glb",
+      "bytes": 989076,
+      "sha256": "a47cf6600d29c9d2b262fb254ab8f865214c363ce1159246af995414eff642c3"
+    },
+    {
+      "path": "assets/v2/arcade/fp/arbalest.glb",
+      "bytes": 981796,
+      "sha256": "d43bc2bb0ad40ffd2fc889aded63d4ce7278a62a843cbd9d63b139395b1bf61a"
+    },
+    {
+      "path": "assets/v2/arcade/fp/cannon.glb",
+      "bytes": 868900,
+      "sha256": "bc2213e1d8cdde1af6a2543fbe5c7a43612c518baeda88d8dafed00df029c7af"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/acorn.png",
+      "bytes": 77388,
+      "sha256": "c5add4c2abd87f9ec9540850ac8578764e6c060adcaa6b9a88b4e1a8c2223a4c"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/arbalest.png",
+      "bytes": 76010,
+      "sha256": "a9d43058e9d8c0f934e4403881e0249a47e6fffb3e2d29b7abfe16544719bbf8"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/barrel.png",
+      "bytes": 77124,
+      "sha256": "36e45b17e10e37ae3ec5db529a3dce466810bd76efd7d6e21d7d43b46e7b2c43"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/barricade.png",
+      "bytes": 78303,
+      "sha256": "4994803177e54d0c90f274535b48444057d8a8a0ab3f4f02bfd43db28bd816ac"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/batpuff.png",
+      "bytes": 78620,
+      "sha256": "86c36fd77b574d48be8c3039028ed29308ed8c05473521c8de8f4601f9701a01"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/bee.png",
+      "bytes": 75329,
+      "sha256": "28a9578ecc2e3111f10b62e8130efc16f7ac675ba22d1c5f1e50db75f6a93954"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/blunderbuss.png",
+      "bytes": 75100,
+      "sha256": "f8ce8fbc58f5822cc6cb250eb592277fdf259daa10cdf45d300c54c8deaa0d46"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/cannon.png",
+      "bytes": 81099,
+      "sha256": "519adaf9ec52ab0465568550b7d1251ffea7fb17f95b77c4dade6f7dd3c721f5"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/fence.png",
+      "bytes": 77589,
+      "sha256": "87e7abeff10585e81d54b4080e8b72b884ac2a02f17eb4c84c932524071ea967"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/gate.png",
+      "bytes": 80795,
+      "sha256": "60322969aee88745ad8a66a778b085a6c69c2912e81ebe94cd4c836764303274"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/hero.png",
+      "bytes": 83998,
+      "sha256": "fdb6b457dc97ee6cdcf67d1a00c39052b5676c4b081d25d165f86a3f56478777"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/hornblob.png",
+      "bytes": 74716,
+      "sha256": "31378728d4bee0b7f77fab4f62e06d1d8cb4888ece71a11d93a4e469943b3180"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-cottage.png",
+      "bytes": 83021,
+      "sha256": "25ac2462d4d655c1a20e318dc63725d00072ebbc7b33c222c539cd52e61a401c"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-farmhouse.png",
+      "bytes": 76220,
+      "sha256": "2907713bb949713772cd5de9663a14abb48e3f94e6580648f7e6b32b2cb042e8"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-tower.png",
+      "bytes": 81211,
+      "sha256": "7ffc8612652d44de09a78b8dd262b1485e5387fe47e9a3bb086b43bf68400f76"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-townhouse.png",
+      "bytes": 77875,
+      "sha256": "4ebfc5186ffe36d81d64cb82950709c1aa9dd92ee3a4dab52f4efe1fb142cba0"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house.png",
+      "bytes": 83306,
+      "sha256": "d8742438d9ec9d2128e2728af4aabab489ba9b0d891d74003c4f53c1af072790"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/nature.png",
+      "bytes": 80138,
+      "sha256": "700dd388143f8855d5ca1ed6459a6cdd4abfd993dddbf84bf66f96dc5a0d082c"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/king.png",
+      "bytes": 76956,
+      "sha256": "64a556c3d7b8f0be167fe75d347abe9b797ad1513b0ce8992013ee51d44736cd"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/pebble.png",
+      "bytes": 74003,
+      "sha256": "b56a5c8658b174ac4b970512f91709ad311276ff8745a823cf7e28addcf5d204"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/repeater.png",
+      "bytes": 77482,
+      "sha256": "b7ff291c4104ec99382cab63fc4535dc66d60e235f17275f1fd078ea640528ee"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/rocks.png",
+      "bytes": 73616,
+      "sha256": "fbd1f5f5f09f5199499f6dac8ebd54d4500797fc44b78f7f95d84e12ae8cb40c"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/shrine.png",
+      "bytes": 77859,
+      "sha256": "ee2b428a29af6810d3eda3d70a355fd1e9d214a83cc828c86b08bccb73559a9f"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/shroom.png",
+      "bytes": 75920,
+      "sha256": "32dc838c51fab67b1599237d1112a1960c19f270895eaa2733173ca19caa5996"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/slime.png",
+      "bytes": 73892,
+      "sha256": "9aca0bb799f237c709ac7d13ba4ef9d4cce25ab63bd204154a74ecbc8c54754b"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/slingshot.png",
+      "bytes": 79982,
+      "sha256": "c522bef1acdd623d868c1fbacad1192dda15aa684dca197c2dc00b9a1cd1f0ad"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/spirit.png",
+      "bytes": 78628,
+      "sha256": "fec064447147a46d2cb8a44ad0ed22cfa1f677ec295b8d1625d3cb1fa256190e"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/sprout.png",
+      "bytes": 75358,
+      "sha256": "571bbef7b157926cab702953f1f49bb5bc5dafe779675c07c13d88d37f863164"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/tree.png",
+      "bytes": 78832,
+      "sha256": "9ffe5ef595b2a60115113d68627121bc9ca7cc462f9e635e0a7ead8a9ced2120"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/landmark.png",
+      "bytes": 81519,
+      "sha256": "854b20300aeff265a0fa88f252cc0a79f09e2d5461037a1afb8f35b55879ce62"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/pouch.png",
+      "bytes": 80791,
+      "sha256": "a5df679d71d7333ee1f160f6b10aff328ab32eb09ecbeb6c96223032deb9f911"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/honey.png",
+      "bytes": 82848,
+      "sha256": "f321d0b3d55befb1ef83e8d2c4b0bc189b7eaed7504dfc2e51307c79b7703da1"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/fizzbomb.png",
+      "bytes": 76406,
+      "sha256": "3d7fd7695eb8b36fedab263f49f13672a961601121e5da46c29c9d137790c1e5"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/slingshot-shot-arcade-mode.mp3",
+      "bytes": 43821,
+      "sha256": "68d3177143c438049899dee167b358297096bfd5051b2899499df32f0646e4c6"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/slingshot-reload-arcade-mode.mp3",
+      "bytes": 27117,
+      "sha256": "bcbf6c165d892743099cf103a91e898de31f47dd35d0e66170e6defc05059259"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/repeating-crossbow-shot-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "44a036468c0c0fe2cb55a74255206d5e63ccd5f88912030222b2f0885bee1d8c"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/repeating-crossbow-reload-arcade-mode.mp3",
+      "bytes": 54189,
+      "sha256": "d104b2eacb8bb9e86f2a34b5bd1f35264f0429f9206e18620c7938bbf1bfd2fe"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/blunderbuss-shot-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "4565e3f61286bfbe58a583bbfa24fc879a19ced32121d924f9dd5fddb265e521"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/blunderbuss-reload-arcade-mode.mp3",
+      "bytes": 54189,
+      "sha256": "2dd5c86e2d09cc6655ef8c54103dc884c866078b3593ee85784bfb9d04ad6ea0"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/heavy-crossbow-shot-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "1152d558bcc5ba193c77e9995919d4921c58e4449079bfeb3294c124003157de"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/heavy-crossbow-reload-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "021b40fda9275050ce4fc4d02dde64100e73ea574239882d8c8db6b024046c84"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/mini-cannon-shot-arcade-mode.mp3",
+      "bytes": 49581,
+      "sha256": "acc3d5c4388065e5521422679750667ba5583e00951e85d801e4eaca72b03ab6"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/mini-cannon-reload-arcade-mode.mp3",
+      "bytes": 54189,
+      "sha256": "3f3343daa4ae59a9cea5d44c0f79476fcf582a0f20fbeed115c6985375554e00"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-parts.glb",
+      "bytes": 1266572,
+      "sha256": "182b722882ee891ab1894cbd70c83c7077585aee048839890d96a07b1bf74034"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-rocks.glb",
+      "bytes": 13920,
+      "sha256": "d8cf1230091cab4f75c34e83ceecf07220186c9f805cbb4a64997c3a0f05cdcf"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-wall.glb",
+      "bytes": 11024,
+      "sha256": "43735714b437e8c7bc32e6b9d116fd35762a5e9169bf5ff4ca12aebc7b22a396"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-barricade.glb",
+      "bytes": 85032,
+      "sha256": "c2cfc386dacf9f460e376752a8098cc7ac059b991306e792d8db47155cdb6206"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-review.png",
+      "bytes": 1176018,
+      "sha256": "66da9cc88214a9e865d8ca9a0067b0476bbfbd33e185d02716832706b3f0166d"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-parts.glb",
+      "bytes": 1552284,
+      "sha256": "7b9f9cab79a11b2c8a112dcfd0e411f8e9f39a12abbd59b24a011b0a84a6f06e"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-rocks.glb",
+      "bytes": 21824,
+      "sha256": "273ba82bf1636a00a63ffaf5199876847440734ac6eba17291036ae30420833d"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-fence.glb",
+      "bytes": 22056,
+      "sha256": "835702158ee21e6443519a596141db1a491dac05738e4ca0b10dd5db120ef377"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-barricade.glb",
+      "bytes": 111304,
+      "sha256": "4375dfd8534082da25817a74e4b05802420c781a8431f5519f8d42d734fab1e6"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-barrel.glb",
+      "bytes": 26552,
+      "sha256": "d0d4a6636732784dcbc6c8f40c6d92811494fe8c0fa2767247d5e3d7589ff18c"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-review.png",
+      "bytes": 1073050,
+      "sha256": "dc787d996450ad7932649a7463ae961a33d9ca28d0586aabcdcbfd771f386125"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-keys.glb",
+      "bytes": 46760,
+      "sha256": "c0894c6d3fa94e13ff42d94b3f94a031f495f3fb5f7400e8f89d7f4b45a508e5"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-locks.glb",
+      "bytes": 45536,
+      "sha256": "bcb09e39cf4f4033d43e4d7f039aa933eaeb68c8702f6f5b81f80b2d0a4e862e"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-lever.glb",
+      "bytes": 33072,
+      "sha256": "cdf9bcdcb5dca05ecc583e9bc334baeca7fede20484fec952e99693df0ccf621"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-drop.glb",
+      "bytes": 10344,
+      "sha256": "324ad02b621961db6bb4bd9503a8365381b87e2bf8536f95f944fa3760102da8"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-staff.glb",
+      "bytes": 27228,
+      "sha256": "c060ae2835245adf5233b6816721260487fc394fa0e65ec82d1fa94d21bca1b7"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/key.png",
+      "bytes": 76645,
+      "sha256": "6592061426235d85ee74d53b3b5d1515bc22d02800b338978e296d0bb36aabd7"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/lock.png",
+      "bytes": 78324,
+      "sha256": "f99a11c35eed79f07a1548df214ae2a60ac65395ff991f6267efa983ba7a6f9a"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/lever.png",
+      "bytes": 75497,
+      "sha256": "eae334cd57399e0e875761571acb310691a9be7dd5b0acd03216022f08575e8f"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/drop.png",
+      "bytes": 75025,
+      "sha256": "9f4cb96e7ec71592eb6916c8586bd8fc28de1507de8da80c65fedcaa46160274"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/staff.png",
+      "bytes": 74616,
+      "sha256": "8d7b6447953f4d4bff5c8d3f29bb190141f8e7a4b63b08d7e14e9d0db98be56e"
+    }
+  ]
+}

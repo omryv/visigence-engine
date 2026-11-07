@@ -1,0 +1,14 @@
+<!-- @dsCard group="Selection" height=72 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { padding: 'var(--space-4) var(--space-5)' } },
+    h(V.Tabs, { label: 'Preview information', items: [{ id: 'preview', label: 'Preview' }, { id: 'perf', label: 'Performance' }, { id: 'logs', label: 'Logs', count: 12 }] })));
+
+</script>
+</body>
+</html>

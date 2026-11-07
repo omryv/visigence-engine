@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mobile rendering and interaction smoke test</title>
+<script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+<style>body{margin:0;background:#101820;color:#bdf;font:12px monospace}#stage{width:900px;height:600px;}canvas{display:block;width:100%;height:100%}#report{white-space:pre-wrap}</style>
+<div id="stage"><canvas></canvas></div><pre id="report">Loading</pre>
+<script type="module">
+const report=document.querySelector('#report'),checks=[];let session;
+const assert=(test,message)=>{if(!test)throw Error(message);checks.push(message);};
+try{
+ const {ShooterSession}=await import('/src/game/ShooterSession.js');
+ session=new ShooterSession(document.querySelector('canvas'),{onError:e=>{report.textContent=JSON.stringify({status:'failed',error:String(e),checks});}});
+ await session.initialize();session.setRendering(false);
+ for(const theme of ['arcade']){
+  await session.build({theme,camera:'first',quality:'quality'});session.start();session.setRendering(false);
+  session.frame(performance.now());
+  assert(session.performanceProfile.mobile,theme+': mobile policy');
+  assert(!session.post&&!session.renderer.shadowMap.enabled,theme+': mobile effects budget');
+  assert(session.assets.warnings.length===0,theme+': no asset warnings');
+ }
+ report.textContent=JSON.stringify({status:'passed',measurement:'Functional GPU smoke test; these are not timing measurements',checks},null,2);
+ session.stop();session.setRendering(false);
+}catch(error){session?.setRendering(false);report.textContent=JSON.stringify({status:'failed',error:String(error),checks},null,2);}
+</script>

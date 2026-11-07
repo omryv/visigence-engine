@@ -1,0 +1,110 @@
+{
+  "source": "Documents/audio (movement, weapons, interactions)",
+  "files": [
+    {
+      "file": "E-computer-activated.mp3",
+      "bytes": 49581,
+      "sha256": "383cacfc592f227202fb1301073b89e0fd51b6740df2e220b458bd65c47560a1"
+    },
+    {
+      "file": "E-door-opened.mp3",
+      "bytes": 49581,
+      "sha256": "e6b3725dd34420bd8c9bfccda0479b8d938906eab1eddff6de06094fb7e3ff9f"
+    },
+    {
+      "file": "E-loading-computer.mp3",
+      "bytes": 49581,
+      "sha256": "8d3e422e5709f9a4b883b501be7a5f8d551ef95b8a73bc1bafbef6a13d57b4ae"
+    },
+    {
+      "file": "door-unavailable.mp3",
+      "bytes": 49581,
+      "sha256": "622d799ed60988dfd850b957c8680264a65a7dea3cfe314f75d421402427b1f8"
+    },
+    {
+      "file": "grenade-exploaded.mp3",
+      "bytes": 49581,
+      "sha256": "2d494a3bcabdf055d4a28537f80545c06c3f4409c1171255d511de81f9e18e77"
+    },
+    {
+      "file": "jump.mp3",
+      "bytes": 49581,
+      "sha256": "1bbb46537fa0a2cbbbafcdc19a39072c6241ff99338835ce55b8710ca9c839da"
+    },
+    {
+      "file": "pistol-reload.mp3",
+      "bytes": 49581,
+      "sha256": "412829f2fa3754cc1630985004fc32174a43ceedf98fcfd495171d6da63d5b89"
+    },
+    {
+      "file": "pistol.mp3",
+      "bytes": 25389,
+      "sha256": "69f73c6b936d49c19426379ee2d101658d239fc228f776872180fdd12ed01e09"
+    },
+    {
+      "file": "rpg-impact.mp3",
+      "bytes": 70317,
+      "sha256": "c6a1be9aa85788194d0df2a2a07a15b1189fb374f673d0bbd7bd0a606b296a84"
+    },
+    {
+      "file": "rpg-reload.mp3",
+      "bytes": 78381,
+      "sha256": "f70214af7aa641224a96fe77e5bd7f8492f88eaf28b5e3e687c92ad30f587bfd"
+    },
+    {
+      "file": "rpg.mp3",
+      "bytes": 49581,
+      "sha256": "e402abea50b80468ffc7e13fa1a0636bcb772b3d1f0c2292994395797ebc7d34"
+    },
+    {
+      "file": "shotgun-reload.mp3",
+      "bytes": 107181,
+      "sha256": "66fad998d40743bca0873ebbd42601662d739fe488868cc4b7a8a1158a9c32e7"
+    },
+    {
+      "file": "shotgun.mp3",
+      "bytes": 49581,
+      "sha256": "64d1df71c7988ec6095453a975b2fe3bbab3e7fbd323cf5beabba49268f03dcc"
+    },
+    {
+      "file": "sniper-reload.mp3",
+      "bytes": 110637,
+      "sha256": "0bfd7d1a4bffed64ed1eeaf335a5095f133ea5a4ccb57471af8058ea16e4cf8e"
+    },
+    {
+      "file": "sniper.mp3",
+      "bytes": 49581,
+      "sha256": "5d915fff1f853fb45cfd18588054f2b79652953b1dbb86883f849be33d8ac46b"
+    },
+    {
+      "file": "steps.mp3",
+      "bytes": 49581,
+      "sha256": "9f44d7eb74686f28a8446354ae9aa43bc9e3a58cfedf40476241317e9e24d896"
+    },
+    {
+      "file": "ui-button-click.mp3",
+      "bytes": 25389,
+      "sha256": "44373c44244bda10f6c615368fa95ec0f732244a2e1a706edaa587c88f185f88"
+    },
+    {
+      "file": "ui-esc-button.mp3",
+      "bytes": 25389,
+      "sha256": "2473d7209913fa7347f8e1d9db7b69ae0a11c7ae95aaee6c9791fd4241c9adc1"
+    },
+    {
+      "file": "weapon-1-reload.mp3",
+      "bytes": 39789,
+      "sha256": "b74a226c442e473e3cf8068f64ec868a843149c5d0e30894bd2de876efcaad82"
+    },
+    {
+      "file": "weapon-switch.mp3",
+      "bytes": 34029,
+      "sha256": "8157297f01407a8e49057118c1e91f3fc7aecf975004d455f2c93199c942db60"
+    },
+    {
+      "file": "weapon1.mp3",
+      "bytes": 49581,
+      "sha256": "a93809cc09793bf5df4926519e258f728e2b9cd6fc842c00c4cf01a27239a837"
+    }
+  ]
+}

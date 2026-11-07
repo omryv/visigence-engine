@@ -1,0 +1,5062 @@
+[
+ {
+  "request": {
+   "family": "slime",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.627044415101409,
+    "round": 0.44382469153497367,
+    "ornament": 0.3098735543899238,
+    "tone": -0.05342925991863012
+   },
+   "palette": {
+    "body": "#9ed7fe",
+    "accent": "#fdde74"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.1305344547145069
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.drop",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "acc.flower",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.39037034939974546,
+    "round": 0.8436420870013535,
+    "ornament": 0.49524523550644517,
+    "tone": -0.990071346051991
+   },
+   "palette": {
+    "body": "#81e2b6",
+    "accent": "#ef676f"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.213370377710089
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.889462717808783,
+    "round": 0.5544557035900652,
+    "ornament": 0.7035291064530611,
+    "tone": -0.21362106502056122
+   },
+   "palette": {
+    "body": "#fcdd87",
+    "accent": "#bfa0fa"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.0386880487669259
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "acc.leaf",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.08339316793717444,
+    "round": 0.7405660638120024,
+    "ornament": 0.6007802789099514,
+    "tone": -0.804598500020802
+   },
+   "palette": {
+    "body": "#84e5b9",
+    "accent": "#f26a72"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.320812391221989
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.drop",
+     "on": null,
+     "socket": null,
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.8015876568388194,
+    "round": 0.5164771478623151,
+    "ornament": 0.801897362805903,
+    "tone": -0.928949736058712
+   },
+   "palette": {
+    "body": "#92cbf2",
+    "accent": "#f1d268"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0694443201064132
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.drop",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "acc.flower",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.9670940288342535,
+    "round": 0.6435903643257915,
+    "ornament": 0.9202194542158395,
+    "tone": -0.8897509942762554
+   },
+   "palette": {
+    "body": "#f3d47e",
+    "accent": "#b697f1"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0115170899080113
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.drop",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "acc.leaf",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.5578574659302831,
+    "round": 0.2144066241569817,
+    "ornament": 0.8290326178539544,
+    "tone": -0.30182114196941257
+   },
+   "palette": {
+    "body": "#fb9fc4",
+    "accent": "#65c5f9"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "shy",
+    "eyes": "round",
+    "mouth": "w",
+    "brows": 0,
+    "blush": true,
+    "look": -0.5,
+    "eye": 1.1547498869244008
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.drop",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "acc.bow",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.23649059981107712,
+    "round": 0.712431118544191,
+    "ornament": 0.8976044470909983,
+    "tone": -0.8939944636076689
+   },
+   "palette": {
+    "body": "#f296bb",
+    "accent": "#5cbcf0"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.267228290066123
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.tall",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "acc.bow",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.09641877328976989,
+    "round": 0.3145180660532787,
+    "ornament": 0.10773579403758049,
+    "tone": -0.6762068807147443
+   },
+   "palette": {
+    "body": "#edd9c7",
+    "accent": "#be82e7",
+    "trim": "#eee4f6"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.3162534293485806
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.stubby",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.cone",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "arms",
+     "part": "arm.stub",
+     "on": "body",
+     "socket": "arm",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [
+    {
+     "slot": "spots",
+     "on": "cap",
+     "pattern": "spots",
+     "color": "trim",
+     "count": 4,
+     "size": 0.13356163837015628,
+     "seed": 142337051
+    }
+   ],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.7600928533356637,
+    "round": 0.39913718472234905,
+    "ornament": 0.4518859051167965,
+    "tone": -0.04935065284371376
+   },
+   "palette": {
+    "body": "#faebd1",
+    "accent": "#6e9eef",
+    "trim": "#e9f2fe"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.0839675013325176
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.stubby",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.cone",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "arms",
+     "part": "arm.stub",
+     "on": "body",
+     "socket": "arm",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [
+    {
+     "slot": "spots",
+     "on": "cap",
+     "pattern": "dots",
+     "color": "trim",
+     "count": 11,
+     "size": 0.05365250752074644,
+     "seed": 3571374877
+    }
+   ],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.21776763489469886,
+    "round": 0.8418373018270358,
+    "ornament": 0.8782752184197307,
+    "tone": 0.5963762765750289
+   },
+   "palette": {
+    "body": "#fff4da",
+    "accent": "#f86862",
+    "trim": "#fffcee"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.2737813277868555
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.stubby",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.flat",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "arms",
+     "part": "arm.stub",
+     "on": "body",
+     "socket": "arm",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.1540432453621179,
+    "round": 0.6583328819833696,
+    "ornament": 0.45368459611199796,
+    "tone": 0.1535444101318717
+   },
+   "palette": {
+    "body": "#fdeed4",
+    "accent": "#f2625c",
+    "trim": "#fff6e8"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.2960848641232587
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.stubby",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.dome",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "arms",
+     "part": "arm.stub",
+     "on": "body",
+     "socket": "arm",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [
+    {
+     "slot": "spots",
+     "on": "cap",
+     "pattern": "dots",
+     "color": "trim",
+     "count": 15,
+     "size": 0.07433986390009523,
+     "seed": 2320868870
+    }
+   ],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.23789160791784525,
+    "round": 0.674646387132816,
+    "ornament": 0.8564337096177042,
+    "tone": 0.49553965777158737
+   },
+   "palette": {
+    "body": "#fff3d9",
+    "accent": "#76a6f7",
+    "trim": "#f1faff"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "shy",
+    "eyes": "round",
+    "mouth": "w",
+    "brows": 0,
+    "blush": true,
+    "look": -0.5,
+    "eye": 1.2667379372287542
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.stubby",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.cone",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "arms",
+     "part": "arm.stub",
+     "on": "body",
+     "socket": "arm",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [
+    {
+     "slot": "spots",
+     "on": "cap",
+     "pattern": "spots",
+     "color": "trim",
+     "count": 4,
+     "size": 0.13949375654337928,
+     "seed": 1196578886
+    }
+   ],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.050225180108100176,
+    "round": 0.48100797485094515,
+    "ornament": 0.14988538436591625,
+    "tone": 0.954952206928283
+   },
+   "palette": {
+    "body": "#fff9df",
+    "accent": "#fd6d67",
+    "trim": "#fffff3"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "shy",
+    "eyes": "round",
+    "mouth": "w",
+    "brows": 0,
+    "blush": true,
+    "look": -0.5,
+    "eye": 1.332421186962165
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.stubby",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.flat",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [
+    {
+     "slot": "spots",
+     "on": "cap",
+     "pattern": "dots",
+     "color": "trim",
+     "count": 11,
+     "size": 0.05450304007856176,
+     "seed": 2018812875
+    }
+   ],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.7800757330842316,
+    "round": 0.3437735677231103,
+    "ornament": 0.5012297404464334,
+    "tone": -0.2325523248873651
+   },
+   "palette": {
+    "body": "#f3dfcd",
+    "accent": "#c488ed",
+    "trim": "#f4eafc"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0769734934205188
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.tall",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.flat",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "arms",
+     "part": "arm.stub",
+     "on": "body",
+     "socket": "arm",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [
+    {
+     "slot": "spots",
+     "on": "cap",
+     "pattern": "spots",
+     "color": "trim",
+     "count": 7,
+     "size": 0.14956661306787283,
+     "seed": 35419896
+    }
+   ],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "shroom",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "shroom",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.2736281086690724,
+    "round": 0.43377152376342565,
+    "ornament": 0.4653864682186395,
+    "tone": -0.3730766614899039
+   },
+   "palette": {
+    "body": "#f6e7cd",
+    "accent": "#6a9aeb",
+    "trim": "#e5eefa"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "shy",
+    "eyes": "round",
+    "mouth": "w",
+    "brows": 0,
+    "blush": true,
+    "look": -0.5,
+    "eye": 1.2542301619658247
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "shroom.stem.tall",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "shroom.cap.dome",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.boot",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [
+    {
+     "slot": "spots",
+     "on": "cap",
+     "pattern": "dots",
+     "color": "trim",
+     "count": 15,
+     "size": 0.06279093320015819,
+     "seed": 1954961013
+    }
+   ],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.5969566300045699,
+    "round": 0.22781352621968834,
+    "ornament": 0.8501507369801402,
+    "tone": 0.9769446472637355
+   },
+   "palette": {
+    "body": "#ffe468",
+    "accent": "#79513e"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "shout",
+    "eyes": "round",
+    "mouth": "roar",
+    "brows": 9,
+    "blush": true,
+    "eye": 1.1410651794984006
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.long",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.curl",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.31920660845935345,
+    "round": 0.5218293048208579,
+    "ornament": 0.6356639475561678,
+    "tone": 0.5888092899695039
+   },
+   "palette": {
+    "body": "#a6caff",
+    "accent": "#475797"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.2382776870392262
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.long",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.round",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.curl",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.5921275620348752,
+    "round": 0.2869805512949824,
+    "ornament": 0.9034729066770524,
+    "tone": 0.5094332341104746
+   },
+   "palette": {
+    "body": "#ffdd61",
+    "accent": "#724a37"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.1427553532877937
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.long",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.round",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.ball",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.531342412577942,
+    "round": 0.45940394934732465,
+    "ornament": 0.06339827226474881,
+    "tone": -0.6869047163054347
+   },
+   "palette": {
+    "body": "#f5a9bc",
+    "accent": "#804561"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.1640301555977204
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.long",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.long",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.curl",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.9269891669973731,
+    "round": 0.5377064098836853,
+    "ornament": 0.5827738370280713,
+    "tone": 0.28189557883888483
+   },
+   "palette": {
+    "body": "#ffda5e",
+    "accent": "#6f4734"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0255537915509194
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.long",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.ball",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.22509048460051417,
+    "round": 0.4678126412909478,
+    "ornament": 0.5577883769292384,
+    "tone": -0.9075237191282213
+   },
+   "palette": {
+    "body": "#91b5f2",
+    "accent": "#324282"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.2712183303898201
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.long",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.round",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.curl",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.009782013250514865,
+    "round": 0.9123675691895186,
+    "ornament": 0.658507242333144,
+    "tone": 0.8494237158447504
+   },
+   "palette": {
+    "body": "#ffe266",
+    "accent": "#774f3c"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.3465762953623197
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.round",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.ball",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "bee",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "bee",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.43703650403767824,
+    "round": 0.2854796491330489,
+    "ornament": 0.027882254449650645,
+    "tone": 0.5873978082090616
+   },
+   "palette": {
+    "body": "#a6caff",
+    "accent": "#475797"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.1970372235868125
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bee.body.long",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "wings",
+     "part": "bee.wing.round",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    },
+    {
+     "slot": "antennae",
+     "part": "bee.antenna.ball",
+     "on": "body",
+     "socket": "antenna",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.45
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.08546666917391121,
+    "round": 0.49754712327849115,
+    "ornament": 0.10850050975568593,
+    "tone": 0.2060387642122805
+   },
+   "palette": {
+    "body": "#dbf8c7",
+    "accent": "#ff92a6",
+    "leaf": "#5ebb4d"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.320086665789131
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.twoleaf",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.708817228442058,
+    "round": 0.09890486302319915,
+    "ornament": 0.8497681552544236,
+    "tone": 0.06852086447179317
+   },
+   "palette": {
+    "body": "#d9f6c5",
+    "accent": "#ff90a4",
+    "leaf": "#5cb94b"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.1019139700452798
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.pear",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.daisy",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.48581945383921266,
+    "round": 0.676825759303756,
+    "ornament": 0.7937682040501386,
+    "tone": -0.42498957039788365
+   },
+   "palette": {
+    "body": "#f9ebc9",
+    "accent": "#f998ba",
+    "leaf": "#66bc44"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.1799631911562756
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.tulip",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.8487783530727029,
+    "round": 0.15622755682561545,
+    "ornament": 0.6465226851869375,
+    "tone": 0.2025606227107346
+   },
+   "palette": {
+    "body": "#c2e98d",
+    "accent": "#ffe278",
+    "leaf": "#52ab42"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.052927576424554
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.tulip",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.23290782561525702,
+    "round": 0.7718244335381313,
+    "ornament": 0.11644999287091196,
+    "tone": -0.4766156002879143
+   },
+   "palette": {
+    "body": "#d1eebd",
+    "accent": "#f8889c",
+    "leaf": "#54b143"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.26848226103466
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.pear",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.seedling",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.8511033018585294,
+    "round": 0.2810312473680824,
+    "ornament": 0.7622300828807056,
+    "tone": 0.9525538724847138
+   },
+   "palette": {
+    "body": "#ccf397",
+    "accent": "#ffec82",
+    "leaf": "#5cb54c"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0521138443495146
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.pear",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.twoleaf",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.8797422097995877,
+    "round": 0.6197458946611732,
+    "ornament": 0.7717172326520085,
+    "tone": 0.34676664462313056
+   },
+   "palette": {
+    "body": "#ffe8c7",
+    "accent": "#c7a8ff",
+    "leaf": "#81d155"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0420902265701444
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.pear",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.seedling",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "sprout",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "sprout",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.44114977354183793,
+    "round": 0.46966237425804136,
+    "ornament": 0.8942002959083766,
+    "tone": -0.6909528416581452
+   },
+   "palette": {
+    "body": "#f5e7c5",
+    "accent": "#f594b6",
+    "leaf": "#62b840"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.1955975792603568
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "sprout.body.pear",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.tulip",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.5851288600824773,
+    "round": 0.6781144298613071,
+    "ornament": 0.5269395320210606,
+    "tone": -0.3030739496462047
+   },
+   "palette": {
+    "body": "#9bd46f",
+    "accent": "#b5b2c0",
+    "trim": "#8bc464"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.145204898971133
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.hex",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    },
+    {
+     "slot": "detail",
+     "part": "sprout.top.seedling",
+     "on": "shell",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.9128683235030621,
+    "round": 0.047778857359662655,
+    "ornament": 0.2034372421912849,
+    "tone": 0.40811142046004534
+   },
+   "palette": {
+    "body": "#a5de79",
+    "accent": "#bfbcca",
+    "trim": "#95ce6e"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.0304960867739283
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.dome",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    },
+    {
+     "slot": "detail",
+     "part": "acc.flower",
+     "on": "shell",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.5484209049027413,
+    "round": 0.15224444351624697,
+    "ornament": 0.036659699864685535,
+    "tone": 0.7446137368679047
+   },
+   "palette": {
+    "body": "#99dac2",
+    "accent": "#a7a4b6",
+    "trim": "#86cc74"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.1580526832840405
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.dome",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.8950063704978675,
+    "round": 0.37868616792839016,
+    "ornament": 0.573766297660768,
+    "tone": -0.47423571394756436
+   },
+   "palette": {
+    "body": "#88c9b1",
+    "accent": "#9693a5",
+    "trim": "#75bb63"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.0367477703257464
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.rock",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.9607498545665294,
+    "round": 0.21148688946850597,
+    "ornament": 0.5558167956769466,
+    "tone": 0.4943753364495933
+   },
+   "palette": {
+    "body": "#96d7bf",
+    "accent": "#a4a1b3",
+    "trim": "#83c971"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0137375509017148
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.hex",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    },
+    {
+     "slot": "detail",
+     "part": "sprout.top.seedling",
+     "on": "shell",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.1072902837768197,
+    "round": 0.9649429463082924,
+    "ornament": 0.46367936162278056,
+    "tone": 0.8572728307917714
+   },
+   "palette": {
+    "body": "#b4ecac",
+    "accent": "#fcaf66",
+    "trim": "#ffe596"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.3124484006781132
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.dome",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.6866019868757576,
+    "round": 0.6948041000636294,
+    "ornament": 0.016426479443907738,
+    "tone": 0.5433771344833076
+   },
+   "palette": {
+    "body": "#97d8c0",
+    "accent": "#a5a2b4",
+    "trim": "#84ca72"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.1096893045934848
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.rock",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    },
+    {
+     "slot": "detail",
+     "part": "acc.flower",
+     "on": "shell",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "pebble",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "pebble",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.8058442485053092,
+    "round": 0.4540370204718783,
+    "ornament": 0.8670474614482373,
+    "tone": -0.20960782887414098
+   },
+   "palette": {
+    "body": "#9cd570",
+    "accent": "#b6b3c1",
+    "trim": "#8cc565"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0679545130231418
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "pebble.base.turtle",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "shell",
+     "part": "pebble.shell.rock",
+     "on": "body",
+     "socket": "shell",
+     "pair": false
+    },
+    {
+     "slot": "detail",
+     "part": "pebble.detail.moss",
+     "on": "shell",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.4005566695705056,
+    "round": 0.526904134452343,
+    "ornament": 0.4705850158352405,
+    "tone": 0.3963152505457401
+   },
+   "palette": {
+    "body": "#bfa6ff",
+    "accent": "#7260ae",
+    "trim": "#ffb9d5"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.209805165650323
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.pointy",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.bat",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.9982467475347221,
+    "round": 0.3901122214738279,
+    "ornament": 0.15923036145977676,
+    "tone": -0.1085411012172699
+   },
+   "palette": {
+    "body": "#b79efd",
+    "accent": "#6a58a6",
+    "trim": "#fdb1cd"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.0006136383628472
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.pointy",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.tiny",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.6555603416636586,
+    "round": 0.1638411050196737,
+    "ornament": 0.859206125838682,
+    "tone": 0.12424920359626412
+   },
+   "palette": {
+    "body": "#abb6ea",
+    "accent": "#5d61a0",
+    "trim": "#d9caff"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.1205538804177195
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.round",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.bat",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.06977014639414847,
+    "round": 0.5389884665375575,
+    "ornament": 0.6857171822339296,
+    "tone": 0.2833120380528271
+   },
+   "palette": {
+    "body": "#bda4ff",
+    "accent": "#705eac",
+    "trim": "#ffb7d3"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.325580448762048
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.pointy",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.tiny",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.5138270542956889,
+    "round": 0.17911153179593384,
+    "ornament": 0.6769745440687984,
+    "tone": -0.5946953073143959
+   },
+   "palette": {
+    "body": "#b198f7",
+    "accent": "#6452a0",
+    "trim": "#f7abc7"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.1701605309965089
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.pointy",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.tiny",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.3983103111386299,
+    "round": 0.5674502774607391,
+    "ornament": 0.23657263373024762,
+    "tone": -0.473575247451663
+   },
+   "palette": {
+    "body": "#f8bbd5",
+    "accent": "#d973a1",
+    "trim": "#f8e9ef"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.2105913911014796
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.pointy",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.bat",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.012058154912665486,
+    "round": 0.5653926440048962,
+    "ornament": 0.45026288251392543,
+    "tone": -0.8498819982632995
+   },
+   "palette": {
+    "body": "#ad94f3",
+    "accent": "#604e9c",
+    "trim": "#f3a7c3"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.345779645780567
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.round",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.bat",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "batpuff",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "batpuff",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.09624228649772704,
+    "round": 0.8978543894365429,
+    "ornament": 0.6411876943893731,
+    "tone": -0.6687364433892071
+   },
+   "palette": {
+    "body": "#f6b9d3",
+    "accent": "#d7719f",
+    "trim": "#f6e7ed"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.3163151997257956
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "bat.body.puff",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "ears",
+     "part": "bat.ear.round",
+     "on": "body",
+     "socket": "ear",
+     "pair": true
+    },
+    {
+     "slot": "wings",
+     "part": "bat.wing.tiny",
+     "on": "body",
+     "socket": "wing",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0.55
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.06785600492730737,
+    "round": 0.4310907181352377,
+    "ornament": 0.19717576983384788,
+    "tone": -0.07257101219147444
+   },
+   "palette": {
+    "body": "#fe9954",
+    "accent": "#feefc7"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.3262503982754423
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.wide",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.straight",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.9601443586871028,
+    "round": 0.47297599627636366,
+    "ornament": 0.8875067764893174,
+    "tone": -0.8729777624830604
+   },
+   "palette": {
+    "body": "#f38e49",
+    "accent": "#f3e4bc"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.013949474459514
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.wide",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.curved",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.4385790654923767,
+    "round": 0.3472227094694972,
+    "ornament": 0.1731924640480429,
+    "tone": 0.6060235551558435
+   },
+   "palette": {
+    "body": "#ffb0ce",
+    "accent": "#926244"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.1964973270776682
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.tall",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.ram",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.9120624060742557,
+    "round": 0.5438554916996509,
+    "ornament": 0.0024203702341765165,
+    "tone": -0.6782158515416086
+   },
+   "palette": {
+    "body": "#f69fbd",
+    "accent": "#815133"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.0307781578740105
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.wide",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.straight",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.7464393554255366,
+    "round": 0.0866911709541455,
+    "ornament": 0.6945129663217813,
+    "tone": -0.9641974000260234
+   },
+   "palette": {
+    "body": "#81b8f2",
+    "accent": "#f2f2f2"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0887462256010623
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.tall",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.straight",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.08697541849687696,
+    "round": 0.9542468281928449,
+    "ornament": 0.24084904976189137,
+    "tone": 0.581399560905993
+   },
+   "palette": {
+    "body": "#96cdff",
+    "accent": "#ffffff"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.319558603526093
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.wide",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.straight",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.2148722109850496,
+    "round": 0.41966781958471977,
+    "ornament": 0.25708416919223964,
+    "tone": -0.6700995694845915
+   },
+   "palette": {
+    "body": "#adda61",
+    "accent": "#f6e7bf"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.2747947261552326
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.tall",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.ram",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "hornblob",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "hornblob",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.9851232599467039,
+    "round": 0.30592023627832526,
+    "ornament": 0.9412460098974407,
+    "tone": -0.8485784325748682
+   },
+   "palette": {
+    "body": "#82b9f3",
+    "accent": "#f3f3f3"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0052068590186536
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "blob.body.wide",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "horns",
+     "part": "horn.straight",
+     "on": "body",
+     "socket": "horn",
+     "pair": true
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.8580463833641261,
+    "round": 0.439581962605007,
+    "ornament": 0.5536236823536456,
+    "tone": 0.634734284132719
+   },
+   "palette": {
+    "body": "#bee581",
+    "accent": "#749843"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.049683765822556
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.classic",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "sprig",
+     "part": "acc.leaf",
+     "on": "cap",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.5039268992841244,
+    "round": 0.2177220201352611,
+    "ornament": 0.51497320109047,
+    "tone": 0.36062611965462565
+   },
+   "palette": {
+    "body": "#f7b870",
+    "accent": "#a66b44"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.1736255852505564
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.pointed",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.76892050052993,
+    "round": 0.3520782490028068,
+    "ornament": 0.6711764042265713,
+    "tone": 0.12074061902239919
+   },
+   "palette": {
+    "body": "#f4b56d",
+    "accent": "#a36841"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "fierce",
+    "eyes": "round",
+    "mouth": "fang",
+    "brows": 10,
+    "blush": false,
+    "eye": 1.0808778248145245
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.pointed",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "sprig",
+     "part": "acorn.top.stem",
+     "on": "cap",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.8605845330748707,
+    "round": 0.6893908844096586,
+    "ornament": 0.4569235588423908,
+    "tone": -0.6239140634424984
+   },
+   "palette": {
+    "body": "#e9aa62",
+    "accent": "#985d36"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.0487954134237953
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.egg",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.pointed",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "sprig",
+     "part": "acc.leaf",
+     "on": "cap",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.41992246313020587,
+    "round": 0.32182776159606874,
+    "ornament": 0.8778264005668461,
+    "tone": 0.055587089620530605
+   },
+   "palette": {
+    "body": "#b6dd79",
+    "accent": "#6c903b"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.203027137904428
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.egg",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.classic",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "sprig",
+     "part": "acc.leaf",
+     "on": "cap",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.17117997165769339,
+    "round": 0.25933024592231957,
+    "ornament": 0.7668958622962236,
+    "tone": -0.8470660862512887
+   },
+   "palette": {
+    "body": "#a9d06c",
+    "accent": "#5f832e"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.2900870099198074
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.classic",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "sprig",
+     "part": "acorn.top.stem",
+     "on": "cap",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.7334409940522164,
+    "round": 0.5145041820360348,
+    "ornament": 0.5066668682266027,
+    "tone": -0.5603155056014657
+   },
+   "palette": {
+    "body": "#add470",
+    "accent": "#638732"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0932956520817243
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.round",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.classic",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "sprig",
+     "part": "acorn.top.stem",
+     "on": "cap",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "acorn",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "acorn",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.5252201999537647,
+    "round": 0.8310070075327529,
+    "ornament": 0.5187043885234743,
+    "tone": 0.07198753533884883
+   },
+   "palette": {
+    "body": "#da965f",
+    "accent": "#7b4b2f"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.1661729300161823
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "acorn.body.egg",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cap",
+     "part": "acorn.cap.pointed",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    },
+    {
+     "slot": "feet",
+     "part": "foot.nub",
+     "on": "body",
+     "socket": "foot",
+     "pair": true
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.27841487992554903,
+    "round": 0.4490108483936638,
+    "ornament": 0.19911144440993667,
+    "tone": 0.45626161014661193
+   },
+   "palette": {
+    "body": "#e9fbe7",
+    "accent": "#c8a9ff",
+    "leaf": "#55ae45"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.2525547920260578
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bean",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cloak",
+     "part": "spirit.cloak.leaves",
+     "on": "body",
+     "socket": "neck",
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "spirit.top.antlers",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": "TEST-1234-ABCD|7",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.044646305963397026,
+    "round": 0.7291100848233327,
+    "ornament": 0.8906143973581493,
+    "tone": -0.5581666477955878
+   },
+   "palette": {
+    "body": "#f7ceda",
+    "accent": "#f6d76d",
+    "leaf": "#53b042"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.334373792912811
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bean",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cloak",
+     "part": "spirit.cloak.leaves",
+     "on": "body",
+     "socket": "neck",
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.daisy",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": "wild|3",
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.9817926418036222,
+    "round": 0.36295385991688817,
+    "ornament": 0.5529399714432657,
+    "tone": -0.23591197514906526
+   },
+   "palette": {
+    "body": "#f8f3e7",
+    "accent": "#fcb0c3",
+    "leaf": "#69bf47"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.0063725753687323
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bell",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cloak",
+     "part": "spirit.cloak.leaves",
+     "on": "body",
+     "socket": "neck",
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.daisy",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": 12345,
+   "role": "hostile",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "hostile",
+   "key": "12345",
+   "dna": {
+    "size": 0.3646236152853817,
+    "round": 0.3048290634527802,
+    "ornament": 0.7106235267128795,
+    "tone": 0.0008455598726868629
+   },
+   "palette": {
+    "body": "#ffd6e2",
+    "accent": "#fedf75",
+    "leaf": "#5bb84a"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "angry",
+    "eyes": "round",
+    "mouth": "frown",
+    "brows": 8,
+    "blush": false,
+    "eye": 1.2223817346501165
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bean",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cloak",
+     "part": "spirit.cloak.leaves",
+     "on": "body",
+     "socket": "neck",
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "spirit.top.antlers",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": "K7QN-3F2A-9XBD|0",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "K7QN-3F2A-9XBD|0",
+   "dna": {
+    "size": 0.35938630951568484,
+    "round": 0.2254192651482299,
+    "ornament": 0.002934821182861924,
+    "tone": 0.08500059647485614
+   },
+   "palette": {
+    "body": "#ffd7e3",
+    "accent": "#ffe076",
+    "leaf": "#5cb94b"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.2242147916695103
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bean",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "spirit.top.antlers",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": "TEST-1234-ABCD|7",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "TEST-1234-ABCD|7",
+   "dna": {
+    "size": 0.16868895944207907,
+    "round": 0.3350160880712792,
+    "ornament": 0.13541025528684258,
+    "tone": -0.9665702874772251
+   },
+   "palette": {
+    "body": "#ede8dc",
+    "accent": "#f1a5b8",
+    "leaf": "#5eb43c"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "joy",
+    "eyes": "arc",
+    "mouth": "open",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.2909588641952723
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bean",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "spirit.top.antlers",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": "wild|3",
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "wild|3",
+   "dna": {
+    "size": 0.9648627345450222,
+    "round": 0.2657416252652183,
+    "ornament": 0.6211902413051575,
+    "tone": 0.5546638369560242
+   },
+   "palette": {
+    "body": "#ebfde9",
+    "accent": "#caabff",
+    "leaf": "#57b047"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "happy",
+    "eyes": "round",
+    "mouth": "smile",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.0122980429092423
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bean",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cloak",
+     "part": "spirit.cloak.leaves",
+     "on": "body",
+     "socket": "neck",
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.daisy",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "spirit",
+   "key": 12345,
+   "role": "friendly",
+   "rank": "minion"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "spirit",
+   "rank": "minion",
+   "role": "friendly",
+   "key": "12345",
+   "dna": {
+    "size": 0.411347390152514,
+    "round": 0.35677794164512305,
+    "ornament": 0.9289182401262224,
+    "tone": -0.4894703649915755
+   },
+   "palette": {
+    "body": "#f4efe3",
+    "accent": "#f8acbf",
+    "leaf": "#65bb43"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "sleepy",
+    "eyes": "sleepy",
+    "mouth": "small",
+    "brows": 0,
+    "blush": true,
+    "eye": 1.2060284134466202
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "spirit.body.bell",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "cloak",
+     "part": "spirit.cloak.leaves",
+     "on": "body",
+     "socket": "neck",
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "sprout.top.seedling",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ },
+ {
+  "request": {
+   "family": "slime",
+   "key": "boss|1",
+   "role": "hostile",
+   "rank": "boss"
+  },
+  "blueprint": {
+   "version": 1,
+   "family": "slime",
+   "rank": "boss",
+   "role": "hostile",
+   "key": "boss|1",
+   "dna": {
+    "size": 0.9350918654818088,
+    "round": 0.4698262451216578,
+    "ornament": 0.14321260782890022,
+    "tone": 0.5771911605261266
+   },
+   "palette": {
+    "body": "#d5b2ff",
+    "accent": "#ff7d85"
+   },
+   "colors": {
+    "white": "#fffaf3",
+    "ink": "#3b2d45",
+    "blush": "#ff8fa3",
+    "shine": "#ffffff",
+    "gold": "#ffd35e",
+    "wood": "#a16943",
+    "stone": "#b9b6c4",
+    "leaf": "#6cc24a",
+    "wing": "#e2f5ff"
+   },
+   "face": {
+    "expression": "shout",
+    "eyes": "round",
+    "mouth": "roar",
+    "brows": 9,
+    "blush": true,
+    "eye": 1.022717847081367
+   },
+   "parts": [
+    {
+     "slot": "body",
+     "part": "slime.body.tall",
+     "on": null,
+     "socket": null,
+     "pair": false
+    },
+    {
+     "slot": "top",
+     "part": "acc.crown",
+     "on": "body",
+     "socket": "top",
+     "pair": false
+    }
+   ],
+   "patterns": [],
+   "hover": 0
+  }
+ }
+]

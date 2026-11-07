@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Engine performance measurement</title>
+<script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+<style>body{margin:0;background:#101820;color:#bdf;font:12px monospace}#stage{width:900px;height:600px;}canvas{display:block;width:100%;height:100%}#report{white-space:pre-wrap}</style>
+<div id="stage"><canvas></canvas></div><pre id="report">Loading</pre>
+<script type="module">
+
+const q=new URLSearchParams(location.search),report=document.querySelector('#report');
+const duration=Math.max(10,Math.min(1200,Number(q.get('seconds'))||20));
+let session,started=0,measuring=false;
+try{
+ for(const url of ['/src/core/SessionQuality.js','/src/render/WorldModelBatch.js','/src/render/StaticModelBatch.js','/src/core/PerformanceMonitor.js']){try{await import(url);}catch(error){throw new Error(url+': '+error);}}
+ const {ShooterSession}=await import('/src/game/ShooterSession.js');
+ const {resolveProject}=await import('/src/world/shooterProject.js');
+ session=new ShooterSession(document.querySelector('canvas'),{onError:e=>{report.textContent=JSON.stringify({status:'failed',error:String(e)});},onFrame:()=>{
+  if(!session.game||!session.performanceMonitor)return;
+  if(!started)started=performance.now();
+  if(!measuring&&performance.now()-started>3000){session.performanceMonitor.reset(session.performanceMonitor.metrics.loadMs);measuring=true;started=performance.now();}
+  if(measuring&&performance.now()-started>duration*1000){session.stop();session.setRendering(false);report.textContent=JSON.stringify({status:'complete',theme:session.project.theme,measurement:'Actual browser frame intervals; not a physical phone test',viewport:[session.canvas.width,session.canvas.height],metrics:session.performanceMonitor.metrics},null,2);measuring=false;started=Infinity;}
+ }});
+ await session.initialize();
+ const project=resolveProject({theme:q.get('theme')||'arcade',quality:q.get('quality')||'quality',camera:'first',frameRate:Number(q.get('fps')||60)});
+ if(q.get('family'))project.blueprint.nodes.find(n=>n.kind==='world').items=[q.get('family')];
+ await session.build(project);
+ session.start();
+ report.textContent=JSON.stringify({status:'measuring',seconds:duration});
+}catch(error){report.textContent=JSON.stringify({status:'failed',error:String(error)});}
+</script>

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "totalBytes": 103621,
+  "files": [
+    {
+      "path": "assets/studio/import-demo.glb",
+      "bytes": 72288,
+      "sha256": "fad666f5fd7166a8dc8cb4deb62e1bda3863349eba27e60dcd8e3bf1790af6e0"
+    },
+    {
+      "path": "assets/studio/mission-beacon.glb",
+      "bytes": 30644,
+      "sha256": "3e6cfd541bb3f5c95a80157037e34f1fad0e97a2654a9c50addc3dfe73ae68fd"
+    },
+    {
+      "path": "assets/studio/visigames-mark.svg",
+      "bytes": 168,
+      "sha256": "8fd2a3b16a2eb3702f656cad5fbd5484fe6bd7cce2fe39296f4472283ba15103"
+    },
+    {
+      "path": "assets/studio/asset-cube.svg",
+      "bytes": 195,
+      "sha256": "f047c8c26fa2d10f8ddd2b1cc7a03bebf9ade5ceb0bb7d455848fc26e7dab651"
+    },
+    {
+      "path": "assets/studio/shuffle.svg",
+      "bytes": 219,
+      "sha256": "a4e5855116ab2430c3c590f6bec4a04be9bf18fc53006adc8d9b33cf1888385c"
+    },
+    {
+      "path": "assets/studio/play.svg",
+      "bytes": 107,
+      "sha256": "b1046b4c987c4dec54ea4cbefab810f48f91388271a58e51b11eebf14ea3ac54"
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>studio capture harness</title>
+  <script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    #stage { position: fixed; inset: 0; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #err { position: fixed; inset: 0; display: none; color: #f88; background: #200; font: 13px monospace; white-space: pre-wrap; padding: 12px; }
+    details { position:fixed;bottom:8px;left:8px;color:#d7eeee;background:#061018d9;font:11px monospace;max-width:460px;max-height:65vh;overflow:auto;padding:8px; }
+  </style>
+</head>
+<body>
+<div id="stage"><canvas id="game-canvas" tabindex="0"></canvas></div>
+<pre id="err"></pre>
+<details><summary>Capture diagnostics</summary><pre id="report"></pre></details>
+<script type="module">
+/**
+ * THE STUDIO'S GPU GATE: proves the product path (game/ShooterSession.js), the one every
+ * player sees, actually draws. This page hosts a session exactly as editor/studio.js does, builds
+ * the project the URL names, plays a scripted number of frames, and publishes what the
+ * frame reported on <body data-capture> for tools/test/shoot-studio.mjs to read.
+ *
+ *   ?theme=arcade  &lighting=night|dawn
+ *   &quality=performance|balanced|quality  &palette=cyan|violet|amber  &seed=...
+ *   &yaw=<radians> &pitch=<radians> &x=<m> &z=<m>  player pose for the shot
+ *   &frames=<n>   frames to play before the capture is declared ready (default 90)
+ *   &quick=1 &genre=<id>  a mission card (world/missionCard.js quickMission) for the theme, seed and genre
+ *   &ground=world|village  what the level stands on (world/kernelGround.js)
+ *   &aerial=<x>,<y>,<z>   draw from that eye, looking at the level's centre (the level editor's camera hook)
+ *   &viewmodel=off        no hands and no weapon in the shot
+ *   &figure=<x>,<z>       "See yourself": tools/test/fixtures/photo-front.png made into a figure on this page (src/atlas/web/figure.js),
+ *                         passed through the studio's own importer checks, and stood in the level at (x, z)
+ *   &renderer=webgl|webgpu  honoured by core/Renderer.js as everywhere else
+ */
+import { quickMission } from '/src/world/missionCard.js';
+import { ShooterSession } from '/src/game/ShooterSession.js';
+import { resolveProject } from '/src/world/shooterProject.js';
+import { CATALOG } from '/src/world/catalog.js';
+import { detectBackend } from '/src/core/Renderer.js';
+import { Group } from 'three/webgpu';
+
+const q = new URLSearchParams(location.search);
+const num = (k, d) => { const v = Number(q.get(k)); return Number.isFinite(v) && q.get(k) !== null ? v : d; };
+const wantFrames = num('frames', 90);
+const errBox = document.getElementById('err');
+const state = { status: 'booting', frames: 0, errors: [], ready: false };
+const publish = () => { document.body.dataset.capture = JSON.stringify(state); document.getElementById('report').textContent=JSON.stringify(state,null,2); };
+const fail = (stage, e) => {
+  state.status = 'failed'; state.errors.push(`${stage}: ${e?.stack || e?.message || e}`);
+  errBox.style.display = 'block'; errBox.textContent = state.errors.join('\n\n'); publish();
+};
+addEventListener('error', e => { state.errors.push(String(e.message)); publish(); });
+addEventListener('unhandledrejection', e => { state.errors.push(String(e.reason?.message || e.reason)); publish(); });
+
+let session;
+window.__capture = { status: () => state };
+
+try {
+  session = new ShooterSession(document.getElementById('game-canvas'), {
+    onStatus: text => { state.status = text; publish(); },
+    onError: e => fail('session', e),
+    onFrame: hud => {
+      state.frames++;
+      if (state.frames === wantFrames) {
+        state.ready = true;
+        state.status = 'ready';
+        state.backend = detectBackend(session.renderer);
+        state.draws = hud.draws; state.triangles = hud.triangles;
+        state.buffer = [session.canvas.width, session.canvas.height];
+        state.css = [session.canvas.clientWidth, session.canvas.clientHeight];
+        state.post = session.post ? {
+          ao: !!session.post.aoNode, ssr: !!session.post.ssrNode, traa: !!session.post.traaNode,
+          bloom: !!session.post.bloomNode, dof: !!session.post.dofNode, film: !!session.post.filmEnabled,
+        } : null;
+        state.lights = session.scene ? countLights(session.scene) : null;
+        // What the frame was sampled with, read off the renderer (see tools/test/probe-sampling.mjs).
+        state.sampling = { rendererSamples: session.renderer.samples, antialias: session.performanceProfile?.antialias ?? null,
+          worldPassSamples: session.post ? (session.post.worldPass.options.samples ?? 'inherit') : null, renderScale: session.renderScale, pixelRatio: session.renderer.getPixelRatio() };
+        state.pose={position:session.game.player.position.toArray(),yaw:session.game.player.yaw,pitch:session.game.player.pitch};
+        state.lookAtCapture=session.renderLook?.lighting??session.look?.lighting??null;
+        state.viewLight={hemi:session.vmHemi.intensity,key:session.vmKey.intensity};
+        state.firstPerson={authored:!!session.weaponRig.authored,arms:session.firstPersonArms.visible,meshes:[]};session.vmScene.traverseVisible(o=>{if(o.isMesh)state.firstPerson.meshes.push(o.name);});
+        state.roster=session.game.enemies.enemies.map(e=>({asset:e.type.asset,clip:e.visual?.animator?.current,clips:Object.keys(e.visual?.animator?.actions??{})}));
+        state.audio={files:session.audio.encoded.size+session.audio.buffers.size,failures:session.audio.failures};
+        state.quality=session.project.quality;
+        state.seed=session.project.seed;
+        session.stop();
+        publish();
+      }
+    },
+  });
+  await session.initialize();
+  // Fixed simulation cadence makes matched captures independent of loading and GPU speed.
+  // This is a correctness harness, not an FPS benchmark.
+  session.renderer.setAnimationLoop(null);
+  let project = q.has('quick')?quickMission(q.get('theme')??'arcade',q.get('seed')??undefined,q.get('genre')??undefined):{};
+  for (const k of ['theme', 'lighting', 'quality', 'palette', 'seed','weapon','ground']) if (q.get(k)) project[k] = q.get(k);
+  if(q.get('roster')==='all'){project=resolveProject(project);project.blueprint.nodes.find(n=>n.kind==='enemies').items=CATALOG[project.theme].enemies.map(e=>e.id);project.enemyCount=CATALOG[project.theme].enemies.length;}
+  if(q.has('textures')) {
+    let currentAsset='';const load=session.assets.loader.loadAsync.bind(session.assets.loader);
+    session.assets.loader.loadAsync=async url=>{currentAsset=url;return load(url);};
+    session.assets.manager.onError=url=>{state.errors.push(`Texture load: ${currentAsset} (${url})`);publish();};
+    session.assets.loader.register(parser=>{
+      const image=parser.loadImageSource.bind(parser),asset=currentAsset;
+      parser.loadImageSource=(index,loader)=>image(index,loader).catch(e=>{state.errors.push(`Image ${index} in ${asset}: ${e.stack||e}`);publish();throw e;});
+      return {name:'VISIGAMES_texture_diagnostics'};
+    });
+  }
+  if(q.get('enemyMaterials')==='classic')session.enemyMaterialOptions={classic:true};
+  if(q.get('figure')){
+    // The same path the import dialog takes (editor/assetImport.js fromPhoto), minus the dialog.
+    const [fx,fz]=q.get('figure').split(',').map(Number);
+    state.status='making a figure from a photograph';publish();
+    const {photoToFigure}=await import('/src/atlas/web/figure.js');
+    const {inspectGLB}=await import('/editor/assetImport.js');
+    const {registerLocalAsset}=await import('/src/config/localAssets.js');
+    const {normalizeImportedProps}=await import('/src/world/importedProps.js');
+    const photo=await (await fetch('/tools/test/fixtures/photo-front.png')).blob();
+    const fig=await photoToFigure(photo,{onProgress:p=>{state.status=`figure ${Math.round(p.progress)}%`;publish();}});
+    const buffer=fig.bytes.buffer.slice(fig.bytes.byteOffset,fig.bytes.byteOffset+fig.bytes.byteLength),report=inspectGLB(buffer);
+    const id=[...new Uint8Array(await crypto.subtle.digest('SHA-256',buffer))].map(n=>n.toString(16).padStart(2,'0')).join('');
+    registerLocalAsset(`imports/${id}.glb`,new Blob([buffer],{type:'model/gltf-binary'}));
+    project=resolveProject(project);
+    project.importedProps=normalizeImportedProps([{id,name:'You',size:fig.size,scale:1.75/fig.size[1],collision:'box',triangles:report.triangles,bytes:buffer.byteLength,
+      creator:'Visigence',source:'tools/test/fixtures/photo-front.png',license:'CC0-1.0',rightsConfirmed:true,transform:{x:fx,z:fz,yaw:0}}]);
+    state.figure={triangles:report.triangles,bytes:buffer.byteLength,ms:Math.round(fig.ms),size:fig.size.map(v=>+v.toFixed(3))};
+  }
+  await session.build(project);
+  const p = session.game.player;
+  p.yaw = num('yaw', p.yaw); p.pitch = num('pitch', p.pitch);
+  if (q.get('x') !== null || q.get('z') !== null) p.position.set(num('x', p.position.x), p.position.y, num('z', p.position.z));
+  if(q.get('hideBody'))session.firstPersonArms?.traverse(o=>{if(o.isMesh)o.layers.set(7);});
+  // `viewmodel=off`: no hands and no weapon at the eye (with stand-in art the weapon is a box filling the frame).
+  if(q.get('viewmodel')==='off')session.vmScene.visible=false;
+  if(q.get('handReview'))session.weaponRig?.mount.traverse(o=>{if(o.isMesh&&o.name.toLowerCase().includes(q.get('handReview').toLowerCase()+'hand'))o.visible=false;});
+  if(q.get('aerial')){
+    // The level editor's view (ShooterSession.setEditView): its own eye, no hands, no weapon, nothing played.
+    const [ax,ay,az]=q.get('aerial').split(',').map(Number);
+    session.setEditView({world:new Group(),top:new Group(),focus:{x:0,z:0},camera(c){c.position.set(ax,ay,az);c.lookAt(0,0,0);}});
+  }
+  const G=session.level?.ground;
+  state.ground=G?{kind:G.kind,asked:G.asked??null,reason:G.reason??null,site:G.site?{x:G.site.x,z:G.site.z}:null,heightHash:G.heightHash??null,nats:G.conditioning?.nats??null}:null;
+  session.start();
+  if(q.get('action')==='aim')session.ads=true;
+  if(q.get('motion')==='walk')session.keys.add('KeyW');
+  state.status = 'playing'; publish();
+  for(let frame=0;frame<wantFrames;frame++){
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+    if(q.get('action')==='reload'){session.fire=frame<8;if(frame===12)session.actions.reload=true;}
+    session.frame((frame+1)*1000/60);
+  }
+} catch (e) { fail('boot', e); }
+
+function countLights(scene) {
+  const out = { visible: 0, emitters: 0 };
+  scene.traverse(o => { if (o.isLight) { if (o.visible) out.visible++; else out.emitters++; } });
+  return out;
+}
+</script>
+</body>
+</html>

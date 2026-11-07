@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Default audio acceptance</title>
+<style>body{font:15px system-ui;background:#09121b;color:#ddeded;margin:30px}button{padding:12px;margin:5px}pre{white-space:pre-wrap}</style>
+<h1>Default game sounds</h1><p>Tests decode, movement cancellation, weapon/reload playback, interaction and pause teardown. Starts only on a user gesture.</p><button id="run">Run audio acceptance</button><div id="samples"></div><pre id="report">Ready</pre>
+<script type="module">
+import { CombatAudio } from '/src/audio/CombatAudio.js';
+import { DEFAULT_SOUNDS } from '/src/config/defaultSounds.js';
+const a=new CombatAudio(),report=document.querySelector('#report');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+for(const id of Object.keys(a.sounds)){const b=document.createElement('button');b.textContent=id;b.onclick=async()=>{await a.resume();a.playOneShot(id);};document.querySelector('#samples').append(b);}
+document.querySelector('#run').onclick=async()=>{
+ report.textContent='Unlocking and decoding supplied files…';
+ try{
+ await a.resume();const measured=[];
+ for(const [file,buf]of a.buffers){let peak=0,square=0,n=0;for(let c=0;c<buf.numberOfChannels;c++){for(const v of buf.getChannelData(c)){peak=Math.max(peak,Math.abs(v));square+=v*v;n++;}}measured.push({file,duration:buf.duration,sampleRate:buf.sampleRate,channels:buf.numberOfChannels,peak,rmsDb:20*Math.log10(Math.sqrt(square/n))});}
+ a.startActionVoice('walk','steps');a.startActionVoice('walk','steps');await wait(350);const walking=a.voices.describe();a.stopActionVoice('walk',80);await wait(100);
+ a.playOneShot('pistolFire');await wait(220);a.startActionVoice('reload','pistolReload');await wait(250);a.stopActionVoice('reload',60);await wait(80);
+ a.startActionVoice('use','computerLoading');await wait(300);a.stopActionVoice('use',60);a.playOneShot('computerActivated');await wait(220);
+ a.playOneShot('doorOpened');await wait(200);a.pause();await wait(150);
+ report.textContent=JSON.stringify({context:a.context.state,files:a.buffers.size,failures:a.failures,walking,liveAfterPause:a.voices.live.size,counts:a.counts,measurements:measured},null,2);
+ }catch(e){report.textContent=e.stack;}
+};
+addEventListener('pagehide',()=>a.dispose());
+</script></html>

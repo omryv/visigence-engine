@@ -1,0 +1,56 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Visigame</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--surface-100); color:var(--ink); font-family:var(--font-sans); overflow:hidden; }
+  .cover { position:relative; width:960px; height:288px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:288px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:288px; }
+  .brand { fill:var(--tungsten); }
+  .deep { fill:var(--ink); }
+  .peak { fill:var(--peaking); }
+  .cut { fill:var(--surface-100); }
+  .blk { rx:var(--radius-md); }
+  .words { position:absolute; left:var(--space-6); bottom:var(--space-6); max-width:440px; }
+  .name { margin:0; font-family:var(--font-display); font-size:88px; line-height:.92; font-weight:700; letter-spacing:-.045em; font-variation-settings:'opsz' 96; color:var(--ink); }
+  .tag { margin:var(--space-2) 0 0 4px; font-size:14px; line-height:20px; color:var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      tungsten 184×272 slab bled off the top (the one brand light, largest) · ink 280×192 bled off the right (the bone/graphite of every surface) · peaking as two small discs only (it only ever marks focus) — about a third of 960×288
+  arrangement one tall tungsten slab with an ink slab beside it, bottoms on one line space-6 above the edge, space-4 gutter
+  pattern     bokeh discs, from "Focus, not decoration" and the depth-of-field tokens: out-of-focus lights cut from the tungsten slab in ground colour and scattered as tungsten over the ink slab
+  scales      disc radii space-1 to space-5 (4, 6, 8, 12, 16, 24); slab sides in space-2 multiples; gutter space-4; corners radius-md
+-->
+<rect class="brand blk" x="16" y="-16" width="184" height="272" rx="8"/>
+<rect class="deep blk" x="216" y="64" width="280" height="192" rx="8"/>
+<circle class="cut" cx="64" cy="72" r="24"/>
+<circle class="cut" cx="136" cy="40" r="12"/>
+<circle class="cut" cx="152" cy="136" r="16"/>
+<circle class="cut" cx="72" cy="176" r="8"/>
+<circle class="cut" cx="128" cy="216" r="6"/>
+<circle class="brand" cx="264" cy="120" r="16"/>
+<circle class="brand" cx="336" cy="184" r="24"/>
+<circle class="brand" cx="304" cy="96" r="6"/>
+<circle class="brand" cx="408" cy="136" r="12"/>
+<circle class="brand" cx="376" cy="224" r="8"/>
+<circle class="brand" cx="448" cy="208" r="16"/>
+<circle class="peak" cx="440" cy="32" r="12"/>
+<circle class="peak" cx="408" cy="40" r="4"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">Visigame</h1>
+<p class="tag">Make worlds. Play them in seconds.</p>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>sampling probe</title>
+  <script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+  <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}#err{position:fixed;inset:0;display:none;color:#f88;background:#200;font:13px monospace;white-space:pre-wrap;padding:12px}</style>
+</head>
+<body>
+<div id="stage"><canvas id="game-canvas"></canvas></div>
+<pre id="err"></pre>
+<script type="module">
+/**
+ * WHAT DOES A SESSION POLICY ACTUALLY SAMPLE WITH? No assets.
+ *
+ * Builds the renderer exactly as game/ShooterSession.initialize() does for a policy
+ * (core/SessionQuality.sessionQuality -> core/Renderer.createRenderer with the same tier
+ * object), applies the same pixel ratio and render scale, then reports the facts the
+ * forensics report could only infer from source: the context's `antialias` attribute, the
+ * drawing buffer's sample count, the renderer's own `samples`, and - where the policy has a
+ * post stack - the world pass's sample count. It draws a set of thin, rotated, unlit white
+ * bars on black so a screenshot shows the edge sampling directly, and reads the frame back
+ * to count intermediate-coverage pixels along those edges (0 with no anti-aliasing at all).
+ *
+ *   ?profile=Mobile-Low|Mobile-High|Desktop  &quality=performance|balanced|quality
+ *   &frames=60  &renderer=webgl|webgpu  &antialias=0|1 (override the tier's decision)
+ */
+import { Scene, PerspectiveCamera, Mesh, BoxGeometry, MeshBasicMaterial, Color } from 'three/webgpu';
+import { createRenderer, detectBackend } from '/src/core/Renderer.js';
+import { sessionQuality } from '/src/core/SessionQuality.js';
+import { detectProfile } from '/src/core/DeviceProfile.js';
+import { PostFX } from '/src/render/PostFX.js';
+
+const q = new URLSearchParams(location.search);
+const wantFrames = Number(q.get('frames')) || 60;
+const state = { status: 'booting', frames: 0, errors: [], ready: false };
+const publish = () => { document.body.dataset.capture = JSON.stringify(state); };
+const fail = (stage, e) => { state.status = 'failed'; state.errors.push(`${stage}: ${e?.stack || e?.message || e}`); document.getElementById('err').style.display = 'block'; document.getElementById('err').textContent = state.errors.join('\n\n'); publish(); };
+addEventListener('error', e => { state.errors.push(String(e.message)); publish(); });
+addEventListener('unhandledrejection', e => { state.errors.push(String(e.reason?.message || e.reason)); publish(); });
+window.__capture = { status: () => state };
+
+try {
+  const quality = q.get('quality') || 'quality';
+  const override = q.get('profile') || null;
+  // The session boots its renderer from the `quality` policy and re-derives the policy at build().
+  const bootPolicy = sessionQuality('quality', detectProfile(), override);
+  const policy = sessionQuality(quality, detectProfile(), override);
+  let canvas = document.getElementById('game-canvas');
+  const tier = { ...bootPolicy, softShadows: false };
+  if (q.get('antialias') !== null) tier.antialias = q.get('antialias') === '1';
+  const boot = await createRenderer({ canvas, tier,
+    onNeedFreshCanvas: () => { const n = canvas.cloneNode(); canvas.replaceWith(n); canvas = n; return n; },
+    onDeviceLost: info => fail('device lost', info?.message || 'device lost') });
+  const renderer = (await boot.settle()).renderer;
+  renderer.shadowMap.enabled = policy.shadows;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, policy.maxPixelRatio) * policy.renderScale);
+  renderer.setSize(innerWidth, innerHeight, false);
+
+  // Facts about the surface, read from the backend rather than from our own configuration.
+  const gl = renderer.backend?.gl ?? null;
+  const surface = {
+    backend: detectBackend(renderer),
+    rendererSamples: renderer.samples,
+    contextAntialias: gl ? !!gl.getContextAttributes()?.antialias : null,
+    drawingBufferSamples: gl ? gl.getParameter(gl.SAMPLES) : null,
+    drawingBufferSampleBuffers: gl ? gl.getParameter(gl.SAMPLE_BUFFERS) : null,
+    pixelRatio: renderer.getPixelRatio(),
+    buffer: [canvas.width, canvas.height],
+    css: [canvas.clientWidth, canvas.clientHeight],
+    policy: policy.name, quality, postFX: !!policy.profile.postFX, traa: !!policy.profile.traa, renderScale: policy.renderScale, maxPixelRatio: policy.maxPixelRatio,
+    notes: boot.notes,
+  };
+
+  // Thin rotated white bars on black: every edge is a coverage test.
+  const scene = new Scene(); scene.background = new Color(0x000000);
+  const camera = new PerspectiveCamera(72, innerWidth / innerHeight, 0.06, 300); camera.position.set(0, 0, 6);
+  const white = new MeshBasicMaterial({ color: 0xffffff });
+  for (let i = 0; i < 7; i++) {
+    const bar = new Mesh(new BoxGeometry(0.06, 4.2, 0.02), white);
+    bar.position.set(-3.6 + i * 1.2, 0, 0); bar.rotation.z = (i - 3) * 0.19; scene.add(bar);
+  }
+  const vmScene = new Scene(); const vmCamera = new PerspectiveCamera(60, innerWidth / innerHeight, 0.01, 10); vmScene.add(vmCamera);
+  let post = null;
+  if (policy.profile.postFX) {
+    post = new PostFX({ renderer, worldScene: scene, worldCamera: camera, viewmodelScene: vmScene, viewmodelCamera: vmCamera }, policy.profile);
+    surface.worldPassSamples = post.worldPass.options.samples ?? 'inherit';
+    surface.vmPassSamples = post.vmPass.options.samples ?? 'inherit';
+  }
+  state.surface = surface; state.status = 'drawing'; publish();
+
+  const times = [];
+  let last = 0;
+  renderer.setAnimationLoop(now => {
+    try {
+      if (last) times.push(now - last); last = now;
+      if (post) post.render(); else renderer.render(scene, camera);
+      state.frames++;
+      if (state.frames === wantFrames) {
+        // Read the frame back before the compositor consumes it.
+        const c2 = document.createElement('canvas'); c2.width = canvas.width; c2.height = canvas.height;
+        const ctx = c2.getContext('2d'); ctx.drawImage(canvas, 0, 0);
+        const px = ctx.getImageData(0, 0, c2.width, c2.height).data;
+        /**
+         * The bars are the brightest thing drawn, so their interior is the frame's plateau
+         * value (whatever the tone map made of white). A lit pixel below that plateau is
+         * partial coverage: an anti-aliased edge sample, a dither, or the sharpen. With no
+         * anti-aliasing of any kind, the only values present are black and the plateau.
+         */
+        const hist = new Uint32Array(256);
+        for (let i = 0; i < px.length; i += 4) hist[px[i]]++;
+        let plateau = 255; while (plateau > 0 && hist[plateau] === 0) plateau--;
+        let black = 0, full = 0, mid = 0, levels = 0;
+        for (let v = 0; v < 256; v++) { if (!hist[v]) continue; levels++; if (v < 8) black += hist[v]; else if (v >= plateau - 8) full += hist[v]; else mid += hist[v]; }
+        state.coverage = { pixels: px.length / 4, plateau, distinctLevels: levels, black, full, intermediate: mid, intermediateShareOfLit: (full + mid) ? mid / (full + mid) : 0 };
+        const warm = times.slice(10);
+        state.frameMs = warm.length ? { mean: warm.reduce((a, b) => a + b, 0) / warm.length, n: warm.length, note: 'software rasteriser interval; not a GPU measurement' } : null;
+        state.draws = renderer.info.render.drawCalls ?? renderer.info.render.calls;
+        state.ready = true; state.status = 'ready'; publish(); renderer.setAnimationLoop(null);
+      }
+    } catch (e) { renderer.setAnimationLoop(null); fail('frame', e); }
+  });
+} catch (e) { fail('boot', e); }
+</script>
+</body>
+</html>

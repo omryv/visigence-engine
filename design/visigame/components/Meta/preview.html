@@ -1,0 +1,16 @@
+<!-- @dsCard group="Signals" height=110 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'vg-stack' },
+    h(V.Meta, { tone: 'tungsten', items: ['Arcade', 'Sector 01', 'Seed 4471'] }),
+    h(V.Meta, { items: ['Shooter', 'Alpine', '3 objectives', '~6 min'] }),
+    h(V.Meta, { tone: 'peaking', items: ['In focus', 'Meadow Village'] })));
+
+</script>
+</body>
+</html>

@@ -1,0 +1,5156 @@
+{
+  "kind": "shooter.pack",
+  "packVersion": 1,
+  "id": "arcade",
+  "label": "Arcade",
+  "blurb": "Bright pastel village: chunky toon props, painted lawns, critter enemies and fantasy weapons.",
+  "terrain": {
+    "recipes": [
+      "badlands",
+      "alpine",
+      "basin"
+    ],
+    "default": "badlands",
+    "palette": "arid"
+  },
+  "characters": {
+    "player": {
+      "model": "assets/v2/arcade/characters/arcade-hero.glb",
+      "metres": 2.08,
+      "radius": 0.36,
+      "label": "Villager hero",
+      "preview": "assets/v2/arcade/catalog/hero.png",
+      "note": "Toon villager-adventurer (tools/blender/v2/arcade/hero.py): 1.8 m to the crown plus spiky hair, 65 Mixamo bones, Hero_Idle/_Walk/_Run/_Jump/_Interact and the genre clips Hero_Attack/_AimIdle/_AimRun/_Hit/_Death/_Cheer at 30 fps, in place; a Grip_R socket on the right hand holds the staff."
+    },
+    "slime": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.2,
+      "height": 1.2,
+      "archetype": "runner",
+      "animation": "rigid",
+      "label": "Slime",
+      "preview": "assets/v2/arcade/catalog/slime.png",
+      "generator": {
+        "family": "slime"
+      },
+      "radius": 0.55
+    },
+    "shroom": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.5,
+      "height": 1.5,
+      "archetype": "shambler",
+      "animation": "rigid",
+      "label": "Shroomling",
+      "preview": "assets/v2/arcade/catalog/shroom.png",
+      "generator": {
+        "family": "shroom"
+      },
+      "radius": 0.5
+    },
+    "bee": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.4,
+      "height": 1.4,
+      "archetype": "brute",
+      "animation": "rigid",
+      "label": "Bumble bee",
+      "preview": "assets/v2/arcade/catalog/bee.png",
+      "generator": {
+        "family": "bee"
+      },
+      "radius": 0.55,
+      "hover": 0.45
+    },
+    "king": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 3,
+      "height": 3,
+      "archetype": "behemoth",
+      "animation": "rigid",
+      "label": "King slime",
+      "preview": "assets/v2/arcade/catalog/king.png",
+      "generator": {
+        "family": "slime",
+        "rank": "boss"
+      },
+      "radius": 1.15
+    },
+    "sprout": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.2,
+      "height": 1.2,
+      "archetype": "husk",
+      "animation": "rigid",
+      "label": "Sprout",
+      "preview": "assets/v2/arcade/catalog/sprout.png",
+      "generator": {
+        "family": "sprout"
+      },
+      "radius": 0.45
+    },
+    "pebble": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.3,
+      "height": 1.3,
+      "archetype": "brute",
+      "animation": "rigid",
+      "label": "Pebble turtle",
+      "preview": "assets/v2/arcade/catalog/pebble.png",
+      "generator": {
+        "family": "pebble"
+      },
+      "radius": 0.6
+    },
+    "batpuff": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.4,
+      "height": 1.4,
+      "archetype": "prowler",
+      "animation": "rigid",
+      "label": "Bat-puff",
+      "preview": "assets/v2/arcade/catalog/batpuff.png",
+      "generator": {
+        "family": "batpuff"
+      },
+      "radius": 0.5,
+      "hover": 0.55
+    },
+    "hornblob": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.35,
+      "height": 1.35,
+      "archetype": "shambler",
+      "animation": "rigid",
+      "label": "Horned blob",
+      "preview": "assets/v2/arcade/catalog/hornblob.png",
+      "generator": {
+        "family": "hornblob"
+      },
+      "radius": 0.6
+    },
+    "acorn": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.25,
+      "height": 1.25,
+      "archetype": "husk",
+      "animation": "rigid",
+      "label": "Acorn",
+      "preview": "assets/v2/arcade/catalog/acorn.png",
+      "generator": {
+        "family": "acorn"
+      },
+      "radius": 0.45
+    },
+    "spirit": {
+      "model": "assets/v2/arcade/arcade-creature-parts.glb",
+      "metres": 1.7,
+      "height": 1.7,
+      "archetype": "lurker",
+      "animation": "rigid",
+      "label": "Forest spirit",
+      "preview": "assets/v2/arcade/catalog/spirit.png",
+      "generator": {
+        "family": "spirit"
+      },
+      "radius": 0.45
+    }
+  },
+  "weapons": {
+    "sidearm": {
+      "model": "assets/v2/arcade/arcade-slingshot.glb",
+      "metres": 0.3037,
+      "archetype": "pistol",
+      "slot": 0,
+      "label": "Slingshot",
+      "viewmodel": "assets/v2/arcade/fp/slingshot.glb",
+      "overrides": {
+        "shell": null,
+        "muzzleFlashScale": 0.04,
+        "muzzleFlashColor": 16773577,
+        "lightIntensity": 0,
+        "equipTime": 0.467,
+        "unequipTime": 0.333,
+        "inspectTime": 3.2,
+        "reload": {
+          "time": 1.1,
+          "emptyTime": 1.333,
+          "timeline": {
+            "magOut": 0.2,
+            "magIn": 0.5,
+            "commitAmmo": 0.567,
+            "complete": 1.1
+          },
+          "emptyTimeline": {
+            "magOut": 0.2,
+            "magIn": 0.5,
+            "commitAmmo": 0.567,
+            "complete": 1.333,
+            "bolt": 1.033
+          }
+        }
+      },
+      "preview": "assets/v2/arcade/catalog/slingshot.png"
+    },
+    "assault": {
+      "model": "assets/v2/arcade/arcade-repeater.glb",
+      "metres": 0.708,
+      "archetype": "smgGun",
+      "slot": 1,
+      "label": "Repeating crossbow",
+      "viewmodel": "assets/v2/arcade/fp/repeater.glb",
+      "overrides": {
+        "shell": null,
+        "muzzleFlashScale": 0.04,
+        "muzzleFlashColor": 16773577,
+        "lightIntensity": 0,
+        "equipTime": 0.6,
+        "unequipTime": 0.4,
+        "inspectTime": 3.333,
+        "reload": {
+          "time": 2.2,
+          "emptyTime": 2.667,
+          "timeline": {
+            "magOut": 0.467,
+            "magIn": 1.8,
+            "commitAmmo": 1.9,
+            "complete": 2.2
+          },
+          "emptyTimeline": {
+            "magOut": 0.467,
+            "magIn": 1.8,
+            "commitAmmo": 1.9,
+            "complete": 2.667,
+            "bolt": 2.367
+          }
+        }
+      },
+      "preview": "assets/v2/arcade/catalog/repeater.png"
+    },
+    "shotgun": {
+      "model": "assets/v2/arcade/arcade-blunderbuss.glb",
+      "metres": 1.046,
+      "archetype": "shotgun",
+      "slot": 2,
+      "label": "Blunderbuss",
+      "viewmodel": "assets/v2/arcade/fp/blunderbuss.glb",
+      "overrides": {
+        "shell": null,
+        "muzzleFlashColor": 16761466,
+        "equipTime": 0.667,
+        "unequipTime": 0.4,
+        "inspectTime": 3.667,
+        "reload": {
+          "time": 2.2,
+          "emptyTime": 3.2,
+          "timeline": {
+            "magOut": 0.1,
+            "magIn": 1.567,
+            "commitAmmo": 1.733,
+            "complete": 2.2
+          },
+          "emptyTimeline": {
+            "magOut": 0.1,
+            "magIn": 1.567,
+            "commitAmmo": 1.733,
+            "complete": 3.2,
+            "bolt": 2.933
+          }
+        }
+      },
+      "preview": "assets/v2/arcade/catalog/blunderbuss.png"
+    },
+    "marksman": {
+      "model": "assets/v2/arcade/arcade-arbalest.glb",
+      "metres": 1.068,
+      "archetype": "sniper",
+      "slot": 3,
+      "label": "Heavy crossbow",
+      "viewmodel": "assets/v2/arcade/fp/arbalest.glb",
+      "overrides": {
+        "shell": null,
+        "muzzleFlashScale": 0.04,
+        "muzzleFlashColor": 16773577,
+        "lightIntensity": 0,
+        "equipTime": 0.8,
+        "unequipTime": 0.467,
+        "inspectTime": 4.333,
+        "reload": {
+          "time": 1.033,
+          "emptyTime": 1.5,
+          "timeline": {
+            "magOut": 0.133,
+            "magIn": 0.6,
+            "commitAmmo": 0.7,
+            "complete": 1.033
+          },
+          "emptyTimeline": {
+            "magOut": 0.133,
+            "magIn": 0.6,
+            "commitAmmo": 0.7,
+            "complete": 1.5,
+            "bolt": 1.267
+          }
+        }
+      },
+      "preview": "assets/v2/arcade/catalog/arbalest.png"
+    },
+    "launcher": {
+      "model": "assets/v2/arcade/arcade-cannon.glb",
+      "metres": 0.666,
+      "archetype": "rpg",
+      "slot": 4,
+      "label": "Mini cannon",
+      "viewmodel": "assets/v2/arcade/fp/cannon.glb",
+      "overrides": {
+        "muzzleFlashColor": 16757596,
+        "equipTime": 0.8,
+        "unequipTime": 0.4,
+        "inspectTime": 4.667,
+        "reload": {
+          "time": 2.2,
+          "emptyTime": 2.2,
+          "timeline": {
+            "magOut": 0.333,
+            "magIn": 0.933,
+            "commitAmmo": 1.433,
+            "complete": 2.2
+          },
+          "emptyTimeline": {
+            "magOut": 0.333,
+            "magIn": 0.933,
+            "commitAmmo": 1.433,
+            "complete": 2.2
+          }
+        }
+      },
+      "preview": "assets/v2/arcade/catalog/cannon.png"
+    }
+  },
+  "grenade": {
+    "model": "assets/v2/arcade/arcade-fizzbomb.glb"
+  },
+  "sounds": {
+    "pistolFire": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/slingshot-shot-arcade-mode.mp3"
+    },
+    "pistolReload": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/slingshot-reload-arcade-mode.mp3"
+    },
+    "weapon1Fire": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/repeating-crossbow-shot-arcade-mode.mp3",
+      "offset": 0.15,
+      "loopStart": 0.15,
+      "loopEnd": 0.25,
+      "minAudible": 0.08
+    },
+    "weapon1Reload": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/repeating-crossbow-reload-arcade-mode.mp3",
+      "duration": 2.2
+    },
+    "shotgunFire": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/blunderbuss-shot-arcade-mode.mp3",
+      "duration": 0.3
+    },
+    "shotgunReload": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/blunderbuss-reload-arcade-mode.mp3"
+    },
+    "sniperFire": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/heavy-crossbow-shot-arcade-mode.mp3"
+    },
+    "sniperReload": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/heavy-crossbow-reload-arcade-mode.mp3"
+    },
+    "rpgFire": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/mini-cannon-shot-arcade-mode.mp3"
+    },
+    "rpgReload": {
+      "file": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/mini-cannon-reload-arcade-mode.mp3"
+    }
+  },
+  "props": [
+    {
+      "id": "barrel",
+      "model": "assets/v2/arcade/arcade-barrel.glb",
+      "metres": 1,
+      "role": "cover",
+      "collision": "box",
+      "density": 1,
+      "preview": "assets/v2/arcade/catalog/barrel.png"
+    },
+    {
+      "id": "rocks",
+      "model": "assets/v2/arcade/arcade-rocks.glb",
+      "metres": 2.5005,
+      "role": "cover",
+      "collision": "box",
+      "density": 0.7,
+      "preview": "assets/v2/arcade/catalog/rocks.png"
+    },
+    {
+      "id": "fence",
+      "label": "Fence",
+      "model": "assets/v2/arcade/arcade-fence.glb",
+      "metres": 2.46,
+      "role": "cover",
+      "collision": "box",
+      "density": 0.5,
+      "preview": "assets/v2/arcade/catalog/fence.png"
+    },
+    {
+      "id": "hayBarricade",
+      "label": "Hay barricade",
+      "model": "assets/v2/arcade/arcade-barricade.glb",
+      "metres": 3.2993,
+      "role": "barricade",
+      "collision": "box",
+      "density": 0.5,
+      "preview": "assets/v2/arcade/catalog/barricade.png"
+    },
+    {
+      "id": "woodGate",
+      "label": "Village gate",
+      "model": "assets/v2/arcade/arcade-gate.glb",
+      "metres": 4.45,
+      "role": "gate",
+      "collision": "box",
+      "density": 0.15,
+      "preview": "assets/v2/arcade/catalog/gate.png"
+    },
+    {
+      "id": "crystalShrine",
+      "label": "Crystal shrine",
+      "model": "assets/v2/arcade/arcade-shrine.glb",
+      "metres": 2.58,
+      "role": "objective",
+      "collision": "circle",
+      "density": 0.1,
+      "preview": "assets/v2/arcade/catalog/shrine.png"
+    },
+    {
+      "id": "house",
+      "label": "Village house",
+      "model": "assets/v2/arcade/arcade-house-parts.glb",
+      "metres": 10,
+      "role": "dressing",
+      "collision": "box",
+      "generator": "house",
+      "preview": "assets/v2/arcade/catalog/house.png"
+    },
+    {
+      "id": "nature",
+      "label": "Meadow flora",
+      "model": "assets/v2/arcade/arcade-nature-parts.glb",
+      "metres": 1.6,
+      "role": "dressing",
+      "collision": "none",
+      "generator": "nature",
+      "preview": "assets/v2/arcade/catalog/nature.png"
+    },
+    {
+      "id": "tree",
+      "label": "Village tree",
+      "model": "assets/v2/arcade/arcade-tree-parts.glb",
+      "metres": 6.5,
+      "role": "dressing",
+      "collision": "none",
+      "generator": "tree",
+      "preview": "assets/v2/arcade/catalog/tree.png"
+    },
+    {
+      "id": "landmark",
+      "label": "Village landmark",
+      "model": "assets/v2/arcade/arcade-landmark-parts.glb",
+      "metres": 9.0,
+      "role": "dressing",
+      "collision": "none",
+      "generator": "landmark",
+      "preview": "assets/v2/arcade/catalog/landmark.png"
+    },
+    {
+      "id": "ammoSupply",
+      "label": "Pebble pouch",
+      "model": "assets/v2/arcade/arcade-pouch.glb",
+      "metres": 0.5584,
+      "role": "dressing",
+      "collision": "none",
+      "pickup": "ammo",
+      "preview": "assets/v2/arcade/catalog/pouch.png"
+    },
+    {
+      "id": "healthSupply",
+      "label": "Honey jar",
+      "model": "assets/v2/arcade/arcade-honey.glb",
+      "metres": 0.336,
+      "role": "dressing",
+      "collision": "none",
+      "pickup": "health",
+      "preview": "assets/v2/arcade/catalog/honey.png"
+    },
+    {
+      "id": "grenadeSupply",
+      "label": "Fizz-bomb",
+      "model": "assets/v2/arcade/arcade-fizzbomb.glb",
+      "metres": 0.367,
+      "role": "dressing",
+      "collision": "none",
+      "pickup": "grenade",
+      "preview": "assets/v2/arcade/catalog/fizzbomb.png"
+    },
+    {
+      "id": "keyAmber",
+      "label": "Amber key",
+      "model": "assets/v2/arcade/arcade-keys.glb",
+      "node": "Key_amber",
+      "metres": 0.443,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/key.png"
+    },
+    {
+      "id": "keyIce",
+      "label": "Ice key",
+      "model": "assets/v2/arcade/arcade-keys.glb",
+      "node": "Key_ice",
+      "metres": 0.443,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/key.png"
+    },
+    {
+      "id": "keyRose",
+      "label": "Rose key",
+      "model": "assets/v2/arcade/arcade-keys.glb",
+      "node": "Key_rose",
+      "metres": 0.443,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/key.png"
+    },
+    {
+      "id": "lockAmber",
+      "label": "Amber padlock",
+      "model": "assets/v2/arcade/arcade-locks.glb",
+      "node": "Lock_amber",
+      "metres": 0.296,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/lock.png"
+    },
+    {
+      "id": "lockIce",
+      "label": "Ice padlock",
+      "model": "assets/v2/arcade/arcade-locks.glb",
+      "node": "Lock_ice",
+      "metres": 0.296,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/lock.png"
+    },
+    {
+      "id": "lockRose",
+      "label": "Rose padlock",
+      "model": "assets/v2/arcade/arcade-locks.glb",
+      "node": "Lock_rose",
+      "metres": 0.296,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/lock.png"
+    },
+    {
+      "id": "lever",
+      "label": "Lever",
+      "model": "assets/v2/arcade/arcade-lever.glb",
+      "metres": 0.968,
+      "role": "gear",
+      "collision": "circle",
+      "preview": "assets/v2/arcade/catalog/lever.png"
+    },
+    {
+      "id": "honeyDrop",
+      "label": "Honey drop",
+      "model": "assets/v2/arcade/arcade-drop.glb",
+      "metres": 0.55,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/drop.png"
+    },
+    {
+      "id": "staff",
+      "label": "Trail staff",
+      "model": "assets/v2/arcade/arcade-staff.glb",
+      "metres": 1.206,
+      "role": "gear",
+      "collision": "none",
+      "preview": "assets/v2/arcade/catalog/staff.png"
+    }
+  ],
+  "creatures": {
+    "version": 1,
+    "library": "assets/v2/arcade/arcade-creature-parts.glb",
+    "colors": {
+      "white": "#fffaf3",
+      "ink": "#3b2d45",
+      "blush": "#ff8fa3",
+      "shine": "#ffffff",
+      "gold": "#ffd35e",
+      "wood": "#a16943",
+      "stone": "#b9b6c4",
+      "leaf": "#6cc24a",
+      "wing": "#e2f5ff"
+    },
+    "expressions": {
+      "happy": {
+        "eyes": "round",
+        "mouth": "smile",
+        "brows": 0,
+        "blush": true
+      },
+      "joy": {
+        "eyes": "arc",
+        "mouth": "open",
+        "brows": 0,
+        "blush": true
+      },
+      "sleepy": {
+        "eyes": "sleepy",
+        "mouth": "small",
+        "brows": 0,
+        "blush": true
+      },
+      "shy": {
+        "eyes": "round",
+        "mouth": "w",
+        "brows": 0,
+        "blush": true,
+        "look": -0.5
+      },
+      "angry": {
+        "eyes": "round",
+        "mouth": "frown",
+        "brows": 8,
+        "blush": false
+      },
+      "fierce": {
+        "eyes": "round",
+        "mouth": "fang",
+        "brows": 10,
+        "blush": false
+      },
+      "shout": {
+        "eyes": "round",
+        "mouth": "roar",
+        "brows": 9,
+        "blush": true
+      }
+    },
+    "moods": {
+      "friendly": {
+        "happy": 3,
+        "joy": 2,
+        "sleepy": 1.5,
+        "shy": 1
+      },
+      "hostile": {
+        "angry": 3,
+        "fierce": 2,
+        "shout": 0.5
+      }
+    },
+    "families": {
+      "slime": {
+        "label": "Slime",
+        "palettes": [
+          {
+            "body": "#8ff0c4",
+            "accent": "#fd757d"
+          },
+          {
+            "body": "#ffa3c8",
+            "accent": "#69c9fd"
+          },
+          {
+            "body": "#9fd8ff",
+            "accent": "#fedf75"
+          },
+          {
+            "body": "#ffe08a",
+            "accent": "#c2a3fd"
+          }
+        ],
+        "boss": {
+          "palette": {
+            "body": "#cdaaff",
+            "accent": "#fd757d"
+          },
+          "require": [
+            "acc.crown"
+          ],
+          "expression": "shout"
+        },
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "slime.body.drop",
+                "w": 3,
+                "favor": {
+                  "round": -0.6
+                }
+              },
+              {
+                "part": "slime.body.round",
+                "w": 2,
+                "favor": {
+                  "round": 0.8
+                }
+              },
+              {
+                "part": "slime.body.tall",
+                "w": 1.5,
+                "favor": {
+                  "size": 0.6
+                }
+              }
+            ]
+          },
+          {
+            "slot": "top",
+            "socket": "top",
+            "chance": 0.5,
+            "options": [
+              {
+                "part": "acc.bow",
+                "w": 2
+              },
+              {
+                "part": "acc.leaf",
+                "w": 2
+              },
+              {
+                "part": "acc.flower",
+                "w": 1.5
+              },
+              {
+                "part": "acc.crown",
+                "w": 0,
+                "rank": [
+                  "boss"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "shroom": {
+        "label": "Mushroom",
+        "palettes": [
+          {
+            "body": "#fbecd2",
+            "accent": "#f0605a",
+            "trim": "#fff4e6"
+          },
+          {
+            "body": "#fbecd2",
+            "accent": "#6f9ff0",
+            "trim": "#eaf3ff"
+          },
+          {
+            "body": "#fbecd2",
+            "accent": "#ffa04d",
+            "trim": "#fff1d8"
+          },
+          {
+            "body": "#f6e2d0",
+            "accent": "#c78bf0",
+            "trim": "#f7edff"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "shroom.stem.stubby",
+                "w": 3
+              },
+              {
+                "part": "shroom.stem.tall",
+                "w": 1.5,
+                "favor": {
+                  "size": 0.8
+                }
+              }
+            ]
+          },
+          {
+            "slot": "cap",
+            "socket": "top",
+            "options": [
+              {
+                "part": "shroom.cap.dome",
+                "w": 3,
+                "tags": [
+                  "dome"
+                ]
+              },
+              {
+                "part": "shroom.cap.flat",
+                "w": 1.5,
+                "tags": [
+                  "flat"
+                ]
+              },
+              {
+                "part": "shroom.cap.cone",
+                "w": 1.5,
+                "tags": [
+                  "cone"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "spots",
+            "kind": "pattern",
+            "on": "cap",
+            "options": [
+              {
+                "pattern": "spots",
+                "w": 3,
+                "count": [
+                  4,
+                  7
+                ],
+                "size": [
+                  0.1,
+                  0.15
+                ]
+              },
+              {
+                "pattern": "dots",
+                "w": 2,
+                "count": [
+                  10,
+                  16
+                ],
+                "size": [
+                  0.05,
+                  0.08
+                ]
+              },
+              {
+                "pattern": "ring",
+                "w": 1.5,
+                "count": [
+                  7,
+                  10
+                ],
+                "size": [
+                  0.06,
+                  0.09
+                ],
+                "clash": [
+                  "cone"
+                ]
+              },
+              {
+                "pattern": "none",
+                "w": 0.7
+              }
+            ]
+          },
+          {
+            "slot": "arms",
+            "socket": "arm",
+            "pair": true,
+            "chance": 0.7,
+            "options": [
+              {
+                "part": "arm.stub",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "feet",
+            "socket": "foot",
+            "pair": true,
+            "chance": 0.85,
+            "options": [
+              {
+                "part": "foot.boot",
+                "w": 1
+              }
+            ]
+          }
+        ]
+      },
+      "bee": {
+        "label": "Bee",
+        "hover": 0.45,
+        "palettes": [
+          {
+            "body": "#ffd65a",
+            "accent": "#6b4330"
+          },
+          {
+            "body": "#ffb3c6",
+            "accent": "#8a4f6b"
+          },
+          {
+            "body": "#9ec2ff",
+            "accent": "#3f4f8f"
+          },
+          {
+            "body": "#b8f0a0",
+            "accent": "#4f6b3a"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "bee.body.round",
+                "w": 3,
+                "favor": {
+                  "round": 0.6
+                }
+              },
+              {
+                "part": "bee.body.long",
+                "w": 1.5,
+                "favor": {
+                  "round": -0.6
+                }
+              }
+            ]
+          },
+          {
+            "slot": "wings",
+            "socket": "wing",
+            "pair": true,
+            "options": [
+              {
+                "part": "bee.wing.round",
+                "w": 2
+              },
+              {
+                "part": "bee.wing.long",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "antennae",
+            "socket": "antenna",
+            "pair": true,
+            "chance": 0.9,
+            "options": [
+              {
+                "part": "bee.antenna.curl",
+                "w": 2
+              },
+              {
+                "part": "bee.antenna.ball",
+                "w": 2
+              }
+            ]
+          }
+        ]
+      },
+      "sprout": {
+        "label": "Sprout",
+        "palettes": [
+          {
+            "body": "#fff1cf",
+            "accent": "#ff9ec0",
+            "leaf": "#6cc24a"
+          },
+          {
+            "body": "#bfe68a",
+            "accent": "#fedf75",
+            "leaf": "#4fa83f"
+          },
+          {
+            "body": "#d8f5c4",
+            "accent": "#ff8fa3",
+            "leaf": "#5bb84a"
+          },
+          {
+            "body": "#ffe3c2",
+            "accent": "#c2a3fd",
+            "leaf": "#7ccc50"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "sprout.body.round",
+                "w": 3,
+                "favor": {
+                  "round": 0.6
+                }
+              },
+              {
+                "part": "sprout.body.pear",
+                "w": 2,
+                "favor": {
+                  "round": -0.6
+                }
+              }
+            ]
+          },
+          {
+            "slot": "top",
+            "socket": "top",
+            "options": [
+              {
+                "part": "sprout.top.twoleaf",
+                "w": 3
+              },
+              {
+                "part": "sprout.top.seedling",
+                "w": 2
+              },
+              {
+                "part": "sprout.top.tulip",
+                "w": 1.5
+              },
+              {
+                "part": "sprout.top.daisy",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "feet",
+            "socket": "foot",
+            "pair": true,
+            "chance": 0.6,
+            "options": [
+              {
+                "part": "foot.nub",
+                "w": 1
+              }
+            ]
+          }
+        ]
+      },
+      "pebble": {
+        "label": "Pebble turtle",
+        "palettes": [
+          {
+            "body": "#9fd873",
+            "accent": "#b9b6c4",
+            "trim": "#8fc868"
+          },
+          {
+            "body": "#a8e0a0",
+            "accent": "#f0a35a",
+            "trim": "#ffd98a"
+          },
+          {
+            "body": "#8fd0b8",
+            "accent": "#9d9aac",
+            "trim": "#7cc26a"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "pebble.base.turtle",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "shell",
+            "socket": "shell",
+            "options": [
+              {
+                "part": "pebble.shell.rock",
+                "w": 3,
+                "tags": [
+                  "rock"
+                ]
+              },
+              {
+                "part": "pebble.shell.dome",
+                "w": 2,
+                "tags": [
+                  "dome"
+                ]
+              },
+              {
+                "part": "pebble.shell.hex",
+                "w": 1.5,
+                "tags": [
+                  "hex"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "detail",
+            "socket": "top",
+            "on": "shell",
+            "chance": 0.65,
+            "options": [
+              {
+                "part": "pebble.detail.moss",
+                "w": 3,
+                "clash": [
+                  "hex"
+                ]
+              },
+              {
+                "part": "acc.flower",
+                "w": 1.5
+              },
+              {
+                "part": "sprout.top.seedling",
+                "w": 1.5
+              }
+            ]
+          }
+        ]
+      },
+      "batpuff": {
+        "label": "Bat-puff",
+        "hover": 0.55,
+        "palettes": [
+          {
+            "body": "#b9a0ff",
+            "accent": "#6c5aa8",
+            "trim": "#ffb3cf"
+          },
+          {
+            "body": "#ffc2dc",
+            "accent": "#e07aa8",
+            "trim": "#fff0f6"
+          },
+          {
+            "body": "#a9b4e8",
+            "accent": "#5b5f9e",
+            "trim": "#d7c8ff"
+          }
+        ],
+        "moods": {
+          "friendly": {
+            "joy": 2,
+            "happy": 2,
+            "sleepy": 2
+          },
+          "hostile": {
+            "fierce": 3,
+            "angry": 1.5
+          }
+        },
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "bat.body.puff",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "ears",
+            "socket": "ear",
+            "pair": true,
+            "options": [
+              {
+                "part": "bat.ear.pointy",
+                "w": 2
+              },
+              {
+                "part": "bat.ear.round",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "wings",
+            "socket": "wing",
+            "pair": true,
+            "options": [
+              {
+                "part": "bat.wing.bat",
+                "w": 2
+              },
+              {
+                "part": "bat.wing.tiny",
+                "w": 1.5,
+                "favor": {
+                  "size": -0.8
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "hornblob": {
+        "label": "Horned blob",
+        "palettes": [
+          {
+            "body": "#ff9a55",
+            "accent": "#fff0c8"
+          },
+          {
+            "body": "#8ec5ff",
+            "accent": "#ffffff"
+          },
+          {
+            "body": "#ffa8c6",
+            "accent": "#8a5a3c"
+          },
+          {
+            "body": "#b6e36a",
+            "accent": "#fff0c8"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "blob.body.wide",
+                "w": 2,
+                "favor": {
+                  "round": 0.7
+                }
+              },
+              {
+                "part": "blob.body.tall",
+                "w": 1.5,
+                "favor": {
+                  "round": -0.7
+                }
+              }
+            ]
+          },
+          {
+            "slot": "horns",
+            "socket": "horn",
+            "pair": true,
+            "options": [
+              {
+                "part": "horn.curved",
+                "w": 2
+              },
+              {
+                "part": "horn.straight",
+                "w": 1.5
+              },
+              {
+                "part": "horn.ram",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "feet",
+            "socket": "foot",
+            "pair": true,
+            "chance": 0.5,
+            "options": [
+              {
+                "part": "foot.nub",
+                "w": 1
+              }
+            ]
+          }
+        ]
+      },
+      "acorn": {
+        "label": "Acorn",
+        "palettes": [
+          {
+            "body": "#f2b36b",
+            "accent": "#a1663f"
+          },
+          {
+            "body": "#b5dc78",
+            "accent": "#6b8f3a"
+          },
+          {
+            "body": "#d9955e",
+            "accent": "#7a4a2e"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "acorn.body.round",
+                "w": 2,
+                "favor": {
+                  "round": 0.7
+                }
+              },
+              {
+                "part": "acorn.body.egg",
+                "w": 2,
+                "favor": {
+                  "round": -0.7
+                }
+              }
+            ]
+          },
+          {
+            "slot": "cap",
+            "socket": "top",
+            "options": [
+              {
+                "part": "acorn.cap.classic",
+                "w": 3
+              },
+              {
+                "part": "acorn.cap.pointed",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "sprig",
+            "socket": "top",
+            "on": "cap",
+            "chance": 0.8,
+            "options": [
+              {
+                "part": "acorn.top.stem",
+                "w": 2
+              },
+              {
+                "part": "acc.leaf",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "feet",
+            "socket": "foot",
+            "pair": true,
+            "chance": 0.7,
+            "options": [
+              {
+                "part": "foot.nub",
+                "w": 1
+              }
+            ]
+          }
+        ]
+      },
+      "spirit": {
+        "label": "Forest spirit",
+        "palettes": [
+          {
+            "body": "#fbf6ea",
+            "accent": "#ffb3c6",
+            "leaf": "#6cc24a"
+          },
+          {
+            "body": "#ffd6e2",
+            "accent": "#fedf75",
+            "leaf": "#5bb84a"
+          },
+          {
+            "body": "#e3f5e1",
+            "accent": "#c2a3fd",
+            "leaf": "#4fa83f"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "body",
+            "options": [
+              {
+                "part": "spirit.body.bell",
+                "w": 2
+              },
+              {
+                "part": "spirit.body.bean",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "cloak",
+            "socket": "neck",
+            "chance": 0.8,
+            "options": [
+              {
+                "part": "spirit.cloak.leaves",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "top",
+            "socket": "top",
+            "options": [
+              {
+                "part": "spirit.top.antlers",
+                "w": 2
+              },
+              {
+                "part": "sprout.top.seedling",
+                "w": 1.5
+              },
+              {
+                "part": "sprout.top.daisy",
+                "w": 1.5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roster": [
+      {
+        "id": "slime",
+        "family": "slime",
+        "label": "Slime",
+        "archetype": "runner",
+        "height": 1.2,
+        "radius": 0.55
+      },
+      {
+        "id": "shroom",
+        "family": "shroom",
+        "label": "Shroomling",
+        "archetype": "shambler",
+        "height": 1.5,
+        "radius": 0.5
+      },
+      {
+        "id": "bee",
+        "family": "bee",
+        "label": "Bumble bee",
+        "archetype": "brute",
+        "height": 1.4,
+        "radius": 0.55
+      },
+      {
+        "id": "sprout",
+        "family": "sprout",
+        "label": "Sprout",
+        "archetype": "husk",
+        "height": 1.2,
+        "radius": 0.45
+      },
+      {
+        "id": "pebble",
+        "family": "pebble",
+        "label": "Pebble turtle",
+        "archetype": "brute",
+        "height": 1.3,
+        "radius": 0.6
+      },
+      {
+        "id": "batpuff",
+        "family": "batpuff",
+        "label": "Bat-puff",
+        "archetype": "prowler",
+        "height": 1.4,
+        "radius": 0.5
+      },
+      {
+        "id": "hornblob",
+        "family": "hornblob",
+        "label": "Horned blob",
+        "archetype": "shambler",
+        "height": 1.35,
+        "radius": 0.6
+      },
+      {
+        "id": "acorn",
+        "family": "acorn",
+        "label": "Acorn",
+        "archetype": "husk",
+        "height": 1.25,
+        "radius": 0.45
+      },
+      {
+        "id": "spirit",
+        "family": "spirit",
+        "label": "Forest spirit",
+        "archetype": "lurker",
+        "height": 1.7,
+        "radius": 0.45
+      },
+      {
+        "id": "king",
+        "family": "slime",
+        "rank": "boss",
+        "label": "King slime",
+        "archetype": "behemoth",
+        "height": 3,
+        "radius": 1.15
+      }
+    ],
+    "wildlife": {
+      "count": 8,
+      "mobile": 5,
+      "keepers": 4,
+      "keepersMobile": 2,
+      "scale": [
+        0.5,
+        0.9
+      ],
+      "families": [
+        "slime",
+        "shroom",
+        "bee",
+        "sprout",
+        "pebble",
+        "batpuff",
+        "hornblob",
+        "acorn",
+        "spirit"
+      ]
+    }
+  },
+  "houses": {
+    "version": 1,
+    "library": "assets/v2/arcade/arcade-house-parts.glb",
+    "lot": {
+      "w": 7.6,
+      "d": 10
+    },
+    "mix": {
+      "cottage": 3,
+      "townhouse": 2,
+      "farmhouse": 2,
+      "tower": 1.2
+    },
+    "kit": {
+      "plinth": 0.48,
+      "storey": 2.35,
+      "plate": 0.26,
+      "slab": 0.22,
+      "eave": 0.55,
+      "over": 0.42,
+      "tile": [
+        1.55,
+        1.5,
+        0.26
+      ],
+      "row": 1.15,
+      "bay": 1.5,
+      "sill": 0.72
+    },
+    "facade": {
+      "front": 0.92,
+      "side": 0.72,
+      "back": 0.55,
+      "attic": 0.85
+    },
+    "colors": {
+      "timber": "#c47d4a",
+      "timberDark": "#91573a",
+      "stone": "#c3c0c9",
+      "stoneDark": "#8f8b9f",
+      "masonry": "#d6cfd3",
+      "plank": "#c28a5c",
+      "thatch": "#f2c76e",
+      "iron": "#6e7285",
+      "glass": "#4f98e0",
+      "glow": "#ffd873",
+      "leaf": "#5cb042",
+      "petal": "#fffaf3",
+      "gold": "#f2c14e",
+      "wall": "#fbecd2"
+    },
+    "parts": {
+      "door.arched": {
+        "w": 1.36,
+        "h": 2.1
+      },
+      "door.plank": {
+        "w": 1.3,
+        "h": 2.0
+      },
+      "door.round": {
+        "w": 1.3,
+        "h": 1.95
+      },
+      "door.double": {
+        "w": 1.9,
+        "h": 2.15
+      },
+      "win.arched": {
+        "w": 1.24,
+        "h": 1.5
+      },
+      "win.cross": {
+        "w": 1.2,
+        "h": 1.3
+      },
+      "win.round": {
+        "w": 0.9,
+        "h": 0.9
+      },
+      "win.slim": {
+        "w": 0.74,
+        "h": 1.45
+      },
+      "win.oriel": {
+        "w": 1.9,
+        "h": 2.0
+      },
+      "balcony": {
+        "w": 1.8,
+        "h": 1.0
+      },
+      "dormer": {
+        "w": 1.7,
+        "h": 1.9
+      },
+      "shutter.plank": {},
+      "shutter.louvre": {},
+      "flowerbox": {},
+      "canopy.shed": {},
+      "canopy.gable": {},
+      "lantern": {},
+      "sign": {},
+      "roof.ridge": {},
+      "roof.ridge.thatch": {},
+      "roof.spire": {},
+      "roof.finial": {},
+      "roof.vane": {},
+      "chimney.pot": {},
+      "yard.barrels": {},
+      "yard.woodpile": {},
+      "yard.bench": {},
+      "yard.crates": {}
+    },
+    "families": {
+      "cottage": {
+        "label": "Timber-frame cottage",
+        "palettes": [
+          {
+            "wall": "#fbecd2",
+            "roof": "#ee5f3a",
+            "accent": "#6ae2ac"
+          },
+          {
+            "wall": "#fde3d7",
+            "roof": "#5d8fe6",
+            "accent": "#fedf75"
+          },
+          {
+            "wall": "#fbf1c7",
+            "roof": "#3fb49f",
+            "accent": "#fd757d"
+          },
+          {
+            "wall": "#f1e8fb",
+            "roof": "#9a79ea",
+            "accent": "#69c9fd"
+          },
+          {
+            "wall": "#fbecd2",
+            "roof": "#e07a45",
+            "accent": "#69c9fd"
+          }
+        ],
+        "mass": {
+          "span": [
+            4.0,
+            5.0
+          ],
+          "length": [
+            4.8,
+            6.3
+          ],
+          "storeys": [
+            1,
+            1
+          ],
+          "pitch": [
+            1.0,
+            1.3
+          ],
+          "bay": 1.95,
+          "tile": 1.0
+        },
+        "plan": [
+          {
+            "slot": "ridge",
+            "options": [
+              {
+                "id": "front",
+                "w": 1,
+                "tags": [
+                  "frontGable"
+                ]
+              },
+              {
+                "id": "side",
+                "w": 1.3,
+                "tags": [
+                  "sideRidge"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "walls",
+            "options": [
+              {
+                "id": "timber",
+                "w": 5
+              },
+              {
+                "id": "stone",
+                "w": 1.2,
+                "favor": {
+                  "size": 0.5
+                }
+              }
+            ]
+          },
+          {
+            "slot": "roof",
+            "options": [
+              {
+                "id": "gable"
+              }
+            ]
+          },
+          {
+            "slot": "covering",
+            "options": [
+              {
+                "id": "tiles",
+                "w": 3
+              },
+              {
+                "id": "thatch",
+                "w": 1.3,
+                "favor": {
+                  "whimsy": 0.6
+                },
+                "tags": [
+                  "thatch"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "door",
+            "options": [
+              {
+                "id": "door.arched",
+                "w": 3
+              },
+              {
+                "id": "door.plank",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "window",
+            "options": [
+              {
+                "id": "win.arched",
+                "w": 3
+              },
+              {
+                "id": "win.cross",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "attic",
+            "options": [
+              {
+                "id": "win.round",
+                "w": 2
+              },
+              {
+                "id": "win.slim",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "annex",
+            "chance": 0.6,
+            "gene": "size",
+            "options": [
+              {
+                "id": "wing",
+                "w": 2
+              },
+              {
+                "id": "leanto",
+                "w": 1.5
+              },
+              {
+                "id": "tower",
+                "w": 0.8,
+                "favor": {
+                  "whimsy": 0.8
+                }
+              }
+            ]
+          },
+          {
+            "slot": "chimney",
+            "chance": 0.9,
+            "gene": "size",
+            "options": [
+              {
+                "id": "ridge",
+                "w": 1
+              },
+              {
+                "id": "gable",
+                "w": 1.3
+              }
+            ]
+          },
+          {
+            "slot": "dormer",
+            "chance": 0.3,
+            "options": [
+              {
+                "id": "dormer",
+                "needs": [
+                  "sideRidge"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "shutters",
+            "chance": 0.6,
+            "options": [
+              {
+                "id": "shutter.plank",
+                "w": 2
+              },
+              {
+                "id": "shutter.louvre",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "flowers",
+            "chance": 0.7,
+            "options": [
+              {
+                "id": "flowerbox"
+              }
+            ]
+          },
+          {
+            "slot": "canopy",
+            "chance": 0.45,
+            "options": [
+              {
+                "id": "canopy.shed"
+              },
+              {
+                "id": "canopy.gable"
+              }
+            ]
+          },
+          {
+            "slot": "lantern",
+            "chance": 0.75,
+            "options": [
+              {
+                "id": "lantern"
+              }
+            ]
+          },
+          {
+            "slot": "topper",
+            "chance": 0.3,
+            "options": [
+              {
+                "id": "roof.vane"
+              },
+              {
+                "id": "roof.finial"
+              }
+            ]
+          },
+          {
+            "slot": "yard",
+            "chance": 0.6,
+            "options": [
+              {
+                "id": "yard.barrels"
+              },
+              {
+                "id": "yard.woodpile"
+              },
+              {
+                "id": "yard.bench"
+              }
+            ]
+          }
+        ]
+      },
+      "townhouse": {
+        "label": "Tall townhouse",
+        "palettes": [
+          {
+            "wall": "#fde3d7",
+            "roof": "#5d8fe6",
+            "accent": "#6ae2ac"
+          },
+          {
+            "wall": "#fbf1c7",
+            "roof": "#ee5f3a",
+            "accent": "#69c9fd"
+          },
+          {
+            "wall": "#e4f5ea",
+            "roof": "#9a79ea",
+            "accent": "#fd757d"
+          },
+          {
+            "wall": "#e3effc",
+            "roof": "#3fb49f",
+            "accent": "#fedf75"
+          },
+          {
+            "wall": "#fbecd2",
+            "roof": "#6f7fb3",
+            "accent": "#fd757d"
+          }
+        ],
+        "mass": {
+          "span": [
+            3.6,
+            4.4
+          ],
+          "length": [
+            5.0,
+            6.6
+          ],
+          "storeys": [
+            2,
+            3
+          ],
+          "pitch": [
+            1.25,
+            1.7
+          ],
+          "bay": 1.75,
+          "tile": 0.9
+        },
+        "plan": [
+          {
+            "slot": "ridge",
+            "options": [
+              {
+                "id": "front",
+                "w": 3,
+                "tags": [
+                  "frontGable"
+                ]
+              },
+              {
+                "id": "side",
+                "w": 1,
+                "tags": [
+                  "sideRidge"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "walls",
+            "options": [
+              {
+                "id": "timber",
+                "w": 3
+              },
+              {
+                "id": "mixed",
+                "w": 3,
+                "favor": {
+                  "size": 0.4
+                }
+              },
+              {
+                "id": "stone",
+                "w": 0.8
+              }
+            ]
+          },
+          {
+            "slot": "roof",
+            "options": [
+              {
+                "id": "gable"
+              }
+            ]
+          },
+          {
+            "slot": "covering",
+            "options": [
+              {
+                "id": "tiles"
+              }
+            ]
+          },
+          {
+            "slot": "door",
+            "options": [
+              {
+                "id": "door.arched",
+                "w": 1
+              },
+              {
+                "id": "door.plank",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "window",
+            "options": [
+              {
+                "id": "win.cross",
+                "w": 3
+              },
+              {
+                "id": "win.arched",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "attic",
+            "options": [
+              {
+                "id": "win.round",
+                "w": 1
+              },
+              {
+                "id": "win.slim",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "annex",
+            "chance": 0.35,
+            "gene": "whimsy",
+            "options": [
+              {
+                "id": "tower",
+                "w": 1
+              },
+              {
+                "id": "wing",
+                "w": 1
+              },
+              {
+                "id": "leanto",
+                "w": 0.6
+              }
+            ]
+          },
+          {
+            "slot": "chimney",
+            "chance": 0.95,
+            "gene": "size",
+            "options": [
+              {
+                "id": "ridge",
+                "w": 3
+              },
+              {
+                "id": "gable",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "dormer",
+            "chance": 0.6,
+            "options": [
+              {
+                "id": "dormer",
+                "needs": [
+                  "sideRidge"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "upper",
+            "chance": 0.55,
+            "options": [
+              {
+                "id": "win.oriel",
+                "w": 1
+              },
+              {
+                "id": "balcony",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "shutters",
+            "chance": 0.7,
+            "options": [
+              {
+                "id": "shutter.plank",
+                "w": 1
+              },
+              {
+                "id": "shutter.louvre",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "flowers",
+            "chance": 0.8,
+            "options": [
+              {
+                "id": "flowerbox"
+              }
+            ]
+          },
+          {
+            "slot": "canopy",
+            "chance": 0.5,
+            "options": [
+              {
+                "id": "canopy.gable",
+                "w": 2
+              },
+              {
+                "id": "canopy.shed",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "lantern",
+            "chance": 0.8,
+            "options": [
+              {
+                "id": "lantern"
+              }
+            ]
+          },
+          {
+            "slot": "sign",
+            "chance": 0.35,
+            "options": [
+              {
+                "id": "sign"
+              }
+            ]
+          },
+          {
+            "slot": "topper",
+            "chance": 0.25,
+            "options": [
+              {
+                "id": "roof.finial"
+              },
+              {
+                "id": "roof.vane"
+              }
+            ]
+          },
+          {
+            "slot": "yard",
+            "chance": 0.4,
+            "options": [
+              {
+                "id": "yard.bench",
+                "w": 2
+              },
+              {
+                "id": "yard.crates",
+                "w": 1
+              }
+            ]
+          }
+        ]
+      },
+      "farmhouse": {
+        "label": "Stone farmhouse",
+        "palettes": [
+          {
+            "wall": "#fbecd2",
+            "masonry": "#d9cfc4",
+            "roof": "#e07a45",
+            "accent": "#6ae2ac"
+          },
+          {
+            "wall": "#fbf1c7",
+            "masonry": "#cfc8d8",
+            "roof": "#ee5f3a",
+            "accent": "#69c9fd"
+          },
+          {
+            "wall": "#fde3d7",
+            "masonry": "#e2d6c0",
+            "roof": "#6f7fb3",
+            "accent": "#fedf75"
+          },
+          {
+            "wall": "#e4f5ea",
+            "masonry": "#d3cdc6",
+            "roof": "#3fb49f",
+            "accent": "#fd757d"
+          }
+        ],
+        "mass": {
+          "span": [
+            4.4,
+            5.4
+          ],
+          "length": [
+            6.4,
+            8.4
+          ],
+          "storeys": [
+            1,
+            1
+          ],
+          "pitch": [
+            0.8,
+            1.05
+          ],
+          "bay": 2.1,
+          "tile": 1.1
+        },
+        "plan": [
+          {
+            "slot": "ridge",
+            "options": [
+              {
+                "id": "front",
+                "w": 3
+              },
+              {
+                "id": "side",
+                "w": 1,
+                "tags": [
+                  "sideRidge"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "walls",
+            "options": [
+              {
+                "id": "stone",
+                "w": 4
+              },
+              {
+                "id": "timber",
+                "w": 1.2
+              },
+              {
+                "id": "plank",
+                "w": 0.6,
+                "tags": [
+                  "plank"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "roof",
+            "options": [
+              {
+                "id": "hip",
+                "w": 3,
+                "tags": [
+                  "hip"
+                ]
+              },
+              {
+                "id": "gable",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "covering",
+            "options": [
+              {
+                "id": "thatch",
+                "w": 1.5,
+                "tags": [
+                  "thatch"
+                ]
+              },
+              {
+                "id": "tiles",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "door",
+            "options": [
+              {
+                "id": "door.double",
+                "w": 1
+              },
+              {
+                "id": "door.plank",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "window",
+            "options": [
+              {
+                "id": "win.cross",
+                "w": 3
+              },
+              {
+                "id": "win.arched",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "attic",
+            "options": [
+              {
+                "id": "win.round"
+              }
+            ]
+          },
+          {
+            "slot": "annex",
+            "chance": 0.8,
+            "gene": "size",
+            "options": [
+              {
+                "id": "leanto",
+                "w": 3
+              },
+              {
+                "id": "wing",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "chimney",
+            "chance": 0.95,
+            "gene": "size",
+            "options": [
+              {
+                "id": "ridge",
+                "w": 2
+              },
+              {
+                "id": "gable",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "dormer",
+            "chance": 0.25,
+            "options": [
+              {
+                "id": "dormer",
+                "needs": [
+                  "sideRidge"
+                ],
+                "clash": [
+                  "thatch"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "shutters",
+            "chance": 0.45,
+            "options": [
+              {
+                "id": "shutter.plank"
+              }
+            ]
+          },
+          {
+            "slot": "flowers",
+            "chance": 0.5,
+            "options": [
+              {
+                "id": "flowerbox"
+              }
+            ]
+          },
+          {
+            "slot": "canopy",
+            "chance": 0.3,
+            "options": [
+              {
+                "id": "canopy.shed"
+              }
+            ]
+          },
+          {
+            "slot": "lantern",
+            "chance": 0.55,
+            "options": [
+              {
+                "id": "lantern"
+              }
+            ]
+          },
+          {
+            "slot": "topper",
+            "chance": 0.15,
+            "options": [
+              {
+                "id": "roof.vane"
+              }
+            ]
+          },
+          {
+            "slot": "yard",
+            "chance": 0.85,
+            "gene": "size",
+            "options": [
+              {
+                "id": "yard.woodpile",
+                "w": 2
+              },
+              {
+                "id": "yard.barrels",
+                "w": 1
+              },
+              {
+                "id": "yard.crates",
+                "w": 1
+              }
+            ]
+          }
+        ]
+      },
+      "tower": {
+        "label": "Tower house",
+        "palettes": [
+          {
+            "wall": "#fbecd2",
+            "masonry": "#d6cfd3",
+            "roof": "#9a79ea",
+            "accent": "#fedf75"
+          },
+          {
+            "wall": "#e3effc",
+            "masonry": "#cfc8d8",
+            "roof": "#5d8fe6",
+            "accent": "#fd757d"
+          },
+          {
+            "wall": "#fde3d7",
+            "masonry": "#e2d6c0",
+            "roof": "#ee5f3a",
+            "accent": "#6ae2ac"
+          },
+          {
+            "wall": "#e4f5ea",
+            "masonry": "#d3cdc6",
+            "roof": "#3fb49f",
+            "accent": "#c2a3fd"
+          }
+        ],
+        "mass": {
+          "span": [
+            3.3,
+            4.0
+          ],
+          "length": [
+            3.3,
+            4.0
+          ],
+          "storeys": [
+            2,
+            3
+          ],
+          "pitch": [
+            1.8,
+            2.5
+          ],
+          "bay": 1.6,
+          "tile": 0.8,
+          "square": true
+        },
+        "plan": [
+          {
+            "slot": "shape",
+            "options": [
+              {
+                "id": "round",
+                "w": 3,
+                "tags": [
+                  "round"
+                ]
+              },
+              {
+                "id": "rect",
+                "w": 2
+              }
+            ]
+          },
+          {
+            "slot": "walls",
+            "options": [
+              {
+                "id": "stone",
+                "w": 3
+              },
+              {
+                "id": "timber",
+                "w": 1.5,
+                "clash": [
+                  "round"
+                ]
+              },
+              {
+                "id": "plaster",
+                "w": 1.5,
+                "needs": [
+                  "round"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "roof",
+            "options": [
+              {
+                "id": "cone",
+                "needs": [
+                  "round"
+                ]
+              },
+              {
+                "id": "pyramid",
+                "clash": [
+                  "round"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "covering",
+            "options": [
+              {
+                "id": "tiles",
+                "w": 3
+              },
+              {
+                "id": "thatch",
+                "w": 0.6,
+                "favor": {
+                  "whimsy": 0.8
+                }
+              }
+            ]
+          },
+          {
+            "slot": "door",
+            "options": [
+              {
+                "id": "door.round",
+                "w": 2
+              },
+              {
+                "id": "door.arched",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "window",
+            "options": [
+              {
+                "id": "win.slim",
+                "w": 3
+              },
+              {
+                "id": "win.round",
+                "w": 1.5
+              }
+            ]
+          },
+          {
+            "slot": "attic",
+            "options": [
+              {
+                "id": "win.round"
+              }
+            ]
+          },
+          {
+            "slot": "annex",
+            "chance": 0.55,
+            "gene": "size",
+            "options": [
+              {
+                "id": "leanto",
+                "w": 1.5
+              },
+              {
+                "id": "wing",
+                "w": 1,
+                "clash": [
+                  "round"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "chimney",
+            "chance": 0.35,
+            "options": [
+              {
+                "id": "gable",
+                "clash": [
+                  "round"
+                ]
+              }
+            ]
+          },
+          {
+            "slot": "upper",
+            "chance": 0.4,
+            "options": [
+              {
+                "id": "balcony"
+              }
+            ]
+          },
+          {
+            "slot": "flowers",
+            "chance": 0.4,
+            "options": [
+              {
+                "id": "flowerbox"
+              }
+            ]
+          },
+          {
+            "slot": "lantern",
+            "chance": 0.8,
+            "options": [
+              {
+                "id": "lantern"
+              }
+            ]
+          },
+          {
+            "slot": "topper",
+            "chance": 0.85,
+            "options": [
+              {
+                "id": "roof.vane",
+                "w": 1.5
+              },
+              {
+                "id": "roof.finial",
+                "w": 1
+              }
+            ]
+          },
+          {
+            "slot": "yard",
+            "chance": 0.35,
+            "options": [
+              {
+                "id": "yard.barrels"
+              },
+              {
+                "id": "yard.crates"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "trees": {
+    "version": 1,
+    "library": "assets/v2/arcade/arcade-tree-parts.glb",
+    "colors": {
+      "bark": "#b0733f",
+      "barkDark": "#8a5a3a",
+      "barkCherry": "#8c6257",
+      "barkWillow": "#b98d58",
+      "leaf": "#bfe36a",
+      "pine": "#9fd666",
+      "blossom": "#ffd0de",
+      "willow": "#cfe98c"
+    },
+    "limits": {
+      "segments": 56,
+      "sockets": 12,
+      "floor": 0.55,
+      "clear": 1.2
+    },
+    "parts": {
+      "leaf.clump.a": {
+        "r": 1.084,
+        "top": 0.912,
+        "bot": -0.617
+      },
+      "leaf.clump.b": {
+        "r": 1.028,
+        "top": 0.744,
+        "bot": -0.501
+      },
+      "leaf.clump.c": {
+        "r": 0.72,
+        "top": 0.616,
+        "bot": -0.415
+      },
+      "leaf.tuft": {
+        "r": 0.53,
+        "top": 0.439,
+        "bot": -0.299
+      },
+      "pine.tier": {
+        "r": 1.493,
+        "top": 0.15,
+        "bot": -1.341
+      },
+      "pine.top": {
+        "r": 0.614,
+        "top": 1.3,
+        "bot": -0.279
+      },
+      "blossom.clump.a": {
+        "r": 1.056,
+        "top": 0.891,
+        "bot": -0.576
+      },
+      "blossom.clump.b": {
+        "r": 0.838,
+        "top": 0.681,
+        "bot": -0.445
+      },
+      "willow.frond.a": {
+        "r": 0.823,
+        "top": 0.25,
+        "bot": -2.358
+      },
+      "willow.frond.b": {
+        "r": 0.659,
+        "top": 0.25,
+        "bot": -1.859
+      },
+      "willow.crown": {
+        "r": 1.668,
+        "top": 0.79,
+        "bot": -0.599
+      }
+    },
+    "species": {
+      "broadleaf": {
+        "label": "Broadleaf",
+        "palettes": [
+          {
+            "bark": "#b0733f",
+            "leaf": "#bfe36a"
+          },
+          {
+            "bark": "#a86a38",
+            "leaf": "#b1dd5f"
+          },
+          {
+            "bark": "#b87a45",
+            "leaf": "#cbe97a"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "form",
+            "options": [
+              {
+                "id": "round",
+                "w": 3,
+                "tags": [
+                  "round"
+                ]
+              },
+              {
+                "id": "spread",
+                "w": 2,
+                "tags": [
+                  "spread"
+                ],
+                "favor": {
+                  "bushy": 0.5
+                }
+              },
+              {
+                "id": "leaning",
+                "w": 1,
+                "tags": [
+                  "leaning"
+                ],
+                "favor": {
+                  "gnarl": 0.8
+                },
+                "set": {
+                  "lean": 5,
+                  "tropism": 0.04
+                }
+              }
+            ]
+          }
+        ],
+        "axiom": "T",
+        "rules": {
+          "T": [
+            {
+              "to": "FF[+B]/[+B]/[+B]/[+B]P",
+              "w": 2,
+              "clash": [
+                "leaning"
+              ]
+            },
+            {
+              "to": "FFF[+B]/[+B]/[+B]P",
+              "w": 1,
+              "needs": [
+                "round"
+              ]
+            },
+            {
+              "to": "F[+B]/F[+B]/[+B]/[+B]P",
+              "w": 2,
+              "needs": [
+                "spread"
+              ]
+            },
+            {
+              "to": "+F+F[+B]/[+B]/+F[+B]/[+B]P",
+              "w": 2,
+              "needs": [
+                "leaning"
+              ]
+            }
+          ],
+          "B": [
+            {
+              "to": "F[+B]/[-B]",
+              "w": 3
+            },
+            {
+              "to": "F[+B]/B",
+              "w": 2,
+              "favor": {
+                "bushy": 0.5
+              }
+            },
+            {
+              "to": "F/+B",
+              "w": 1,
+              "favor": {
+                "gnarl": 0.6
+              }
+            },
+            {
+              "to": "FL",
+              "w": 1,
+              "favor": {
+                "bushy": -0.5
+              }
+            }
+          ]
+        },
+        "tip": "L",
+        "depth": [
+          3,
+          4
+        ],
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "length": [
+          1.3,
+          0.9,
+          0.62,
+          0.42
+        ],
+        "jitter": 0.3,
+        "trunk": 0.4,
+        "taper": 0.86,
+        "branch": 0.72,
+        "twig": 0.045,
+        "pitch": [
+          7,
+          11
+        ],
+        "gnarl": 3,
+        "roll": 24,
+        "rollJitter": 5,
+        "lean": 2,
+        "leanStep": 2,
+        "spread": 13,
+        "tropism": 0.12,
+        "crown": [
+          2.3,
+          3.4
+        ],
+        "segments": 40,
+        "sockets": 8,
+        "leaf": {
+          "parts": [
+            "leaf.clump.a",
+            "leaf.clump.b",
+            "leaf.clump.c"
+          ],
+          "scale": [
+            1.1,
+            1.45
+          ],
+          "byDepth": 0.9,
+          "shrink": 0.0,
+          "tips": [
+            "leaf.clump.a"
+          ],
+          "tipScale": [
+            1.5,
+            1.85
+          ]
+        },
+        "outline": 0.045
+      },
+      "conifer": {
+        "label": "Conifer",
+        "palettes": [
+          {
+            "bark": "#a06a3d",
+            "leaf": "#9fd666"
+          },
+          {
+            "bark": "#96603a",
+            "leaf": "#92cf5d"
+          },
+          {
+            "bark": "#a9733f",
+            "leaf": "#addc72"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "form",
+            "options": [
+              {
+                "id": "dense",
+                "w": 2,
+                "tags": [
+                  "dense"
+                ],
+                "set": {
+                  "shrink": 0.12
+                }
+              },
+              {
+                "id": "sparse",
+                "w": 1,
+                "tags": [
+                  "sparse"
+                ],
+                "favor": {
+                  "gnarl": 0.5
+                }
+              }
+            ]
+          }
+        ],
+        "axiom": "FFFT",
+        "rules": {
+          "T": [
+            {
+              "to": "F[L]/T",
+              "w": 3
+            },
+            {
+              "to": "F/T",
+              "w": 0.6,
+              "needs": [
+                "sparse"
+              ]
+            },
+            {
+              "to": "F[L]/T",
+              "w": 1,
+              "needs": [
+                "dense"
+              ],
+              "favor": {
+                "bushy": 0.5
+              }
+            }
+          ]
+        },
+        "tip": "P",
+        "depth": [
+          3,
+          4
+        ],
+        "scale": [
+          0.8,
+          1.05
+        ],
+        "length": [
+          0.75
+        ],
+        "jitter": 0.25,
+        "trunk": 0.3,
+        "taper": 0.86,
+        "branch": 0.5,
+        "twig": 0.045,
+        "pitch": [
+          6,
+          9
+        ],
+        "gnarl": 2,
+        "roll": 21,
+        "rollJitter": 6,
+        "lean": 1,
+        "leanStep": 1,
+        "spread": 12,
+        "tropism": 0.3,
+        "crown": [
+          1.6,
+          2.2
+        ],
+        "segments": 12,
+        "sockets": 7,
+        "leaf": {
+          "parts": [
+            "pine.tier"
+          ],
+          "scale": [
+            1.15,
+            1.4
+          ],
+          "byDepth": 1.0,
+          "shrink": 0.14,
+          "tips": [
+            "pine.top"
+          ],
+          "tipScale": [
+            0.9,
+            1.1
+          ]
+        },
+        "outline": 0.04
+      },
+      "sapling": {
+        "label": "Young tree",
+        "palettes": [
+          {
+            "bark": "#b0733f",
+            "leaf": "#c9ea6f"
+          },
+          {
+            "bark": "#a86a38",
+            "leaf": "#bfe36a"
+          }
+        ],
+        "plan": [],
+        "axiom": "FT",
+        "rules": {
+          "T": [
+            {
+              "to": "F[+B]/[+B]/[+B]P",
+              "w": 2
+            },
+            {
+              "to": "F[+B]/[-B]P",
+              "w": 1,
+              "favor": {
+                "bushy": -0.5
+              }
+            }
+          ],
+          "B": [
+            {
+              "to": "FL",
+              "w": 2
+            },
+            {
+              "to": "F[+FL]/L",
+              "w": 1,
+              "favor": {
+                "bushy": 0.6
+              }
+            }
+          ]
+        },
+        "tip": "L",
+        "depth": [
+          2,
+          2
+        ],
+        "scale": [
+          0.8,
+          1.15
+        ],
+        "length": [
+          1.15,
+          0.6,
+          0.4
+        ],
+        "jitter": 0.3,
+        "trunk": 0.17,
+        "taper": 0.86,
+        "branch": 0.7,
+        "twig": 0.035,
+        "pitch": [
+          6,
+          10
+        ],
+        "gnarl": 2,
+        "roll": 24,
+        "rollJitter": 5,
+        "lean": 2,
+        "leanStep": 2,
+        "spread": 12,
+        "tropism": 0.1,
+        "crown": [
+          0.9,
+          1.5
+        ],
+        "segments": 14,
+        "sockets": 5,
+        "leaf": {
+          "parts": [
+            "leaf.tuft",
+            "leaf.clump.c"
+          ],
+          "scale": [
+            0.95,
+            1.25
+          ],
+          "byDepth": 0.95,
+          "shrink": 0.0,
+          "tips": [
+            "leaf.clump.c"
+          ],
+          "tipScale": [
+            1.15,
+            1.4
+          ]
+        },
+        "outline": 0.035
+      },
+      "blossom": {
+        "label": "Blossom tree",
+        "palettes": [
+          {
+            "bark": "#8c6257",
+            "leaf": "#ffd0de"
+          },
+          {
+            "bark": "#7f5a50",
+            "leaf": "#fff0f4"
+          },
+          {
+            "bark": "#93675a",
+            "leaf": "#ffbcd0"
+          }
+        ],
+        "plan": [
+          {
+            "slot": "form",
+            "options": [
+              {
+                "id": "umbrella",
+                "w": 2,
+                "tags": [
+                  "umbrella"
+                ]
+              },
+              {
+                "id": "upright",
+                "w": 1,
+                "tags": [
+                  "upright"
+                ],
+                "favor": {
+                  "size": 0.5
+                }
+              }
+            ]
+          }
+        ],
+        "axiom": "T",
+        "rules": {
+          "T": [
+            {
+              "to": "F[+B]/[+B]/[+B]/[+B]P",
+              "w": 2,
+              "needs": [
+                "umbrella"
+              ]
+            },
+            {
+              "to": "FF[+B]/[+B]/[+B]/[+B]P",
+              "w": 2,
+              "needs": [
+                "upright"
+              ]
+            }
+          ],
+          "B": [
+            {
+              "to": "F[+B]/[-B]",
+              "w": 2
+            },
+            {
+              "to": "F/+B",
+              "w": 1,
+              "favor": {
+                "gnarl": 0.6
+              }
+            },
+            {
+              "to": "FL",
+              "w": 1,
+              "favor": {
+                "bushy": -0.4
+              }
+            }
+          ]
+        },
+        "tip": "L",
+        "depth": [
+          3,
+          3
+        ],
+        "scale": [
+          0.85,
+          1.15
+        ],
+        "length": [
+          1.9,
+          0.8,
+          0.5,
+          0.36
+        ],
+        "jitter": 0.3,
+        "trunk": 0.28,
+        "taper": 0.86,
+        "branch": 0.72,
+        "twig": 0.04,
+        "pitch": [
+          9,
+          13
+        ],
+        "gnarl": 2,
+        "roll": 24,
+        "rollJitter": 5,
+        "lean": 2,
+        "leanStep": 2,
+        "spread": 14,
+        "tropism": 0.04,
+        "crown": [
+          2.0,
+          3.0
+        ],
+        "segments": 36,
+        "sockets": 10,
+        "leaf": {
+          "parts": [
+            "blossom.clump.a",
+            "blossom.clump.b"
+          ],
+          "scale": [
+            1.2,
+            1.5
+          ],
+          "byDepth": 0.95,
+          "shrink": 0.0,
+          "tips": [
+            "blossom.clump.a"
+          ],
+          "tipScale": [
+            1.4,
+            1.7
+          ]
+        },
+        "outline": 0.04
+      },
+      "willow": {
+        "label": "Willow",
+        "palettes": [
+          {
+            "bark": "#b98d58",
+            "leaf": "#cfe98c"
+          },
+          {
+            "bark": "#ad8250",
+            "leaf": "#c3e57f"
+          }
+        ],
+        "plan": [],
+        "axiom": "T",
+        "rules": {
+          "T": [
+            {
+              "to": "FF[+B]/[+B]/[+B]/[+B]/[+B]P",
+              "w": 2
+            },
+            {
+              "to": "FFF[+B]/[+B]/[+B]/[+B]P",
+              "w": 1,
+              "favor": {
+                "size": 0.6
+              }
+            }
+          ],
+          "B": [
+            {
+              "to": "F[+B]/[-B]",
+              "w": 2
+            },
+            {
+              "to": "F/+B",
+              "w": 1,
+              "favor": {
+                "gnarl": 0.5
+              }
+            },
+            {
+              "to": "FL",
+              "w": 1
+            }
+          ]
+        },
+        "tip": "L",
+        "depth": [
+          2,
+          3
+        ],
+        "scale": [
+          0.9,
+          1.2
+        ],
+        "length": [
+          1.4,
+          1.0,
+          0.7,
+          0.5
+        ],
+        "jitter": 0.3,
+        "trunk": 0.38,
+        "taper": 0.86,
+        "branch": 0.72,
+        "twig": 0.045,
+        "pitch": [
+          8,
+          12
+        ],
+        "gnarl": 2,
+        "roll": 24,
+        "rollJitter": 5,
+        "lean": 2,
+        "leanStep": 2,
+        "spread": 15,
+        "tropism": -0.08,
+        "crown": [
+          2.4,
+          3.6
+        ],
+        "segments": 40,
+        "sockets": 10,
+        "leaf": {
+          "parts": [
+            "willow.frond.a",
+            "willow.frond.b"
+          ],
+          "scale": [
+            1.05,
+            1.35
+          ],
+          "byDepth": 0.95,
+          "shrink": 0.0,
+          "tips": [
+            "willow.crown"
+          ],
+          "tipScale": [
+            1.0,
+            1.2
+          ]
+        },
+        "outline": 0.04
+      }
+    }
+  },
+  "world": {
+    "version": 2,
+    "library": "assets/v2/arcade/arcade-nature-parts.glb",
+    "size": 80,
+    "margin": 3.5,
+    "fields": {
+      "village": {
+        "scale": 24,
+        "octaves": 2,
+        "contrast": 1.6,
+        "radial": 0.5,
+        "radius": 48
+      },
+      "forest": {
+        "scale": 15,
+        "octaves": 3,
+        "contrast": 1.8,
+        "clearing": 0.75,
+        "rim": 0.45,
+        "edge": [
+          22,
+          36
+        ]
+      },
+      "moisture": {
+        "scale": 11,
+        "octaves": 2,
+        "contrast": 1.7
+      }
+    },
+    "paths": {
+      "width": 3.0,
+      "laneWidth": 2.6,
+      "verge": 0.8,
+      "step": 4,
+      "wobble": 1.1,
+      "wobbleScale": 9,
+      "spine": [
+        34,
+        -34
+      ],
+      "lanes": [
+        -18,
+        1,
+        20
+      ],
+      "laneEnd": 33,
+      "square": {
+        "z": 1,
+        "r": 5.5
+      },
+      "avenue": 14,
+      "spur": 2.2
+    },
+    "clear": {
+      "spawn": 7,
+      "site": 4.5,
+      "cover": 2.2,
+      "gate": 4,
+      "pickup": 1.2,
+      "route": 1.6
+    },
+    "houses": {
+      "max": 10,
+      "threshold": 0.3,
+      "gap": 1.6,
+      "margin": 0.9,
+      "setback": {
+        "spine": 13.4,
+        "lane": 1.2
+      },
+      "lots": {
+        "cottage": [
+          10,
+          12
+        ],
+        "townhouse": [
+          9,
+          12
+        ],
+        "farmhouse": [
+          14,
+          13
+        ],
+        "tower": [
+          10,
+          10
+        ]
+      },
+      "near": {
+        "townhouse": 1.0,
+        "farmhouse": -0.8,
+        "tower": 0.2,
+        "cottage": 0.1
+      },
+      "walk": 0.9,
+      "stones": 3
+    },
+    "fences": {
+      "max": 70,
+      "length": 2.46,
+      "gap": 2.2,
+      "out": 0.4
+    },
+    "classes": [
+      {
+        "id": "rocks",
+        "prop": "rocks",
+        "r": 6.5,
+        "foot": 1.8,
+        "max": 22,
+        "base": 0.6,
+        "favor": {
+          "moisture": -0.9,
+          "forest": -0.3
+        },
+        "avenue": true,
+        "zones": true,
+        "canopy": true,
+        "slope": 0.55
+      },
+      {
+        "id": "stump",
+        "parts": [
+          "stump"
+        ],
+        "r": 9.0,
+        "foot": 0.7,
+        "max": 8,
+        "base": 0.5,
+        "favor": {
+          "forest": 0.8
+        },
+        "lod": 0
+      },
+      {
+        "id": "broadleaf",
+        "tree": "broadleaf",
+        "r": 6.0,
+        "foot": 1.6,
+        "max": 18,
+        "base": 0.7,
+        "favor": {
+          "forest": 0.9,
+          "village": -0.5
+        },
+        "avenue": false,
+        "zones": true,
+        "slope": 0.5
+      },
+      {
+        "id": "willow",
+        "tree": "willow",
+        "r": 6.5,
+        "foot": 1.7,
+        "max": 6,
+        "base": 0.45,
+        "favor": {
+          "moisture": 1.0,
+          "village": -0.3,
+          "forest": -0.2,
+          "shore": 0.9
+        },
+        "avenue": false,
+        "zones": true,
+        "lean": true,
+        "slope": 0.5
+      },
+      {
+        "id": "conifer",
+        "tree": "conifer",
+        "r": 4.6,
+        "foot": 1.4,
+        "max": 22,
+        "base": 0.7,
+        "favor": {
+          "forest": 1.0,
+          "moisture": -0.4
+        },
+        "avenue": false,
+        "zones": true,
+        "slope": 0.5
+      },
+      {
+        "id": "blossom",
+        "tree": "blossom",
+        "r": 5.5,
+        "foot": 1.4,
+        "max": 8,
+        "base": 0.5,
+        "favor": {
+          "village": 0.9,
+          "forest": -0.6
+        },
+        "avenue": true,
+        "zones": true,
+        "slope": 0.5
+      },
+      {
+        "id": "sapling",
+        "tree": "sapling",
+        "r": 3.6,
+        "foot": 0.9,
+        "max": 16,
+        "base": 0.55,
+        "favor": {
+          "village": 0.4,
+          "moisture": 0.4,
+          "forest": -0.3
+        },
+        "avenue": true,
+        "zones": true,
+        "slope": 0.5
+      },
+      {
+        "id": "reeds",
+        "parts": [
+          "reeds"
+        ],
+        "r": 1.6,
+        "foot": 0.45,
+        "max": 40,
+        "base": 0.95,
+        "favor": {
+          "bank": 1.0
+        },
+        "wet": true,
+        "lod": 1
+      },
+      {
+        "id": "bush",
+        "parts": [
+          "bush.round",
+          "bush.flowering"
+        ],
+        "r": 3.2,
+        "foot": 0.9,
+        "max": 40,
+        "base": 0.6,
+        "favor": {
+          "moisture": 0.6,
+          "village": 0.2
+        },
+        "lod": 1
+      },
+      {
+        "id": "mushrooms",
+        "parts": [
+          "mushrooms"
+        ],
+        "r": 4.5,
+        "foot": 0.5,
+        "max": 16,
+        "base": 0.5,
+        "favor": {
+          "forest": 0.9,
+          "moisture": 0.5
+        },
+        "lod": 2
+      },
+      {
+        "id": "flowers",
+        "parts": [
+          "flowers.daisy",
+          "flowers.mixed"
+        ],
+        "r": 2.6,
+        "foot": 0.7,
+        "max": 60,
+        "base": 0.75,
+        "favor": {
+          "moisture": 0.8,
+          "village": 0.3,
+          "forest": -0.7
+        },
+        "lod": 1,
+        "tint": true
+      },
+      {
+        "id": "tuft",
+        "parts": [
+          "tuft.a",
+          "tuft.b"
+        ],
+        "r": 1.9,
+        "foot": 0.35,
+        "max": 160,
+        "base": 0.8,
+        "favor": {
+          "moisture": 0.3
+        },
+        "lod": 2
+      }
+    ],
+    "wildlife": {
+      "r": 11,
+      "max": 6,
+      "zone": 5,
+      "base": 0.9,
+      "favor": {
+        "village": -0.6,
+        "forest": -0.6
+      },
+      "foot": 4,
+      "pad": 2,
+      "slope": 0.3
+    },
+    "pickups": {
+      "each": 2,
+      "offset": 2.3,
+      "apart": 7
+    },
+    "signs": {
+      "part": "signpost",
+      "offset": 0.7
+    },
+    "overlay": {
+      "path": "#e6c28e",
+      "square": "#dfb987",
+      "worn": "#b4c458",
+      "moist": "#4d9a40",
+      "dry": "#a3d15a",
+      "flower": "#f6d3e4",
+      "shore": "#dcc890",
+      "damp": "#4c9442",
+      "bank": "#a88a5c"
+    },
+    "crownFoot": 0.6,
+    "sway": [
+      "tuft.a",
+      "tuft.b",
+      "reeds"
+    ],
+    "terrain": {
+      "grid": 1,
+      "lite": 2,
+      "relief": {
+        "scale": 18,
+        "octaves": 2,
+        "contrast": 1.35,
+        "height": 5.6,
+        "base": 0.3,
+        "edge": [
+          13,
+          37
+        ],
+        "core": 0.6,
+        "swell": 0.3,
+        "swellScale": 9
+      },
+      "lanes": {
+        "grade": 0.07,
+        "shoulder": 0.6,
+        "bank": 3.2
+      },
+      "spurs": {
+        "flat": 0.4,
+        "blend": 1.6
+      },
+      "lots": {
+        "range": 2.8,
+        "skirt": 1.8
+      },
+      "walks": {
+        "flat": 0.2,
+        "blend": 1.2
+      },
+      "pads": {
+        "flat": 0.5,
+        "blend": 2.0
+      },
+      "ponds": {
+        "max": 3,
+        "min": 1,
+        "r": [
+          3.0,
+          4.8
+        ],
+        "moist": 0.62,
+        "moistMin": 0.4,
+        "village": 0.48,
+        "clear": 3.0,
+        "apart": 6,
+        "wobble": 0.2,
+        "wobbleScale": 1.6,
+        "depth": 1.25,
+        "shelf": 0.42,
+        "freeboard": 0.1,
+        "lip": 0.5,
+        "terrace": 1.0,
+        "blend": 2.5,
+        "wetIn": 0.6,
+        "lilies": 1.1,
+        "lilyApart": 0.9,
+        "bloom": 0.3
+      },
+      "brook": {
+        "w": 1.4,
+        "depth": 0.26,
+        "freeboard": 0.14,
+        "bank": 1.1,
+        "from": [
+          24,
+          32
+        ],
+        "minLen": 20,
+        "fall": 0.5,
+        "wet": 1.5,
+        "jitter": 2.0,
+        "reserve": 0.6,
+        "up": 6,
+        "meander": 0.9,
+        "meanderScale": 6,
+        "lane": 8,
+        "spur": 2,
+        "cross": 1.0,
+        "ford": 0.6,
+        "spacing": 0.72,
+        "stones": [
+          "stone.bank.a",
+          "stone.bank.b",
+          "stone.bank.c"
+        ],
+        "yard": 0.5
+      },
+      "basin": {
+        "r": 1.3,
+        "gap": 0.3,
+        "depth": 0.35,
+        "freeboard": 0.12,
+        "part": "pool.basin",
+        "height": 0.4
+      },
+      "bridge": {
+        "part": "bridge.plank"
+      },
+      "lean": {
+        "max": 0.16,
+        "range": 6
+      },
+      "shore": 8,
+      "traversal": {
+        "maxSlope": 0.7,
+        "stepUp": 0.45,
+        "wade": 0.55,
+        "slopeEps": 1
+      },
+      "skirt": {
+        "out": 28,
+        "cell": 4,
+        "rise": 3.5
+      },
+      "water": {
+        "deep": "#4aa6c8",
+        "shallow": "#86d3dc",
+        "rim": "#e9fbf6"
+      },
+      "bank": 1.6
+    },
+    "landmarks": {
+      "library": "assets/v2/arcade/arcade-landmark-parts.glb",
+      "prop": "landmark",
+      "grade": 0.45,
+      "rim": [14, 35],
+      "apart": 16,
+      "luck": 0.6,
+      "keepers": ["shroom", "acorn", "pebble", "sprout"],
+      "kinds": {
+        "windmill": {
+          "site": "hill", "pad": 3.0, "clear": 5.0, "body": 3.0, "part": "windmill", "face": [-0.8, -0.6],
+          "collision": { "circle": 1.7, "height": 7.5 },
+          "hook": { "type": "interact", "label": "Grind grain", "gives": "flour" },
+          "life": ["bee"]
+        },
+        "watermill": {
+          "site": "brook", "pad": 3.0, "clear": 4.6, "body": 2.7, "part": "watermill", "set": 0.2, "keepOff": 2.2, "range": 1.6, "bank": 0.45, "fill": 1.2,
+          "collision": { "box": [2.0, 1.5], "height": 4.6 },
+          "wheel": { "r": 1.25, "dip": 0.22, "in": 0.35 },
+          "hook": { "type": "interact", "label": "Turn the wheel", "gives": "planks" },
+          "life": ["slime"]
+        },
+        "well": {
+          "site": "square", "at": 0.8, "part": "well",
+          "collision": { "circle": 0.8, "height": 2.4 },
+          "hook": { "type": "interact", "label": "Draw water", "gives": "water" }
+        },
+        "market": {
+          "site": "square", "at": 0.8, "parts": ["stall.a", "stall.b"], "min": 2, "max": 4, "off": 1.4, "set": 1.1, "apart": 3.2,
+          "awnings": ["#fd757d", "#69c9fd", "#fedf75", "#6ae2ac", "#c2a3fd"],
+          "collision": { "box": [1.25, 0.8], "height": 2.5 },
+          "hook": { "type": "deliver", "label": "Trade", "visitLabel": "Browse the market", "takes": ["flour", "apples", "planks"] }
+        },
+        "lookout": {
+          "site": "rim", "pad": 2.6, "clear": 4.2, "body": 2.4, "part": "lookout",
+          "collision": { "box": [1.0, 1.0], "height": 6.5 },
+          "hook": { "type": "visit", "label": "Lookout" },
+          "life": ["spirit", "batpuff"]
+        },
+        "orchard": {
+          "site": "fringe", "tree": "blossom", "grid": [3, 2], "spacing": 2.8, "scale": 0.72, "margin": 1.2, "gap": 2.6, "slope": 0.5, "pad": 0, "clear": 1.6,
+          "hook": { "type": "interact", "label": "Pick apples", "gives": "apples" },
+          "life": ["bee", "acorn"]
+        },
+        "farm": {
+          "site": "fringe", "part": "farm.plot", "size": [6.0, 4.6], "gap": 2.6, "range": 1.6, "pad": 0, "clear": 1.6,
+          "hook": { "type": "deliver", "label": "Water the crops", "visitLabel": "Tend the crops", "takes": ["water"] },
+          "life": ["sprout"]
+        }
+      }
+    }
+  },
+  "biomes": {
+    "desert": {
+      "label": "Desert oasis",
+      "blurb": "A sun-baked oasis town: plaster houses with parapets and domes, palms round the water, a market under striped awnings.",
+      "replace": ["houses", "trees"],
+      "props": {
+        "rocks": {"model": "assets/v2/arcade/arcade-desert-rocks.glb", "preview": "assets/v2/arcade/catalog/desert-rocks.png"},
+        "fence": {
+          "label": "Low wall",
+          "model": "assets/v2/arcade/arcade-desert-wall.glb",
+          "preview": "assets/v2/arcade/catalog/desert-wall.png"
+        },
+        "hayBarricade": {
+          "label": "Crate barricade",
+          "model": "assets/v2/arcade/arcade-desert-barricade.glb",
+          "preview": "assets/v2/arcade/catalog/desert-barricade.png"
+        },
+        "house": {
+          "label": "Desert house",
+          "model": "assets/v2/arcade/arcade-desert-parts.glb",
+          "preview": "assets/v2/arcade/catalog/desert-house.png"
+        },
+        "nature": {
+          "label": "Desert flora",
+          "model": "assets/v2/arcade/arcade-desert-parts.glb",
+          "preview": "assets/v2/arcade/catalog/desert-nature.png"
+        },
+        "tree": {
+          "label": "Palm or cactus",
+          "model": "assets/v2/arcade/arcade-desert-parts.glb",
+          "preview": "assets/v2/arcade/catalog/desert-tree.png"
+        },
+        "landmark": {
+          "label": "Oasis landmark",
+          "model": "assets/v2/arcade/arcade-desert-parts.glb",
+          "preview": "assets/v2/arcade/catalog/desert-landmark.png"
+        }
+      },
+      "houses": {
+        "version": 1,
+        "library": "assets/v2/arcade/arcade-desert-parts.glb",
+        "lot": {"w": 7.6, "d": 10},
+        "mix": {"courtyard": 3, "merchant": 2, "inn": 1.6, "tower": 0.8},
+        "kit": {
+          "plinth": 0.48,
+          "storey": 2.35,
+          "plate": 0.26,
+          "slab": 0.22,
+          "eave": 0.55,
+          "over": 0.42,
+          "tile": [1.55, 1.5, 0.26],
+          "row": 1.15,
+          "bay": 1.5,
+          "sill": 0.72
+        },
+        "facade": {"front": 0.9, "side": 0.6, "back": 0.45, "attic": 0},
+        "flat": {
+          "pad": 0.35,
+          "parapet": [0.42, 0.62],
+          "round": 0.3,
+          "wall": 0.3,
+          "viga": 0.85,
+          "roofDoor": "door.desert.square",
+          "court": {"depth": [2.6, 3.4], "h": [1.5, 1.8], "t": 0.36, "gw": 1.8, "gate": "gate.court"},
+          "stair": {"w": 1.0, "rise": 0.29},
+          "dome": {"r": [1.05, 1.5], "drum": 0.42}
+        },
+        "colors": {
+          "timber": "#b97a4b",
+          "timberDark": "#8a5537",
+          "stone": "#dfb489",
+          "stoneDark": "#b07e5c",
+          "masonry": "#e3b98c",
+          "plank": "#c28a5c",
+          "thatch": "#f2c76e",
+          "iron": "#6b6475",
+          "glass": "#5a4658",
+          "glow": "#ffd873",
+          "leaf": "#6fae4a",
+          "petal": "#fff4e0",
+          "gold": "#f0bd48",
+          "wall": "#f0d3a4"
+        },
+        "parts": {
+          "door.desert.arch": {"w": 1.4, "h": 2.3},
+          "door.desert.square": {"w": 1.34, "h": 2.14},
+          "door.desert.double": {"w": 2.0, "h": 2.5},
+          "win.desert.arch": {"w": 0.92, "h": 1.3},
+          "win.desert.grille": {"w": 1.0, "h": 1.15},
+          "win.desert.slot": {"w": 0.52, "h": 1.1},
+          "win.mashrabiya": {"w": 1.7, "h": 1.95},
+          "banner.tall": {"w": 1.0, "h": 2.2},
+          "balcony.desert": {"w": 1.9, "h": 1.0},
+          "gate.court": {"w": 1.8, "h": 2.95},
+          "shutter.desert": {},
+          "sill.pots": {},
+          "awning.door": {"out": 1.1},
+          "awning.wide": {"out": 2.05},
+          "lamp.desert": {},
+          "banner.small": {},
+          "sign.inn": {},
+          "dome.finial": {},
+          "tower.canopy": {},
+          "yard.jars": {},
+          "yard.baskets": {},
+          "yard.crates": {},
+          "yard.water": {},
+          "yard.rug": {}
+        },
+        "families": {
+          "courtyard": {
+            "label": "Courtyard home",
+            "form": "flat",
+            "palettes": [
+              {"wall": "#f0d3a4", "roof": "#d8683f", "accent": "#35ada2"},
+              {"wall": "#ecc692", "roof": "#c95f3c", "accent": "#e0574b"},
+              {"wall": "#f3dbb2", "roof": "#d8683f", "accent": "#3b9fb0"},
+              {"wall": "#e6bd88", "roof": "#b9573a", "accent": "#35ada2"}
+            ],
+            "mass": {"span": [4.2, 5.0], "length": [5.0, 6.4], "storeys": [1, 2], "pitch": [0, 0], "bay": 2.0},
+            "plan": [
+              {"slot": "walls", "options": [{"id": "adobe", "w": 3}, {"id": "mixed", "w": 1}]},
+              {
+                "slot": "parapet",
+                "options": [{"id": "plain", "w": 2}, {"id": "stepped", "w": 1, "favor": {"ornament": 1}}]
+              },
+              {
+                "slot": "annex",
+                "chance": 0.9,
+                "gene": "size",
+                "options": [{"id": "court", "w": 3}, {"id": "terrace", "w": 1.2}]
+              },
+              {"slot": "crown", "chance": 0.45, "gene": "tall", "options": [{"id": "loft"}]},
+              {"slot": "door", "options": [{"id": "door.desert.arch", "w": 2}, {"id": "door.desert.square", "w": 1}]},
+              {"slot": "window", "options": [{"id": "win.desert.arch", "w": 2}, {"id": "win.desert.grille", "w": 1}]},
+              {"slot": "shutters", "chance": 0.5, "options": [{"id": "shutter.desert"}]},
+              {"slot": "flowers", "chance": 0.45, "options": [{"id": "sill.pots"}]},
+              {"slot": "canopy", "chance": 0.55, "options": [{"id": "awning.door"}]},
+              {"slot": "lantern", "chance": 0.5, "options": [{"id": "lamp.desert"}]},
+              {
+                "slot": "yard",
+                "chance": 0.7,
+                "options": [{"id": "yard.jars", "w": 2}, {"id": "yard.water", "w": 1}, {"id": "yard.baskets", "w": 1}]
+              }
+            ]
+          },
+          "merchant": {
+            "label": "Merchant house",
+            "form": "flat",
+            "palettes": [
+              {"wall": "#f3dbb2", "roof": "#d8683f", "accent": "#35ada2"},
+              {"wall": "#efd2a4", "roof": "#d8683f", "accent": "#e0574b"},
+              {"wall": "#e9c48f", "roof": "#c95f3c", "accent": "#3b9fb0"}
+            ],
+            "mass": {"span": [5.0, 6.0], "length": [5.6, 7.0], "storeys": [2, 2], "pitch": [0, 0], "bay": 2.1},
+            "plan": [
+              {
+                "slot": "walls",
+                "options": [{"id": "adobe", "w": 3}, {"id": "mixed", "w": 1}, {"id": "stone", "w": 1}]
+              },
+              {"slot": "parapet", "options": [{"id": "plain", "w": 1}, {"id": "stepped", "w": 2}]},
+              {
+                "slot": "annex",
+                "chance": 0.5,
+                "gene": "size",
+                "options": [{"id": "wing", "w": 2}, {"id": "terrace", "w": 1}]
+              },
+              {"slot": "crown", "options": [{"id": "dome"}]},
+              {"slot": "door", "options": [{"id": "door.desert.double", "w": 2}, {"id": "door.desert.arch", "w": 1}]},
+              {"slot": "window", "options": [{"id": "win.desert.arch", "w": 1}, {"id": "win.desert.grille", "w": 2}]},
+              {
+                "slot": "upper",
+                "chance": 0.8,
+                "options": [{"id": "win.mashrabiya", "w": 2}, {"id": "balcony.desert", "w": 1}]
+              },
+              {"slot": "shutters", "chance": 0.5, "options": [{"id": "shutter.desert"}]},
+              {"slot": "flowers", "chance": 0.5, "options": [{"id": "sill.pots"}]},
+              {"slot": "canopy", "chance": 0.95, "options": [{"id": "awning.wide"}]},
+              {"slot": "lantern", "chance": 0.6, "options": [{"id": "lamp.desert"}]},
+              {"slot": "sign", "chance": 0.6, "options": [{"id": "banner.small"}]},
+              {"slot": "topper", "options": [{"id": "dome.finial"}]},
+              {
+                "slot": "yard",
+                "chance": 0.9,
+                "options": [{"id": "yard.baskets", "w": 2}, {"id": "yard.jars", "w": 1}, {"id": "yard.rug", "w": 1}]
+              }
+            ]
+          },
+          "inn": {
+            "label": "Workshop / Inn",
+            "form": "flat",
+            "palettes": [
+              {"wall": "#f0d3a4", "roof": "#c95f3c", "accent": "#e0574b"},
+              {"wall": "#ebc893", "roof": "#d8683f", "accent": "#35ada2"},
+              {"wall": "#f3dbb2", "roof": "#b9573a", "accent": "#e0574b"}
+            ],
+            "mass": {"span": [5.0, 6.0], "length": [7.0, 8.6], "storeys": [1, 2], "pitch": [0, 0], "bay": 2.2},
+            "plan": [
+              {"slot": "walls", "options": [{"id": "adobe", "w": 2}, {"id": "mixed", "w": 1}]},
+              {"slot": "parapet", "options": [{"id": "plain", "w": 2}, {"id": "stepped", "w": 1}]},
+              {
+                "slot": "annex",
+                "chance": 0.8,
+                "gene": "size",
+                "options": [{"id": "wing", "w": 2}, {"id": "terrace", "w": 1}]
+              },
+              {"slot": "crown", "chance": 0.35, "gene": "tall", "options": [{"id": "loft"}]},
+              {"slot": "chimney", "chance": 0.85, "gene": "whimsy", "options": [{"id": "stack"}]},
+              {
+                "slot": "door",
+                "options": [{"id": "door.desert.square", "w": 1}, {"id": "door.desert.double", "w": 2}]
+              },
+              {"slot": "window", "options": [{"id": "win.desert.grille", "w": 2}, {"id": "win.desert.arch", "w": 1}]},
+              {"slot": "shutters", "chance": 0.4, "options": [{"id": "shutter.desert"}]},
+              {
+                "slot": "canopy",
+                "chance": 0.9,
+                "options": [{"id": "awning.wide", "w": 2}, {"id": "awning.door", "w": 1}]
+              },
+              {"slot": "lantern", "chance": 0.8, "options": [{"id": "lamp.desert"}]},
+              {"slot": "sign", "chance": 0.9, "options": [{"id": "sign.inn"}]},
+              {
+                "slot": "yard",
+                "chance": 0.95,
+                "options": [{"id": "yard.crates", "w": 2}, {"id": "yard.water", "w": 1}, {"id": "yard.rug", "w": 1}]
+              }
+            ]
+          },
+          "tower": {
+            "label": "Lookout tower",
+            "form": "flat",
+            "palettes": [
+              {"wall": "#e8c594", "roof": "#d8683f", "accent": "#e0574b"},
+              {"wall": "#efd2a4", "roof": "#c95f3c", "accent": "#e0574b"},
+              {"wall": "#e2b886", "roof": "#d8683f", "accent": "#35ada2"}
+            ],
+            "mass": {"span": [3.6, 4.2], "length": [3.6, 4.2], "storeys": [3, 4], "pitch": [0, 0], "bay": 1.6, "square": true},
+            "plan": [
+              {
+                "slot": "walls",
+                "options": [{"id": "stone", "w": 2}, {"id": "mixed", "w": 2}, {"id": "adobe", "w": 1}]
+              },
+              {"slot": "parapet", "options": [{"id": "crenel"}]},
+              {"slot": "annex", "chance": 0.4, "gene": "size", "options": [{"id": "wing"}]},
+              {"slot": "crown", "options": [{"id": "lookout"}]},
+              {"slot": "door", "options": [{"id": "door.desert.arch", "w": 1}, {"id": "door.desert.square", "w": 1}]},
+              {"slot": "window", "options": [{"id": "win.desert.slot", "w": 3}, {"id": "win.desert.arch", "w": 1}]},
+              {"slot": "upper", "chance": 0.9, "options": [{"id": "banner.tall"}]},
+              {"slot": "lantern", "chance": 0.5, "options": [{"id": "lamp.desert"}]},
+              {"slot": "topper", "options": [{"id": "tower.canopy"}]},
+              {
+                "slot": "yard",
+                "chance": 0.4,
+                "options": [{"id": "yard.crates", "w": 1}, {"id": "yard.water", "w": 1}]
+              }
+            ]
+          }
+        }
+      },
+      "trees": {
+        "version": 1,
+        "library": "assets/v2/arcade/arcade-desert-parts.glb",
+        "colors": {"bark": "#b98d5a", "leaf": "#7fc64d", "blossom": "#ff8fb5", "gold": "#f0bd48"},
+        "limits": {"segments": 56, "sockets": 12, "floor": 0.55, "clear": 1.2},
+        "parts": {
+          "palm.crown.a": {"r": 2.934, "top": 1.18, "bot": -1.192},
+          "palm.crown.b": {"r": 2.099, "top": 0.947, "bot": -0.431},
+          "cactus.cap": {"r": 0.3, "top": 0.32, "bot": -0.06},
+          "cactus.cap.flower": {"r": 0.3, "top": 0.395, "bot": -0.06}
+        },
+        "species": {
+          "palm": {
+            "label": "Palm",
+            "bark": "rings",
+            "palettes": [
+              {"bark": "#b98d5a", "leaf": "#7fc64d"},
+              {"bark": "#a87e50", "leaf": "#8ccf55"},
+              {"bark": "#c29963", "leaf": "#72bb48"}
+            ],
+            "plan": [
+              {
+                "slot": "crown",
+                "options": [
+                  {"id": "full", "w": 2, "tags": ["full"]},
+                  {
+                    "id": "young",
+                    "w": 1,
+                    "tags": ["young"],
+                    "set": {
+                      "leaf": {
+                        "parts": ["palm.crown.b"],
+                        "scale": [0.9, 1.1],
+                        "byDepth": 1.0,
+                        "shrink": 0,
+                        "tips": ["palm.crown.b"],
+                        "tipScale": [0.9, 1.1]
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "axiom": "T",
+            "rules": {
+              "T": [
+                {"to": "F+FF/F-FFE", "w": 1},
+                {"to": "FF+F/FFFE", "w": 1},
+                {"to": "F-F/F+F/FFE", "w": 1},
+                {"to": "FFFFE", "w": 0.6}
+              ],
+              "E": [{"to": "FE", "w": 1}, {"to": "F/E", "w": 1}]
+            },
+            "tip": "P",
+            "depth": [1, 3],
+            "scale": [0.85, 1.1],
+            "length": [0.62],
+            "jitter": 0.12,
+            "trunk": 0.2,
+            "taper": 0.97,
+            "branch": 0.6,
+            "twig": 0.12,
+            "pitch": [2, 4],
+            "gnarl": 0,
+            "roll": 16,
+            "rollJitter": 6,
+            "lean": 6,
+            "leanStep": 2,
+            "spread": 8,
+            "tropism": 0.1,
+            "crown": [2.2, 2.8],
+            "segments": 14,
+            "sockets": 2,
+            "leaf": {
+              "parts": ["palm.crown.a"],
+              "scale": [0.9, 1.1],
+              "byDepth": 1.0,
+              "shrink": 0,
+              "tips": ["palm.crown.a"],
+              "tipScale": [0.9, 1.1]
+            },
+            "outline": 0.025
+          },
+          "saguaro": {
+            "label": "Saguaro",
+            "bark": "ribs",
+            "palettes": [
+              {"bark": "#5fa74a", "blossom": "#ff8fb5"},
+              {"bark": "#6db352", "blossom": "#ffd0de"},
+              {"bark": "#529a45", "blossom": "#ff9aa6"}
+            ],
+            "plan": [
+              {
+                "slot": "bloom",
+                "chance": 0.5,
+                "gene": "bushy",
+                "options": [
+                  {
+                    "id": "flowers",
+                    "set": {
+                      "leaf": {
+                        "parts": ["cactus.cap"],
+                        "scale": [1, 1],
+                        "byDepth": 0.66,
+                        "shrink": 0,
+                        "tips": ["cactus.cap.flower", "cactus.cap"],
+                        "tipScale": [0.95, 1.05]
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "axiom": "FFA",
+            "rules": {
+              "A": [
+                {"to": "F[/+FF-FFP]FA", "w": 2},
+                {"to": "FF[\\+FF-FFFP]FA", "w": 1.5},
+                {"to": "FFA", "w": 1},
+                {"to": "F[/+FF-FP]F[\\\\+FF-FFP]A", "w": 1}
+              ]
+            },
+            "tip": "P",
+            "depth": [2, 3],
+            "scale": [0.62, 0.82],
+            "length": [0.62, 0.34],
+            "jitter": 0.1,
+            "trunk": 0.4,
+            "taper": 0.985,
+            "branch": 0.58,
+            "twig": 0.15,
+            "pitch": [15, 16],
+            "gnarl": 0,
+            "roll": 16,
+            "rollJitter": 10,
+            "lean": 1,
+            "leanStep": 1,
+            "spread": 17,
+            "tropism": 0.0,
+            "crown": [1.4, 1.8],
+            "segments": 20,
+            "sockets": 6,
+            "leaf": {
+              "parts": ["cactus.cap"],
+              "scale": [1, 1],
+              "byDepth": 0.66,
+              "shrink": 0,
+              "tips": ["cactus.cap"],
+              "tipScale": [0.95, 1.05]
+            },
+            "outline": 0.03
+          }
+        }
+      },
+      "world": {
+        "library": "assets/v2/arcade/arcade-desert-parts.glb",
+        "fields": {"forest": {"clearing": 0.9, "rim": 0.2}, "moisture": {"contrast": 1.9}},
+        "houses": {
+          "lots": {
+            "cottage": null,
+            "townhouse": null,
+            "farmhouse": null,
+            "courtyard": [10, 12],
+            "merchant": [11, 12],
+            "inn": [12, 12],
+            "tower": [8, 8]
+          },
+          "near": {
+            "cottage": null,
+            "townhouse": null,
+            "farmhouse": null,
+            "merchant": 1.0,
+            "inn": 0.4,
+            "courtyard": 0.0,
+            "tower": -0.6
+          }
+        },
+        "fences": {"max": 0},
+        "classes": [
+          {
+            "id": "rocks",
+            "prop": "rocks",
+            "r": 7.0,
+            "foot": 1.8,
+            "max": 20,
+            "base": 0.65,
+            "favor": {"moisture": -0.8, "village": -0.4},
+            "avenue": true,
+            "zones": true,
+            "canopy": true,
+            "slope": 0.6
+          },
+          {
+            "id": "palm",
+            "tree": "palm",
+            "r": 4.8,
+            "foot": 1.2,
+            "max": 24,
+            "base": 0.8,
+            "favor": {"village": 0.9, "moisture": 0.3, "shore": 0.5},
+            "avenue": true,
+            "zones": true,
+            "slope": 0.5
+          },
+          {
+            "id": "saguaro",
+            "tree": "saguaro",
+            "r": 7.5,
+            "foot": 1.0,
+            "max": 12,
+            "base": 0.55,
+            "favor": {"village": -0.9, "moisture": -0.6, "shore": -1.0},
+            "avenue": false,
+            "zones": true,
+            "slope": 0.5
+          },
+          {
+            "id": "reeds",
+            "parts": ["reeds.oasis"],
+            "r": 1.6,
+            "foot": 0.45,
+            "max": 30,
+            "base": 0.95,
+            "favor": {"bank": 1.0},
+            "wet": true,
+            "lod": 1
+          },
+          {
+            "id": "cacti",
+            "parts": ["cactus.barrel", "cactus.pear", "cactus.small"],
+            "r": 4.2,
+            "foot": 0.8,
+            "max": 28,
+            "base": 0.6,
+            "favor": {"moisture": -0.6, "village": -0.3},
+            "lod": 0
+          },
+          {
+            "id": "shrubs",
+            "parts": ["shrub.dry.a", "shrub.dry.b", "agave"],
+            "r": 3.4,
+            "foot": 0.8,
+            "max": 36,
+            "base": 0.62,
+            "favor": {"moisture": 0.3, "shore": 0.4},
+            "lod": 1
+          },
+          {
+            "id": "stones",
+            "parts": ["rock.sand.c"],
+            "r": 6.0,
+            "foot": 0.7,
+            "max": 16,
+            "base": 0.5,
+            "favor": {"village": -0.4},
+            "lod": 1
+          },
+          {
+            "id": "tuft",
+            "parts": ["tuft.dry"],
+            "r": 1.9,
+            "foot": 0.35,
+            "max": 110,
+            "base": 0.55,
+            "favor": {"moisture": 0.5, "shore": 0.9},
+            "lod": 2
+          }
+        ],
+        "overlay": {
+          "path": "#f0d6a8",
+          "square": "#eed3a4",
+          "worn": "#d5ad76",
+          "moist": "#d4b07a",
+          "dry": "#f4dcae",
+          "flower": "#f6d3e4",
+          "shore": "#e9d3a4",
+          "damp": "#7fae4c",
+          "bank": "#c99a66",
+          "flag": "#e8c99c",
+          "flagEdge": "#b68c60"
+        },
+        "ground": {
+          "base": "#e8c28a",
+          "tones": ["#deb276", "#f0cf9b", "#f3d6a6", "#d9aa6e"],
+          "light": "rgba(252,232,192,.5)",
+          "dark": "rgba(196,148,92,.42)",
+          "ripple": true
+        },
+        "sway": ["tuft.dry", "reeds.oasis"],
+        "terrain": {
+          "relief": {"height": 4.2, "scale": 22, "contrast": 1.2, "swell": 0.45, "swellScale": 11},
+          "brook": null,
+          "ponds": {
+            "max": 1,
+            "min": 1,
+            "r": [3.0, 4.2],
+            "moist": 0.5,
+            "moistMin": 0.0,
+            "village": 0.66,
+            "lilies": 0,
+            "clear": 2.2
+          },
+          "water": {"deep": "#2f9fb8", "shallow": "#72d2cf", "rim": "#effcf6"}
+        },
+        "landmarks": {
+          "library": "assets/v2/arcade/arcade-desert-parts.glb",
+          "kinds": {
+            "windmill": null,
+            "watermill": null,
+            "orchard": null,
+            "farm": null,
+            "well": {
+              "part": "well.oasis",
+              "collision": {"circle": 1.3, "height": 3.5},
+              "hook": {"type": "interact", "label": "Draw water", "gives": "water"}
+            },
+            "market": {
+              "parts": ["stall.desert.a", "stall.desert.b"],
+              "awnings": ["#35ada2", "#e0574b", "#e8a33c", "#3b9fb0", "#d8683f"],
+              "collision": {"box": [1.25, 0.8], "height": 2.6},
+              "hook": {"type": "deliver", "label": "Trade", "visitLabel": "Browse the market", "takes": ["water"]}
+            },
+            "lookout": {"part": "lookout.desert", "collision": {"box": [1.45, 1.45], "height": 9.0}}
+          }
+        }
+      }
+    },
+    "snow": {
+      "label": "Snow village",
+      "blurb": "A cozy alpine village: log cabins and timber lodges under thick snow, a bell tower over the square, snowy pines and a frozen pond.",
+      "replace": ["houses", "trees"],
+      "props": {
+        "rocks": {
+          "model": "assets/v2/arcade/arcade-snow-rocks.glb",
+          "preview": "assets/v2/arcade/catalog/snow-rocks.png"
+        },
+        "barrel": {
+          "label": "Snowy barrel",
+          "model": "assets/v2/arcade/arcade-snow-barrel.glb",
+          "preview": "assets/v2/arcade/catalog/snow-barrel.png"
+        },
+        "fence": {
+          "label": "Split-rail fence",
+          "model": "assets/v2/arcade/arcade-snow-fence.glb",
+          "preview": "assets/v2/arcade/catalog/snow-fence.png"
+        },
+        "hayBarricade": {
+          "label": "Sled barricade",
+          "model": "assets/v2/arcade/arcade-snow-barricade.glb",
+          "preview": "assets/v2/arcade/catalog/snow-barricade.png"
+        },
+        "house": {
+          "label": "Alpine house",
+          "model": "assets/v2/arcade/arcade-snow-parts.glb",
+          "preview": "assets/v2/arcade/catalog/snow-house.png"
+        },
+        "nature": {
+          "label": "Winter flora",
+          "model": "assets/v2/arcade/arcade-snow-parts.glb",
+          "preview": "assets/v2/arcade/catalog/snow-nature.png"
+        },
+        "tree": {
+          "label": "Snowy tree",
+          "model": "assets/v2/arcade/arcade-snow-parts.glb",
+          "preview": "assets/v2/arcade/catalog/snow-tree.png"
+        },
+        "landmark": {
+          "label": "Bell tower",
+          "model": "assets/v2/arcade/arcade-snow-parts.glb",
+          "preview": "assets/v2/arcade/catalog/snow-landmark.png"
+        }
+      },
+      "houses": {
+        "version": 1,
+        "library": "assets/v2/arcade/arcade-snow-parts.glb",
+        "lot": {"w": 7.6, "d": 10},
+        "mix": {"cabin": 3, "lodge": 1.6, "workshop": 1.2, "watchtower": 0.7},
+        "kit": {
+          "plinth": 0.48,
+          "storey": 2.35,
+          "plate": 0.26,
+          "slab": 0.22,
+          "eave": 0.55,
+          "over": 0.42,
+          "tile": [1.55, 1.5, 0.26],
+          "row": 1.15,
+          "bay": 1.5,
+          "sill": 0.72
+        },
+        "facade": {"front": 0.92, "side": 0.65, "back": 0.5, "attic": 0.85},
+        "colors": {
+          "timber": "#b8773f",
+          "timberDark": "#7c4a2d",
+          "log": "#c07a44",
+          "stone": "#b8b9c6",
+          "stoneDark": "#858399",
+          "masonry": "#c9c6cf",
+          "plank": "#b98052",
+          "thatch": "#f2c76e",
+          "iron": "#5e6275",
+          "glass": "#5a78a8",
+          "glow": "#ffd873",
+          "leaf": "#3f8a4f",
+          "petal": "#fff6e8",
+          "gold": "#e8b64a",
+          "wall": "#f6ead4",
+          "snow": "#eef5fc"
+        },
+        "parts": {
+          "door.snow.plank": {"w": 1.3, "h": 2.05},
+          "door.snow.arched": {"w": 1.36, "h": 2.1},
+          "door.snow.double": {"w": 1.9, "h": 2.2},
+          "win.snow.cross": {"w": 1.1, "h": 1.25},
+          "win.snow.arched": {"w": 1.0, "h": 1.4},
+          "win.slim": {"w": 0.74, "h": 1.45},
+          "win.round": {"w": 0.9, "h": 0.9},
+          "win.oriel": {"w": 1.9, "h": 2.0},
+          "balcony": {"w": 1.8, "h": 1.0},
+          "dormer.snow": {"w": 1.7, "h": 1.9},
+          "banner.snow": {"w": 0.9, "h": 1.9},
+          "shutter.snow": {},
+          "sill.snow": {},
+          "canopy.snow": {},
+          "canopy.snow.shed": {},
+          "lantern.snow": {},
+          "sign.workshop": {},
+          "roof.ridge.snow": {},
+          "roof.spire": {},
+          "chimney.pot": {},
+          "bell.hang": {},
+          "yard.firewood": {},
+          "yard.sled": {},
+          "yard.barrels.snow": {},
+          "yard.crates.snow": {},
+          "yard.snowman": {}
+        },
+        "families": {
+          "cabin": {
+            "label": "Log cabin",
+            "palettes": [
+              {"wall": "#f6ead4", "roof": "#c24a3c", "accent": "#c24a3c"},
+              {"wall": "#f2e4ca", "roof": "#3f6fb5", "accent": "#3f6fb5"},
+              {"wall": "#f6ead4", "roof": "#b8453a", "accent": "#3f6fb5"},
+              {"wall": "#efe2cf", "roof": "#4a79b8", "accent": "#c24a3c"}
+            ],
+            "mass": {
+              "span": [4.0, 4.6],
+              "length": [4.8, 5.8],
+              "storeys": [1, 1],
+              "pitch": [1.3, 1.6],
+              "bay": 1.9,
+              "tile": 1.0
+            },
+            "plan": [
+              {
+                "slot": "ridge",
+                "options": [
+                  {"id": "front", "w": 3, "tags": ["frontGable"]},
+                  {"id": "side", "w": 1, "tags": ["sideRidge"]}
+                ]
+              },
+              {"slot": "walls", "options": [{"id": "log", "w": 4}, {"id": "plank", "w": 1}]},
+              {"slot": "roof", "options": [{"id": "gable"}]},
+              {"slot": "covering", "options": [{"id": "snow"}]},
+              {"slot": "door", "options": [{"id": "door.snow.plank", "w": 2}, {"id": "door.snow.arched", "w": 1}]},
+              {"slot": "window", "options": [{"id": "win.snow.cross", "w": 2}, {"id": "win.snow.arched", "w": 1}]},
+              {"slot": "attic", "options": [{"id": "win.round", "w": 2}, {"id": "win.slim", "w": 1}]},
+              {"slot": "annex", "chance": 0.5, "gene": "size", "options": [{"id": "leanto"}]},
+              {
+                "slot": "chimney",
+                "chance": 0.95,
+                "gene": "size",
+                "options": [{"id": "gable", "w": 2}, {"id": "ridge", "w": 1}]
+              },
+              {"slot": "shutters", "chance": 0.6, "options": [{"id": "shutter.snow"}]},
+              {"slot": "flowers", "chance": 0.5, "options": [{"id": "sill.snow"}]},
+              {"slot": "canopy", "chance": 0.7, "options": [{"id": "canopy.snow"}]},
+              {"slot": "lantern", "chance": 0.85, "options": [{"id": "lantern.snow"}]},
+              {
+                "slot": "yard",
+                "chance": 0.8,
+                "options": [
+                  {"id": "yard.firewood", "w": 2},
+                  {"id": "yard.sled", "w": 1},
+                  {"id": "yard.snowman", "w": 0.7}
+                ]
+              }
+            ]
+          },
+          "lodge": {
+            "label": "Lodge",
+            "palettes": [
+              {"wall": "#f6ead4", "masonry": "#c9c6cf", "roof": "#c24a3c", "accent": "#c24a3c"},
+              {"wall": "#f3e6cf", "masonry": "#c4c3cc", "roof": "#3f6fb5", "accent": "#3f6fb5"},
+              {"wall": "#f8eedb", "masonry": "#cfc9c9", "roof": "#b8453a", "accent": "#3f6fb5"}
+            ],
+            "mass": {
+              "span": [5.0, 5.8],
+              "length": [7.0, 8.4],
+              "storeys": [2, 2],
+              "pitch": [0.95, 1.2],
+              "bay": 1.9,
+              "tile": 1.0
+            },
+            "plan": [
+              {
+                "slot": "ridge",
+                "options": [
+                  {"id": "side", "w": 3, "tags": ["sideRidge"]},
+                  {"id": "front", "w": 1, "tags": ["frontGable"]}
+                ]
+              },
+              {"slot": "walls", "options": [{"id": "mixed", "w": 3}, {"id": "log", "w": 1}]},
+              {"slot": "roof", "options": [{"id": "gable", "w": 3}, {"id": "hip", "w": 0.6}]},
+              {"slot": "covering", "options": [{"id": "snow"}]},
+              {"slot": "door", "options": [{"id": "door.snow.arched", "w": 2}, {"id": "door.snow.plank", "w": 1}]},
+              {"slot": "window", "options": [{"id": "win.snow.cross", "w": 2}, {"id": "win.snow.arched", "w": 1}]},
+              {"slot": "attic", "options": [{"id": "win.round", "w": 2}, {"id": "win.slim", "w": 1}]},
+              {
+                "slot": "annex",
+                "chance": 0.6,
+                "gene": "size",
+                "options": [{"id": "wing", "w": 2}, {"id": "leanto", "w": 1}]
+              },
+              {
+                "slot": "chimney",
+                "chance": 0.9,
+                "gene": "size",
+                "options": [{"id": "ridge", "w": 2}, {"id": "gable", "w": 1}]
+              },
+              {"slot": "dormer", "chance": 0.4, "options": [{"id": "dormer.snow", "needs": ["sideRidge"]}]},
+              {"slot": "upper", "chance": 0.85, "options": [{"id": "balcony", "w": 2}, {"id": "win.oriel", "w": 1}]},
+              {"slot": "shutters", "chance": 0.6, "options": [{"id": "shutter.snow"}]},
+              {"slot": "flowers", "chance": 0.5, "options": [{"id": "sill.snow"}]},
+              {"slot": "canopy", "chance": 0.6, "options": [{"id": "canopy.snow"}]},
+              {"slot": "lantern", "chance": 0.9, "options": [{"id": "lantern.snow"}]},
+              {
+                "slot": "yard",
+                "chance": 0.8,
+                "options": [
+                  {"id": "yard.barrels.snow", "w": 1},
+                  {"id": "yard.firewood", "w": 1},
+                  {"id": "yard.sled", "w": 0.6}
+                ]
+              }
+            ]
+          },
+          "workshop": {
+            "label": "Workshop",
+            "palettes": [
+              {"wall": "#f2e4ca", "masonry": "#c9c6cf", "roof": "#c24a3c", "accent": "#c24a3c"},
+              {"wall": "#efe0c6", "masonry": "#c4c3cc", "roof": "#3f6fb5", "accent": "#c24a3c"},
+              {"wall": "#f6ead4", "masonry": "#cfc9c9", "roof": "#b8453a", "accent": "#3f6fb5"}
+            ],
+            "mass": {
+              "span": [4.6, 5.4],
+              "length": [6.2, 7.6],
+              "storeys": [1, 1],
+              "pitch": [0.95, 1.15],
+              "bay": 2.0,
+              "tile": 1.0
+            },
+            "plan": [
+              {"slot": "ridge", "options": [{"id": "side", "w": 1, "tags": ["sideRidge"]}]},
+              {"slot": "walls", "options": [{"id": "plank", "w": 2}, {"id": "stone", "w": 1}, {"id": "log", "w": 1}]},
+              {"slot": "roof", "options": [{"id": "gable"}]},
+              {"slot": "covering", "options": [{"id": "snow"}]},
+              {"slot": "door", "options": [{"id": "door.snow.double"}]},
+              {"slot": "window", "options": [{"id": "win.snow.cross"}]},
+              {"slot": "attic", "options": [{"id": "win.round"}]},
+              {"slot": "annex", "chance": 3.0, "gene": "size", "options": [{"id": "leanto"}]},
+              {"slot": "chimney", "chance": 0.8, "options": [{"id": "ridge", "w": 1}, {"id": "gable", "w": 1}]},
+              {"slot": "flowers", "chance": 0.3, "options": [{"id": "sill.snow"}]},
+              {
+                "slot": "canopy",
+                "chance": 0.6,
+                "options": [{"id": "canopy.snow.shed", "w": 2}, {"id": "canopy.snow", "w": 1}]
+              },
+              {"slot": "lantern", "chance": 0.8, "options": [{"id": "lantern.snow"}]},
+              {"slot": "sign", "chance": 0.95, "options": [{"id": "sign.workshop"}]},
+              {
+                "slot": "yard",
+                "chance": 0.95,
+                "options": [
+                  {"id": "yard.firewood", "w": 1},
+                  {"id": "yard.crates.snow", "w": 1},
+                  {"id": "yard.sled", "w": 1}
+                ]
+              }
+            ]
+          },
+          "watchtower": {
+            "label": "Watchtower",
+            "palettes": [
+              {"wall": "#f6ead4", "masonry": "#c9c6cf", "roof": "#c24a3c", "accent": "#c24a3c"},
+              {"wall": "#f3e6cf", "masonry": "#c4c3cc", "roof": "#3f6fb5", "accent": "#c24a3c"},
+              {"wall": "#f6ead4", "masonry": "#d0cbc6", "roof": "#b8453a", "accent": "#3f6fb5"}
+            ],
+            "mass": {
+              "span": [3.4, 3.9],
+              "length": [3.4, 3.9],
+              "storeys": [3, 4],
+              "pitch": [1.15, 1.45],
+              "bay": 1.6,
+              "tile": 0.9,
+              "square": true
+            },
+            "plan": [
+              {"slot": "walls", "options": [{"id": "belfry"}]},
+              {"slot": "roof", "options": [{"id": "pyramid"}]},
+              {"slot": "covering", "options": [{"id": "snow"}]},
+              {"slot": "door", "options": [{"id": "door.snow.arched", "w": 2}, {"id": "door.snow.plank", "w": 1}]},
+              {"slot": "window", "options": [{"id": "win.slim"}]},
+              {"slot": "attic", "options": [{"id": "win.round"}]},
+              {"slot": "annex", "chance": 0.4, "gene": "size", "options": [{"id": "leanto"}]},
+              {"slot": "upper", "chance": 0.9, "options": [{"id": "banner.snow"}]},
+              {"slot": "lantern", "chance": 0.8, "options": [{"id": "lantern.snow"}]},
+              {"slot": "flowers", "chance": 0.25, "options": [{"id": "sill.snow"}]},
+              {
+                "slot": "yard",
+                "chance": 0.5,
+                "options": [{"id": "yard.barrels.snow", "w": 1}, {"id": "yard.firewood", "w": 1}]
+              }
+            ]
+          }
+        }
+      },
+      "trees": {
+        "version": 1,
+        "library": "assets/v2/arcade/arcade-snow-parts.glb",
+        "colors": {"bark": "#6e5446", "leaf": "#58a65c", "snow": "#eef5fc"},
+        "limits": {"segments": 56, "sockets": 12, "floor": 0.55, "clear": 1.2},
+        "parts": {
+          "snowpine.tier": {"r": 1.572, "top": 0.27, "bot": -1.367},
+          "snowpine.top": {"r": 0.614, "top": 1.42, "bot": -0.279},
+          "bare.twig.a": {"r": 0.451, "top": 0.381, "bot": -0.085},
+          "bare.twig.b": {"r": 0.37, "top": 0.317, "bot": -0.087}
+        },
+        "species": {
+          "snowpine": {
+            "label": "Snowy conifer",
+            "palettes": [
+              {"bark": "#6b4a36", "leaf": "#58a65c"},
+              {"bark": "#5f4232", "leaf": "#4f9c58"},
+              {"bark": "#74503a", "leaf": "#63ae62"}
+            ],
+            "plan": [
+              {
+                "slot": "form",
+                "options": [
+                  {"id": "dense", "w": 2, "tags": ["dense"], "set": {"shrink": 0.12}},
+                  {"id": "sparse", "w": 1, "tags": ["sparse"], "favor": {"gnarl": 0.5}}
+                ]
+              }
+            ],
+            "axiom": "FFFT",
+            "rules": {
+              "T": [
+                {"to": "F[L]/T", "w": 3},
+                {"to": "F/T", "w": 0.6, "needs": ["sparse"]},
+                {"to": "F[L]/T", "w": 1, "needs": ["dense"], "favor": {"bushy": 0.5}}
+              ]
+            },
+            "tip": "P",
+            "depth": [3, 4],
+            "scale": [0.8, 1.05],
+            "length": [0.75],
+            "jitter": 0.25,
+            "trunk": 0.3,
+            "taper": 0.86,
+            "branch": 0.5,
+            "twig": 0.045,
+            "pitch": [6, 9],
+            "gnarl": 2,
+            "roll": 21,
+            "rollJitter": 6,
+            "lean": 1,
+            "leanStep": 1,
+            "spread": 12,
+            "tropism": 0.3,
+            "crown": [1.6, 2.2],
+            "segments": 12,
+            "sockets": 7,
+            "leaf": {
+              "parts": ["snowpine.tier"],
+              "scale": [1.15, 1.4],
+              "byDepth": 1.0,
+              "shrink": 0.14,
+              "tips": ["snowpine.top"],
+              "tipScale": [0.9, 1.1]
+            },
+            "outline": 0.04
+          },
+          "bare": {
+            "label": "Bare tree",
+            "palettes": [{"bark": "#7a5d4c"}, {"bark": "#6e5446"}, {"bark": "#846452"}],
+            "plan": [
+              {
+                "slot": "form",
+                "options": [
+                  {"id": "round", "w": 2, "tags": ["round"]},
+                  {"id": "spread", "w": 2, "tags": ["spread"], "favor": {"bushy": 0.5}},
+                  {
+                    "id": "leaning",
+                    "w": 1,
+                    "tags": ["leaning"],
+                    "favor": {"gnarl": 0.8},
+                    "set": {"lean": 5, "tropism": 0.04}
+                  }
+                ]
+              }
+            ],
+            "axiom": "T",
+            "rules": {
+              "T": [
+                {"to": "FF[+B]/[+B]/[+B]/[+B]P", "w": 2, "clash": ["leaning"]},
+                {"to": "FFF[+B]/[+B]/[+B]P", "w": 1, "needs": ["round"]},
+                {"to": "F[+B]/F[+B]/[+B]/[+B]P", "w": 2, "needs": ["spread"]},
+                {"to": "+F+F[+B]/[+B]/+F[+B]/[+B]P", "w": 2, "needs": ["leaning"]}
+              ],
+              "B": [
+                {"to": "F[+B]/[-B]", "w": 3},
+                {"to": "F[+B]/[+B]/B", "w": 2, "favor": {"bushy": 0.5}},
+                {"to": "F/+B", "w": 1, "favor": {"gnarl": 0.6}}
+              ]
+            },
+            "tip": "L",
+            "depth": [4, 4],
+            "scale": [0.95, 1.2],
+            "length": [1.5, 1.1, 0.8, 0.55, 0.4],
+            "jitter": 0.3,
+            "trunk": 0.3,
+            "taper": 0.84,
+            "branch": 0.68,
+            "twig": 0.035,
+            "pitch": [8, 12],
+            "gnarl": 5,
+            "roll": 24,
+            "rollJitter": 5,
+            "lean": 2,
+            "leanStep": 2,
+            "spread": 14,
+            "tropism": 0.1,
+            "crown": [2.8, 3.6],
+            "segments": 56,
+            "sockets": 12,
+            "leaf": {
+              "parts": ["bare.twig.a", "bare.twig.b"],
+              "scale": [1.1, 1.4],
+              "byDepth": 0.9,
+              "shrink": 0.0,
+              "tips": ["bare.twig.a"],
+              "tipScale": [1.2, 1.5]
+            },
+            "outline": 0.035
+          }
+        }
+      },
+      "world": {
+        "library": "assets/v2/arcade/arcade-snow-parts.glb",
+        "houses": {
+          "lots": {
+            "cottage": null,
+            "townhouse": null,
+            "farmhouse": null,
+            "tower": null,
+            "cabin": [9, 11],
+            "lodge": [12, 13],
+            "workshop": [11, 12],
+            "watchtower": [8, 8]
+          },
+          "near": {
+            "cottage": null,
+            "townhouse": null,
+            "farmhouse": null,
+            "tower": null,
+            "lodge": 1.0,
+            "workshop": 0.4,
+            "cabin": 0.0,
+            "watchtower": -0.6
+          }
+        },
+        "classes": [
+          {
+            "id": "rocks",
+            "prop": "rocks",
+            "r": 6.5,
+            "foot": 1.8,
+            "max": 20,
+            "base": 0.6,
+            "favor": {"moisture": -0.8, "forest": -0.2},
+            "avenue": true,
+            "zones": true,
+            "canopy": true,
+            "slope": 0.55
+          },
+          {
+            "id": "snowpine",
+            "tree": "snowpine",
+            "r": 4.4,
+            "foot": 1.4,
+            "max": 34,
+            "base": 0.75,
+            "favor": {"forest": 1.0, "village": -0.3},
+            "avenue": false,
+            "zones": true,
+            "slope": 0.5
+          },
+          {
+            "id": "bare",
+            "tree": "bare",
+            "r": 6.0,
+            "foot": 1.3,
+            "max": 12,
+            "base": 0.55,
+            "favor": {"village": 0.6, "forest": -0.3},
+            "avenue": true,
+            "zones": true,
+            "slope": 0.5
+          },
+          {
+            "id": "logs",
+            "parts": ["log.snow", "stump.snow"],
+            "r": 8.0,
+            "foot": 0.9,
+            "max": 10,
+            "base": 0.5,
+            "favor": {"forest": 0.8},
+            "lod": 0
+          },
+          {
+            "id": "reeds",
+            "parts": ["reeds.frozen"],
+            "r": 1.6,
+            "foot": 0.45,
+            "max": 24,
+            "base": 0.95,
+            "favor": {"bank": 1.0},
+            "wet": true,
+            "lod": 1
+          },
+          {
+            "id": "camp",
+            "parts": ["firewood.stack", "sled", "barrel.snow", "lantern.post"],
+            "r": 5.0,
+            "foot": 1.1,
+            "max": 16,
+            "base": 0.5,
+            "favor": {"village": 1.0, "forest": -0.5},
+            "lod": 0
+          },
+          {
+            "id": "banks",
+            "parts": ["snowbank.a", "snowbank.b"],
+            "r": 4.2,
+            "foot": 1.2,
+            "max": 28,
+            "base": 0.6,
+            "favor": {"moisture": 0.3, "village": -0.2},
+            "lod": 1
+          },
+          {
+            "id": "bush",
+            "parts": ["bush.snow"],
+            "r": 3.4,
+            "foot": 0.8,
+            "max": 30,
+            "base": 0.6,
+            "favor": {"forest": 0.3, "village": 0.2},
+            "lod": 1
+          },
+          {
+            "id": "stones",
+            "parts": ["rock.snow.c"],
+            "r": 5.5,
+            "foot": 0.8,
+            "max": 16,
+            "base": 0.5,
+            "favor": {"village": -0.4},
+            "lod": 1
+          },
+          {
+            "id": "tuft",
+            "parts": ["tuft.snow"],
+            "r": 2.2,
+            "foot": 0.3,
+            "max": 90,
+            "base": 0.6,
+            "favor": {"moisture": -0.3},
+            "lod": 2
+          }
+        ],
+        "overlay": {
+          "path": "#cdd6e6",
+          "square": "#d4dbe8",
+          "worn": "#dde3ee",
+          "moist": "#e3ebf6",
+          "dry": "#f3f7fc",
+          "flower": "#f4f8fd",
+          "shore": "#fbfdff",
+          "damp": "#c9d8ec",
+          "bank": "#c3cfe2",
+          "flag": "#a9b0c3",
+          "flagEdge": "#858ca3"
+        },
+        "ground": {
+          "base": "#e8eff8",
+          "tones": ["#dde6f2", "#f2f6fb", "#e4ecf6", "#d7e1ef"],
+          "light": "rgba(255,255,255,.5)",
+          "dark": "rgba(150,172,210,.28)",
+          "ripple": true
+        },
+        "sway": ["tuft.snow", "reeds.frozen"],
+        "terrain": {
+          "relief": {"height": 6.2, "contrast": 1.4},
+          "brook": null,
+          "ponds": {
+            "max": 1,
+            "min": 1,
+            "r": [3.4, 4.6],
+            "moist": 0.5,
+            "moistMin": 0.0,
+            "village": 0.6,
+            "lilies": 0,
+            "clear": 2.6,
+            "frozen": 0.04
+          },
+          "water": {"deep": "#9fcfe8", "shallow": "#d6edf8", "rim": "#ffffff"}
+        },
+        "landmarks": {
+          "library": "assets/v2/arcade/arcade-snow-parts.glb",
+          "kinds": {
+            "windmill": null,
+            "watermill": null,
+            "orchard": null,
+            "farm": null,
+            "lookout": null,
+            "well": {
+              "part": "well.snow",
+              "collision": {"circle": 1.1, "height": 3.2},
+              "hook": {"type": "interact", "label": "Draw water", "gives": "water"}
+            },
+            "belltower": {
+              "at": 1.25,
+              "slide": 20,
+              "clear": 1.2,
+              "part": "belltower.snow",
+              "collision": {"circle": 2.0, "height": 12.0},
+              "hook": {"type": "interact", "label": "Ring the bell"},
+              "life": ["spirit"]
+            },
+            "market": {
+              "parts": ["stall.snow.a", "stall.snow.b"],
+              "awnings": ["#c24a3c", "#3f6fb5", "#b8453a", "#4a79b8", "#d0a24a"],
+              "collision": {"box": [1.3, 0.85], "height": 3.1},
+              "hook": {
+                "type": "deliver",
+                "label": "Trade",
+                "visitLabel": "Browse the winter market",
+                "takes": ["water"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

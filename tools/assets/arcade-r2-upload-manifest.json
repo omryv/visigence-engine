@@ -1,0 +1,894 @@
+{
+  "bucket": "game-engine",
+  "origin": "https://pub-f1c1beced9f54323ac7db4d8f77fc346.r2.dev",
+  "files": [
+    {
+      "path": "assets/v2/arcade/arcade-barrel.glb",
+      "remotePath": "assets/v2/arcade/arcade-barrel.glb",
+      "key": "assets/v2/arcade/arcade-barrel.glb",
+      "bytes": 20296,
+      "sha256": "948b9d75175a073c837ff946cd5d0856f0d854d7b40a823aded7e0888836385c",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-fence.glb",
+      "remotePath": "assets/v2/arcade/arcade-fence.glb",
+      "key": "assets/v2/arcade/arcade-fence.glb",
+      "bytes": 10104,
+      "sha256": "f303605a465c30fa62d27ed00d651ce82d5f083231a09fd152b02ebde7ead85c",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-ground.glb",
+      "remotePath": "assets/v2/arcade/arcade-ground.glb",
+      "key": "assets/v2/arcade/arcade-ground.glb",
+      "bytes": 152948,
+      "sha256": "782e6c751b1e57ca64a8944f35f3bb33bd56b634013083d52442935ef4d658ce",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-rocks.glb",
+      "remotePath": "assets/v2/arcade/arcade-rocks.glb",
+      "key": "assets/v2/arcade/arcade-rocks.glb",
+      "bytes": 14792,
+      "sha256": "d4cb406eeae9f32d210f72ad55904e812df95c003c9c56020bcba3f9c71f66b2",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-dressing.glb",
+      "remotePath": "assets/v2/arcade/arcade-dressing.glb",
+      "key": "assets/v2/arcade/arcade-dressing.glb",
+      "bytes": 41212,
+      "sha256": "295805ddb8c8ff8e20f2938af1c0f6a493bcc3ffb1a33ed04dc91f19cc075cda",
+      "purpose": "Look-dev showcase scene / dressing kit (not referenced by the engine yet)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-hero-corner.glb",
+      "remotePath": "assets/v2/arcade/arcade-hero-corner.glb",
+      "key": "assets/v2/arcade/arcade-hero-corner.glb",
+      "bytes": 1073004,
+      "sha256": "1390d13640c5521456036567dedcfb428199652b59e7812ffd02f17800eeb862",
+      "purpose": "Look-dev showcase scene / dressing kit (not referenced by the engine yet)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-lookdev-review.png",
+      "remotePath": "assets/v2/arcade/arcade-lookdev-review.png",
+      "key": "assets/v2/arcade/arcade-lookdev-review.png",
+      "bytes": 1270964,
+      "sha256": "15a778fd9e92632034381a1007c6abd1df99be50c2cc54729b6d025360cceac9",
+      "purpose": "World tile art and meadow world preview"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-lookdev.blend",
+      "remotePath": "assets/v2/arcade/arcade-lookdev.blend",
+      "key": "assets/v2/arcade/arcade-lookdev.blend",
+      "bytes": 1053389,
+      "sha256": "b0e7554898107fb18676d45f689f9bbbbac8aefa964d82e847e25262e316ecc0",
+      "purpose": "Blender source (look-dev scene)"
+    },
+    {
+      "path": "assets/v2/arcade/textures/arcade-grass.png",
+      "remotePath": "assets/v2/arcade/textures/arcade-grass.png",
+      "key": "assets/v2/arcade/textures/arcade-grass.png",
+      "bytes": 221940,
+      "sha256": "bf92901f6444b7bff8fcf6bd7272a875eafe2f370e3fe6c1244b163a438423be",
+      "purpose": "Painted tileable texture (also embedded in the GLBs)"
+    },
+    {
+      "path": "assets/v2/arcade/textures/arcade-sand.png",
+      "remotePath": "assets/v2/arcade/textures/arcade-sand.png",
+      "key": "assets/v2/arcade/textures/arcade-sand.png",
+      "bytes": 187926,
+      "sha256": "a9251f73ad5b261870ba1330713d2d4cb2fe7f8691e1bab4d8f118ca2e0824ad",
+      "purpose": "Painted tileable texture (also embedded in the GLBs)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/barrel.png",
+      "remotePath": "assets/v2/arcade/catalog/barrel.png",
+      "key": "assets/v2/arcade/catalog/barrel.png",
+      "bytes": 77124,
+      "sha256": "36e45b17e10e37ae3ec5db529a3dce466810bd76efd7d6e21d7d43b46e7b2c43",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/fence.png",
+      "remotePath": "assets/v2/arcade/catalog/fence.png",
+      "key": "assets/v2/arcade/catalog/fence.png",
+      "bytes": 77589,
+      "sha256": "87e7abeff10585e81d54b4080e8b72b884ac2a02f17eb4c84c932524071ea967",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/rocks.png",
+      "remotePath": "assets/v2/arcade/catalog/rocks.png",
+      "key": "assets/v2/arcade/catalog/rocks.png",
+      "bytes": 73616,
+      "sha256": "fbd1f5f5f09f5199499f6dac8ebd54d4500797fc44b78f7f95d84e12ae8cb40c",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-shrine.glb",
+      "remotePath": "assets/v2/arcade/arcade-shrine.glb",
+      "key": "assets/v2/arcade/arcade-shrine.glb",
+      "bytes": 63712,
+      "sha256": "60f4941d2aa75a58c9bcec0550eac19730b3d5fc067c61e43d4e0b5c24785d19",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-gate.glb",
+      "remotePath": "assets/v2/arcade/arcade-gate.glb",
+      "key": "assets/v2/arcade/arcade-gate.glb",
+      "bytes": 103812,
+      "sha256": "366f51e3e4dd7a320ee8c72aea069323261494de2ee9b4f56f6decd55e3bcdb9",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-barricade.glb",
+      "remotePath": "assets/v2/arcade/arcade-barricade.glb",
+      "key": "assets/v2/arcade/arcade-barricade.glb",
+      "bytes": 126548,
+      "sha256": "419986ba4c17c198ee4690f5aa80123010db11b790618803d0894562955ee0d8",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-slingshot.glb",
+      "remotePath": "assets/v2/arcade/arcade-slingshot.glb",
+      "key": "assets/v2/arcade/arcade-slingshot.glb",
+      "bytes": 83552,
+      "sha256": "1bf74e579f16f93391d52d4230e5641920cb47e9afe20d71bdb5787189a2563b",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-repeater.glb",
+      "remotePath": "assets/v2/arcade/arcade-repeater.glb",
+      "key": "assets/v2/arcade/arcade-repeater.glb",
+      "bytes": 105480,
+      "sha256": "51cb521e01636a12de5288c96f96c287a4403257ed45fc6150c150ab7adf83d9",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-blunderbuss.glb",
+      "remotePath": "assets/v2/arcade/arcade-blunderbuss.glb",
+      "key": "assets/v2/arcade/arcade-blunderbuss.glb",
+      "bytes": 84792,
+      "sha256": "f2b51e420e71d990e951f07992f71b00c40f7b276fc768b52b93e147edbaf9fd",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-arbalest.glb",
+      "remotePath": "assets/v2/arcade/arcade-arbalest.glb",
+      "key": "assets/v2/arcade/arcade-arbalest.glb",
+      "bytes": 105968,
+      "sha256": "2b7031ca9b5fa3a1cfee34a17f1e4145443236a416ea424c305cbee90949610a",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-cannon.glb",
+      "remotePath": "assets/v2/arcade/arcade-cannon.glb",
+      "key": "assets/v2/arcade/arcade-cannon.glb",
+      "bytes": 89664,
+      "sha256": "234b63a0897b11dbec49bae8df37c5e735fc4f5ade73c2566f500dbd310c60d6",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/shrine.png",
+      "remotePath": "assets/v2/arcade/catalog/shrine.png",
+      "key": "assets/v2/arcade/catalog/shrine.png",
+      "bytes": 77859,
+      "sha256": "ee2b428a29af6810d3eda3d70a355fd1e9d214a83cc828c86b08bccb73559a9f",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/gate.png",
+      "remotePath": "assets/v2/arcade/catalog/gate.png",
+      "key": "assets/v2/arcade/catalog/gate.png",
+      "bytes": 80795,
+      "sha256": "60322969aee88745ad8a66a778b085a6c69c2912e81ebe94cd4c836764303274",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/barricade.png",
+      "remotePath": "assets/v2/arcade/catalog/barricade.png",
+      "key": "assets/v2/arcade/catalog/barricade.png",
+      "bytes": 78303,
+      "sha256": "4994803177e54d0c90f274535b48444057d8a8a0ab3f4f02bfd43db28bd816ac",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/slingshot.png",
+      "remotePath": "assets/v2/arcade/catalog/slingshot.png",
+      "key": "assets/v2/arcade/catalog/slingshot.png",
+      "bytes": 79982,
+      "sha256": "c522bef1acdd623d868c1fbacad1192dda15aa684dca197c2dc00b9a1cd1f0ad",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/repeater.png",
+      "remotePath": "assets/v2/arcade/catalog/repeater.png",
+      "key": "assets/v2/arcade/catalog/repeater.png",
+      "bytes": 77482,
+      "sha256": "b7ff291c4104ec99382cab63fc4535dc66d60e235f17275f1fd078ea640528ee",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/blunderbuss.png",
+      "remotePath": "assets/v2/arcade/catalog/blunderbuss.png",
+      "key": "assets/v2/arcade/catalog/blunderbuss.png",
+      "bytes": 75100,
+      "sha256": "f8ce8fbc58f5822cc6cb250eb592277fdf259daa10cdf45d300c54c8deaa0d46",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/arbalest.png",
+      "remotePath": "assets/v2/arcade/catalog/arbalest.png",
+      "key": "assets/v2/arcade/catalog/arbalest.png",
+      "bytes": 76010,
+      "sha256": "a9d43058e9d8c0f934e4403881e0249a47e6fffb3e2d29b7abfe16544719bbf8",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/cannon.png",
+      "remotePath": "assets/v2/arcade/catalog/cannon.png",
+      "key": "assets/v2/arcade/catalog/cannon.png",
+      "bytes": 81099,
+      "sha256": "519adaf9ec52ab0465568550b7d1251ffea7fb17f95b77c4dade6f7dd3c721f5",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/slime.png",
+      "remotePath": "assets/v2/arcade/catalog/slime.png",
+      "key": "assets/v2/arcade/catalog/slime.png",
+      "bytes": 73892,
+      "sha256": "9aca0bb799f237c709ac7d13ba4ef9d4cce25ab63bd204154a74ecbc8c54754b",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/shroom.png",
+      "remotePath": "assets/v2/arcade/catalog/shroom.png",
+      "key": "assets/v2/arcade/catalog/shroom.png",
+      "bytes": 75920,
+      "sha256": "32dc838c51fab67b1599237d1112a1960c19f270895eaa2733173ca19caa5996",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/bee.png",
+      "remotePath": "assets/v2/arcade/catalog/bee.png",
+      "key": "assets/v2/arcade/catalog/bee.png",
+      "bytes": 75329,
+      "sha256": "28a9578ecc2e3111f10b62e8130efc16f7ac675ba22d1c5f1e50db75f6a93954",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/king.png",
+      "remotePath": "assets/v2/arcade/catalog/king.png",
+      "key": "assets/v2/arcade/catalog/king.png",
+      "bytes": 76956,
+      "sha256": "64a556c3d7b8f0be167fe75d347abe9b797ad1513b0ce8992013ee51d44736cd",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-creature-parts.glb",
+      "remotePath": "assets/v2/arcade/arcade-creature-parts.glb",
+      "key": "assets/v2/arcade/arcade-creature-parts.glb",
+      "bytes": 893956,
+      "sha256": "b9c65a21d885a1b42c521b835cd914918395a59de6ec7c8d5c41512f35f00c57",
+      "purpose": "Creature parts library (the grammar assembles every critter from it)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/sprout.png",
+      "remotePath": "assets/v2/arcade/catalog/sprout.png",
+      "key": "assets/v2/arcade/catalog/sprout.png",
+      "bytes": 75358,
+      "sha256": "571bbef7b157926cab702953f1f49bb5bc5dafe779675c07c13d88d37f863164",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/pebble.png",
+      "remotePath": "assets/v2/arcade/catalog/pebble.png",
+      "key": "assets/v2/arcade/catalog/pebble.png",
+      "bytes": 74003,
+      "sha256": "b56a5c8658b174ac4b970512f91709ad311276ff8745a823cf7e28addcf5d204",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/batpuff.png",
+      "remotePath": "assets/v2/arcade/catalog/batpuff.png",
+      "key": "assets/v2/arcade/catalog/batpuff.png",
+      "bytes": 78620,
+      "sha256": "86c36fd77b574d48be8c3039028ed29308ed8c05473521c8de8f4601f9701a01",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/hornblob.png",
+      "remotePath": "assets/v2/arcade/catalog/hornblob.png",
+      "key": "assets/v2/arcade/catalog/hornblob.png",
+      "bytes": 74716,
+      "sha256": "31378728d4bee0b7f77fab4f62e06d1d8cb4888ece71a11d93a4e469943b3180",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/acorn.png",
+      "remotePath": "assets/v2/arcade/catalog/acorn.png",
+      "key": "assets/v2/arcade/catalog/acorn.png",
+      "bytes": 77388,
+      "sha256": "c5add4c2abd87f9ec9540850ac8578764e6c060adcaa6b9a88b4e1a8c2223a4c",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/spirit.png",
+      "remotePath": "assets/v2/arcade/catalog/spirit.png",
+      "key": "assets/v2/arcade/catalog/spirit.png",
+      "bytes": 78628,
+      "sha256": "fec064447147a46d2cb8a44ad0ed22cfa1f677ec295b8d1625d3cb1fa256190e",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-house-parts.glb",
+      "remotePath": "assets/v2/arcade/arcade-house-parts.glb",
+      "key": "assets/v2/arcade/arcade-house-parts.glb",
+      "bytes": 521484,
+      "sha256": "9eaf37a35c839fa061075f62b41317339195195ccf23c4b06b6ce0bd9e48da5d",
+      "purpose": "Arcade house parts library"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-nature-parts.glb",
+      "remotePath": "assets/v2/arcade/arcade-nature-parts.glb",
+      "key": "assets/v2/arcade/arcade-nature-parts.glb",
+      "bytes": 308956,
+      "sha256": "17a281ce04795c5e7799f300f7057c4cd7bcdafd0567dd85c579dccdc59a6b8c",
+      "purpose": "Arcade nature parts library"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-tree-parts.glb",
+      "remotePath": "assets/v2/arcade/arcade-tree-parts.glb",
+      "key": "assets/v2/arcade/arcade-tree-parts.glb",
+      "bytes": 80516,
+      "sha256": "644d18611d9e0616f456d518683a67303b2512c56bce2d584a9a0c8370cd3797",
+      "purpose": "Arcade tree parts library"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-landmark-parts.glb",
+      "remotePath": "assets/v2/arcade/arcade-landmark-parts.glb",
+      "key": "assets/v2/arcade/arcade-landmark-parts.glb",
+      "bytes": 439296,
+      "sha256": "624d050c76e2c5b8d466d3015f75ab09502f6e97f47b142029f315c48ddc1020",
+      "purpose": "Arcade landmark parts library"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house.png",
+      "remotePath": "assets/v2/arcade/catalog/house.png",
+      "key": "assets/v2/arcade/catalog/house.png",
+      "bytes": 83306,
+      "sha256": "d8742438d9ec9d2128e2728af4aabab489ba9b0d891d74003c4f53c1af072790",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-cottage.png",
+      "remotePath": "assets/v2/arcade/catalog/house-cottage.png",
+      "key": "assets/v2/arcade/catalog/house-cottage.png",
+      "bytes": 83021,
+      "sha256": "25ac2462d4d655c1a20e318dc63725d00072ebbc7b33c222c539cd52e61a401c",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-townhouse.png",
+      "remotePath": "assets/v2/arcade/catalog/house-townhouse.png",
+      "key": "assets/v2/arcade/catalog/house-townhouse.png",
+      "bytes": 77875,
+      "sha256": "4ebfc5186ffe36d81d64cb82950709c1aa9dd92ee3a4dab52f4efe1fb142cba0",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-farmhouse.png",
+      "remotePath": "assets/v2/arcade/catalog/house-farmhouse.png",
+      "key": "assets/v2/arcade/catalog/house-farmhouse.png",
+      "bytes": 76220,
+      "sha256": "2907713bb949713772cd5de9663a14abb48e3f94e6580648f7e6b32b2cb042e8",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/house-tower.png",
+      "remotePath": "assets/v2/arcade/catalog/house-tower.png",
+      "key": "assets/v2/arcade/catalog/house-tower.png",
+      "bytes": 81211,
+      "sha256": "7ffc8612652d44de09a78b8dd262b1485e5387fe47e9a3bb086b43bf68400f76",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/nature.png",
+      "remotePath": "assets/v2/arcade/catalog/nature.png",
+      "key": "assets/v2/arcade/catalog/nature.png",
+      "bytes": 80138,
+      "sha256": "700dd388143f8855d5ca1ed6459a6cdd4abfd993dddbf84bf66f96dc5a0d082c",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/tree.png",
+      "remotePath": "assets/v2/arcade/catalog/tree.png",
+      "key": "assets/v2/arcade/catalog/tree.png",
+      "bytes": 78832,
+      "sha256": "9ffe5ef595b2a60115113d68627121bc9ca7cc462f9e635e0a7ead8a9ced2120",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/landmark.png",
+      "remotePath": "assets/v2/arcade/catalog/landmark.png",
+      "key": "assets/v2/arcade/catalog/landmark.png",
+      "bytes": 81519,
+      "sha256": "854b20300aeff265a0fa88f252cc0a79f09e2d5461037a1afb8f35b55879ce62",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-pouch.glb",
+      "remotePath": "assets/v2/arcade/arcade-pouch.glb",
+      "key": "assets/v2/arcade/arcade-pouch.glb",
+      "bytes": 45004,
+      "sha256": "0209e14bf43db8a22664410ede20fb79c13030e876d3ed15f8c50fbd14eddca4",
+      "purpose": "Arcade pickup model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-honey.glb",
+      "remotePath": "assets/v2/arcade/arcade-honey.glb",
+      "key": "assets/v2/arcade/arcade-honey.glb",
+      "bytes": 32224,
+      "sha256": "a0461190bb11b5000d688d9378978f96ef73f2a1f7be0ea21af41b0d34272b6f",
+      "purpose": "Arcade pickup model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-fizzbomb.glb",
+      "remotePath": "assets/v2/arcade/arcade-fizzbomb.glb",
+      "key": "assets/v2/arcade/arcade-fizzbomb.glb",
+      "bytes": 23000,
+      "sha256": "79a2b23a4768c39461925f765654ca855f32fc4c65192dbdefec48049221c6ac",
+      "purpose": "Arcade pickup model"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/pouch.png",
+      "remotePath": "assets/v2/arcade/catalog/pouch.png",
+      "key": "assets/v2/arcade/catalog/pouch.png",
+      "bytes": 80791,
+      "sha256": "a5df679d71d7333ee1f160f6b10aff328ab32eb09ecbeb6c96223032deb9f911",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/honey.png",
+      "remotePath": "assets/v2/arcade/catalog/honey.png",
+      "key": "assets/v2/arcade/catalog/honey.png",
+      "bytes": 82848,
+      "sha256": "f321d0b3d55befb1ef83e8d2c4b0bc189b7eaed7504dfc2e51307c79b7703da1",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/fizzbomb.png",
+      "remotePath": "assets/v2/arcade/catalog/fizzbomb.png",
+      "key": "assets/v2/arcade/catalog/fizzbomb.png",
+      "bytes": 76406,
+      "sha256": "3d7fd7695eb8b36fedab263f49f13672a961601121e5da46c29c9d137790c1e5",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/characters/arcade-hero.glb",
+      "remotePath": "assets/v2/arcade/characters/arcade-hero.glb",
+      "key": "assets/v2/arcade/characters/arcade-hero.glb",
+      "bytes": 852484,
+      "sha256": "7dd45daf91612f7da73b3f470435b22013f3543655bb8190d29843e8b1b88603",
+      "purpose": "Arcade player character (villager hero, rigged, 5 clips)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/hero.png",
+      "remotePath": "assets/v2/arcade/catalog/hero.png",
+      "key": "assets/v2/arcade/catalog/hero.png",
+      "bytes": 83998,
+      "sha256": "fdb6b457dc97ee6cdcf67d1a00c39052b5676c4b081d25d165f86a3f56478777",
+      "purpose": "Studio catalog card (256 px)"
+    },
+    {
+      "path": "assets/v2/arcade/fp/slingshot.glb",
+      "remotePath": "assets/v2/arcade/fp/slingshot.glb",
+      "key": "assets/v2/arcade/fp/slingshot.glb",
+      "bytes": 820184,
+      "sha256": "313fc72a1b431aa3fcc9a3f7cb4ccb679cb9d26b5659837ecbbdb9bdb3d49ed1",
+      "purpose": "Arcade first-person viewmodel (slingshot): the hero's arms, the weapon and 11 clips cut to its sounds"
+    },
+    {
+      "path": "assets/v2/arcade/fp/repeater.glb",
+      "remotePath": "assets/v2/arcade/fp/repeater.glb",
+      "key": "assets/v2/arcade/fp/repeater.glb",
+      "bytes": 907512,
+      "sha256": "e684c522b42c6e147a1eca44f295db3b6015119673f3b860e03f04cd6e79e780",
+      "purpose": "Arcade first-person viewmodel (repeating crossbow): the hero's arms, the weapon and 11 clips cut to its sounds"
+    },
+    {
+      "path": "assets/v2/arcade/fp/blunderbuss.glb",
+      "remotePath": "assets/v2/arcade/fp/blunderbuss.glb",
+      "key": "assets/v2/arcade/fp/blunderbuss.glb",
+      "bytes": 989076,
+      "sha256": "a47cf6600d29c9d2b262fb254ab8f865214c363ce1159246af995414eff642c3",
+      "purpose": "Arcade first-person viewmodel (blunderbuss): the hero's arms, the weapon and 11 clips cut to its sounds"
+    },
+    {
+      "path": "assets/v2/arcade/fp/arbalest.glb",
+      "remotePath": "assets/v2/arcade/fp/arbalest.glb",
+      "key": "assets/v2/arcade/fp/arbalest.glb",
+      "bytes": 981796,
+      "sha256": "d43bc2bb0ad40ffd2fc889aded63d4ce7278a62a843cbd9d63b139395b1bf61a",
+      "purpose": "Arcade first-person viewmodel (heavy crossbow): the hero's arms, the weapon and 11 clips cut to its sounds"
+    },
+    {
+      "path": "assets/v2/arcade/fp/cannon.glb",
+      "remotePath": "assets/v2/arcade/fp/cannon.glb",
+      "key": "assets/v2/arcade/fp/cannon.glb",
+      "bytes": 868900,
+      "sha256": "bc2213e1d8cdde1af6a2543fbe5c7a43612c518baeda88d8dafed00df029c7af",
+      "purpose": "Arcade first-person viewmodel (mini cannon): the hero's arms, the weapon and 11 clips cut to its sounds"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/slingshot-shot-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/slingshot-shot-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/slingshot-shot-arcade-mode.mp3",
+      "bytes": 43821,
+      "sha256": "68d3177143c438049899dee167b358297096bfd5051b2899499df32f0646e4c6",
+      "purpose": "Arcade weapon sound (pack override of pistolFire)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/slingshot-reload-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/slingshot-reload-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/slingshot-reload-arcade-mode.mp3",
+      "bytes": 27117,
+      "sha256": "bcbf6c165d892743099cf103a91e898de31f47dd35d0e66170e6defc05059259",
+      "purpose": "Arcade weapon sound (pack override of pistolReload)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/repeating-crossbow-shot-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/repeating-crossbow-shot-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/repeating-crossbow-shot-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "44a036468c0c0fe2cb55a74255206d5e63ccd5f88912030222b2f0885bee1d8c",
+      "purpose": "Arcade weapon sound (pack override of weapon1Fire)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/repeating-crossbow-reload-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/repeating-crossbow-reload-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/repeating-crossbow-reload-arcade-mode.mp3",
+      "bytes": 54189,
+      "sha256": "d104b2eacb8bb9e86f2a34b5bd1f35264f0429f9206e18620c7938bbf1bfd2fe",
+      "purpose": "Arcade weapon sound (pack override of weapon1Reload)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/blunderbuss-shot-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/blunderbuss-shot-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/blunderbuss-shot-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "4565e3f61286bfbe58a583bbfa24fc879a19ced32121d924f9dd5fddb265e521",
+      "purpose": "Arcade weapon sound (pack override of shotgunFire)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/blunderbuss-reload-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/blunderbuss-reload-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/blunderbuss-reload-arcade-mode.mp3",
+      "bytes": 54189,
+      "sha256": "2dd5c86e2d09cc6655ef8c54103dc884c866078b3593ee85784bfb9d04ad6ea0",
+      "purpose": "Arcade weapon sound (pack override of shotgunReload)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/heavy-crossbow-shot-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/heavy-crossbow-shot-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/heavy-crossbow-shot-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "1152d558bcc5ba193c77e9995919d4921c58e4449079bfeb3294c124003157de",
+      "purpose": "Arcade weapon sound (pack override of sniperFire)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/heavy-crossbow-reload-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/heavy-crossbow-reload-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/heavy-crossbow-reload-arcade-mode.mp3",
+      "bytes": 25389,
+      "sha256": "021b40fda9275050ce4fc4d02dde64100e73ea574239882d8c8db6b024046c84",
+      "purpose": "Arcade weapon sound (pack override of sniperReload)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/mini-cannon-shot-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/mini-cannon-shot-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/shot-arcade-mode/mini-cannon-shot-arcade-mode.mp3",
+      "bytes": 49581,
+      "sha256": "acc3d5c4388065e5521422679750667ba5583e00951e85d801e4eaca72b03ab6",
+      "purpose": "Arcade weapon sound (pack override of rpgFire)"
+    },
+    {
+      "path": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/mini-cannon-reload-arcade-mode.mp3",
+      "remotePath": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/mini-cannon-reload-arcade-mode.mp3",
+      "key": "assets/v2/arcade-sounds/weapon-sounds/reload-arcade-mode/mini-cannon-reload-arcade-mode.mp3",
+      "bytes": 54189,
+      "sha256": "3f3343daa4ae59a9cea5d44c0f79476fcf582a0f20fbeed115c6985375554e00",
+      "purpose": "Arcade weapon sound (pack override of rpgReload)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-parts.glb",
+      "remotePath": "assets/v2/arcade/arcade-desert-parts.glb",
+      "key": "assets/v2/arcade/arcade-desert-parts.glb",
+      "bytes": 1266572,
+      "sha256": "182b722882ee891ab1894cbd70c83c7077585aee048839890d96a07b1bf74034",
+      "purpose": "Arcade desert parts library (desert houses, palms and cacti, flora, landmarks)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-rocks.glb",
+      "remotePath": "assets/v2/arcade/arcade-desert-rocks.glb",
+      "key": "assets/v2/arcade/arcade-desert-rocks.glb",
+      "bytes": 13920,
+      "sha256": "d8cf1230091cab4f75c34e83ceecf07220186c9f805cbb4a64997c3a0f05cdcf",
+      "purpose": "Arcade desert cover rocks (biome patch of rocks)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-wall.glb",
+      "remotePath": "assets/v2/arcade/arcade-desert-wall.glb",
+      "key": "assets/v2/arcade/arcade-desert-wall.glb",
+      "bytes": 11024,
+      "sha256": "43735714b437e8c7bc32e6b9d116fd35762a5e9169bf5ff4ca12aebc7b22a396",
+      "purpose": "Arcade desert low wall (biome patch of fence)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-barricade.glb",
+      "remotePath": "assets/v2/arcade/arcade-desert-barricade.glb",
+      "key": "assets/v2/arcade/arcade-desert-barricade.glb",
+      "bytes": 85032,
+      "sha256": "c2cfc386dacf9f460e376752a8098cc7ac059b991306e792d8db47155cdb6206",
+      "purpose": "Arcade desert barricade (biome patch of hayBarricade)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/desert-house.png",
+      "remotePath": "assets/v2/arcade/catalog/desert-house.png",
+      "key": "assets/v2/arcade/catalog/desert-house.png",
+      "bytes": 78722,
+      "sha256": "b5b45201412b300039af75cd278ed571e10d7e8c64fcf1bef93362492a104c04",
+      "purpose": "Arcade desert catalog card (house)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/desert-tree.png",
+      "remotePath": "assets/v2/arcade/catalog/desert-tree.png",
+      "key": "assets/v2/arcade/catalog/desert-tree.png",
+      "bytes": 76860,
+      "sha256": "46f53a526a1c2d50a95e446512fe54b9aa194bf7210d295f0dbb04f09bdcfa2e",
+      "purpose": "Arcade desert catalog card (tree)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/desert-nature.png",
+      "remotePath": "assets/v2/arcade/catalog/desert-nature.png",
+      "key": "assets/v2/arcade/catalog/desert-nature.png",
+      "bytes": 79388,
+      "sha256": "d89e1fad6729fa3dc3f11b83fea0599103644203c7933f6fa80397bfaaae3d8c",
+      "purpose": "Arcade desert catalog card (nature)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/desert-landmark.png",
+      "remotePath": "assets/v2/arcade/catalog/desert-landmark.png",
+      "key": "assets/v2/arcade/catalog/desert-landmark.png",
+      "bytes": 81787,
+      "sha256": "e630060ac5591ce9b957bf396a97800762d338a35500fc90821bae01c7a82ff3",
+      "purpose": "Arcade desert catalog card (landmark)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/desert-rocks.png",
+      "remotePath": "assets/v2/arcade/catalog/desert-rocks.png",
+      "key": "assets/v2/arcade/catalog/desert-rocks.png",
+      "bytes": 74588,
+      "sha256": "908ded4c5037377572e3f9bd89e53ac6a3297abafa7c4056910af653beca8160",
+      "purpose": "Arcade desert catalog card (rocks)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/desert-wall.png",
+      "remotePath": "assets/v2/arcade/catalog/desert-wall.png",
+      "key": "assets/v2/arcade/catalog/desert-wall.png",
+      "bytes": 77679,
+      "sha256": "202c4c5f7501f2b5bc6a8a818ab14a2c6ee0345c1c24ca29a65cabd53b89380d",
+      "purpose": "Arcade desert catalog card (wall)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/desert-barricade.png",
+      "remotePath": "assets/v2/arcade/catalog/desert-barricade.png",
+      "key": "assets/v2/arcade/catalog/desert-barricade.png",
+      "bytes": 84193,
+      "sha256": "efc34215fcfb67bffc596eaf56f0195451a5783fa13a8a59e369872804c24eeb",
+      "purpose": "Arcade desert catalog card (barricade)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-desert-review.png",
+      "remotePath": "assets/v2/arcade/arcade-desert-review.png",
+      "key": "assets/v2/arcade/arcade-desert-review.png",
+      "bytes": 1176018,
+      "sha256": "66da9cc88214a9e865d8ca9a0067b0476bbfbd33e185d02716832706b3f0166d",
+      "purpose": "Arcade desert oasis environment preview (the studio's Environments card)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-parts.glb",
+      "remotePath": "assets/v2/arcade/arcade-snow-parts.glb",
+      "key": "assets/v2/arcade/arcade-snow-parts.glb",
+      "bytes": 1552284,
+      "sha256": "7b9f9cab79a11b2c8a112dcfd0e411f8e9f39a12abbd59b24a011b0a84a6f06e",
+      "purpose": "Arcade snow parts library (alpine houses, snowy conifers and bare trees, winter flora, bell tower, well, stalls)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-rocks.glb",
+      "remotePath": "assets/v2/arcade/arcade-snow-rocks.glb",
+      "key": "assets/v2/arcade/arcade-snow-rocks.glb",
+      "bytes": 21824,
+      "sha256": "273ba82bf1636a00a63ffaf5199876847440734ac6eba17291036ae30420833d",
+      "purpose": "Arcade snow cover rocks (biome patch of rocks)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-fence.glb",
+      "remotePath": "assets/v2/arcade/arcade-snow-fence.glb",
+      "key": "assets/v2/arcade/arcade-snow-fence.glb",
+      "bytes": 22056,
+      "sha256": "835702158ee21e6443519a596141db1a491dac05738e4ca0b10dd5db120ef377",
+      "purpose": "Arcade snow split-rail fence (biome patch of fence)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-barricade.glb",
+      "remotePath": "assets/v2/arcade/arcade-snow-barricade.glb",
+      "key": "assets/v2/arcade/arcade-snow-barricade.glb",
+      "bytes": 111304,
+      "sha256": "4375dfd8534082da25817a74e4b05802420c781a8431f5519f8d42d734fab1e6",
+      "purpose": "Arcade snow sled barricade (biome patch of hayBarricade)"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-barrel.glb",
+      "remotePath": "assets/v2/arcade/arcade-snow-barrel.glb",
+      "key": "assets/v2/arcade/arcade-snow-barrel.glb",
+      "bytes": 26552,
+      "sha256": "d0d4a6636732784dcbc6c8f40c6d92811494fe8c0fa2767247d5e3d7589ff18c",
+      "purpose": "Arcade snow barrel (biome patch of barrel)"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-house.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-house.png",
+      "key": "assets/v2/arcade/catalog/snow-house.png",
+      "bytes": 80986,
+      "sha256": "9fab49c223b9cdf11c225dca1482cf3ca6950d144dfd7217eeb12daea8051613",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-tree.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-tree.png",
+      "key": "assets/v2/arcade/catalog/snow-tree.png",
+      "bytes": 82132,
+      "sha256": "e6c0f737e133b84ce308a01431fd7d9d615d08926591fbea7941143ab5730ba9",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-nature.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-nature.png",
+      "key": "assets/v2/arcade/catalog/snow-nature.png",
+      "bytes": 82976,
+      "sha256": "c6c0ca4195beb5ceff2742d5d0a17698e7f82e36289d17d08b92f40cb18a729d",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-landmark.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-landmark.png",
+      "key": "assets/v2/arcade/catalog/snow-landmark.png",
+      "bytes": 81593,
+      "sha256": "d198df89b97220b7baee038040eae4baf12125aa86792416e3e12b01b7778bc4",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-rocks.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-rocks.png",
+      "key": "assets/v2/arcade/catalog/snow-rocks.png",
+      "bytes": 77679,
+      "sha256": "275d715d740cc5c3f26b93bfe8fbaf1b9b60c8c24d92045da12b4cbaeb519582",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-fence.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-fence.png",
+      "key": "assets/v2/arcade/catalog/snow-fence.png",
+      "bytes": 84463,
+      "sha256": "b6a00dc968310aa09e3af4d48a134e7c4be2e7c641e45befae63b57a35971aad",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-barricade.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-barricade.png",
+      "key": "assets/v2/arcade/catalog/snow-barricade.png",
+      "bytes": 85803,
+      "sha256": "4181723f44c98eabdb1052d3f2a514b9b54b86c1ea2215897dcbde9634bfb976",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/snow-barrel.png",
+      "remotePath": "assets/v2/arcade/catalog/snow-barrel.png",
+      "key": "assets/v2/arcade/catalog/snow-barrel.png",
+      "bytes": 79043,
+      "sha256": "9590da9250b38ae3fe4ac9129729784b024e7ef3a273e7ee0c2f67a7628a7333",
+      "purpose": "Arcade snow village studio catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-snow-review.png",
+      "remotePath": "assets/v2/arcade/arcade-snow-review.png",
+      "key": "assets/v2/arcade/arcade-snow-review.png",
+      "bytes": 1073050,
+      "sha256": "dc787d996450ad7932649a7463ae961a33d9ca28d0586aabcdcbfd771f386125",
+      "purpose": "Arcade snow village Environments card and launcher picture"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-keys.glb",
+      "remotePath": "assets/v2/arcade/arcade-keys.glb",
+      "key": "assets/v2/arcade/arcade-keys.glb",
+      "bytes": 46760,
+      "sha256": "c0894c6d3fa94e13ff42d94b3f94a031f495f3fb5f7400e8f89d7f4b45a508e5",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-locks.glb",
+      "remotePath": "assets/v2/arcade/arcade-locks.glb",
+      "key": "assets/v2/arcade/arcade-locks.glb",
+      "bytes": 45536,
+      "sha256": "bcb09e39cf4f4033d43e4d7f039aa933eaeb68c8702f6f5b81f80b2d0a4e862e",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-lever.glb",
+      "remotePath": "assets/v2/arcade/arcade-lever.glb",
+      "key": "assets/v2/arcade/arcade-lever.glb",
+      "bytes": 33072,
+      "sha256": "cdf9bcdcb5dca05ecc583e9bc334baeca7fede20484fec952e99693df0ccf621",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-drop.glb",
+      "remotePath": "assets/v2/arcade/arcade-drop.glb",
+      "key": "assets/v2/arcade/arcade-drop.glb",
+      "bytes": 10344,
+      "sha256": "324ad02b621961db6bb4bd9503a8365381b87e2bf8536f95f944fa3760102da8",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/arcade-staff.glb",
+      "remotePath": "assets/v2/arcade/arcade-staff.glb",
+      "key": "assets/v2/arcade/arcade-staff.glb",
+      "bytes": 27228,
+      "sha256": "c060ae2835245adf5233b6816721260487fc394fa0e65ec82d1fa94d21bca1b7",
+      "purpose": "Arcade runtime model"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/key.png",
+      "remotePath": "assets/v2/arcade/catalog/key.png",
+      "key": "assets/v2/arcade/catalog/key.png",
+      "bytes": 76645,
+      "sha256": "6592061426235d85ee74d53b3b5d1515bc22d02800b338978e296d0bb36aabd7",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/lock.png",
+      "remotePath": "assets/v2/arcade/catalog/lock.png",
+      "key": "assets/v2/arcade/catalog/lock.png",
+      "bytes": 78324,
+      "sha256": "f99a11c35eed79f07a1548df214ae2a60ac65395ff991f6267efa983ba7a6f9a",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/lever.png",
+      "remotePath": "assets/v2/arcade/catalog/lever.png",
+      "key": "assets/v2/arcade/catalog/lever.png",
+      "bytes": 75497,
+      "sha256": "eae334cd57399e0e875761571acb310691a9be7dd5b0acd03216022f08575e8f",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/drop.png",
+      "remotePath": "assets/v2/arcade/catalog/drop.png",
+      "key": "assets/v2/arcade/catalog/drop.png",
+      "bytes": 75025,
+      "sha256": "9f4cb96e7ec71592eb6916c8586bd8fc28de1507de8da80c65fedcaa46160274",
+      "purpose": "Arcade catalog card"
+    },
+    {
+      "path": "assets/v2/arcade/catalog/staff.png",
+      "remotePath": "assets/v2/arcade/catalog/staff.png",
+      "key": "assets/v2/arcade/catalog/staff.png",
+      "bytes": 74616,
+      "sha256": "8d7b6447953f4d4bff5c8d3f29bb190141f8e7a4b63b08d7e14e9d0db98be56e",
+      "purpose": "Arcade catalog card"
+    }
+  ]
+}

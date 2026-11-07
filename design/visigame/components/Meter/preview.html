@@ -1,0 +1,17 @@
+<!-- @dsCard group="Signals" height=190 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'vg-stack' },
+    h(V.Meter, { label: 'Vitals', value: 82, low: 25 }),
+    h(V.Meter, { label: 'Vitals', value: 18, low: 25 }),
+    h(V.Meter, { label: 'Ammo', value: 30, max: 120, display: '30', tone: 'zebra' }),
+    h(V.Meter, { label: 'Build', value: 64, tone: 'tungsten', display: '64%' })));
+
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!-- @dsCard group="Input" height=200 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'vg-stack', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' } },
+    h(V.Field, { label: 'Project name', defaultValue: 'Untitled Shooter Project', suffix: '24 / 64', hint: 'Saved locally as you type.' }),
+    h(V.Field, { label: 'Seed', defaultValue: '44x1', error: 'A seed is a whole number.' })));
+
+</script>
+</body>
+</html>

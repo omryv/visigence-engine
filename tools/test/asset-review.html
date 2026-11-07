@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Catalog visual review</title>
+<style>body{margin:15px;background:#111b25;color:#dfebef;font:12px system-ui}header{display:flex;gap:20px;align-items:center}main{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}figure{margin:0;background:#1b2632;padding:5px;border-radius:7px}img{height:130px;width:100%;object-fit:contain}figcaption{height:30px}a{color:cyan}</style>
+<header><h2 id="title">Catalog</h2><a id="prev">Previous page</a><a id="next">Next page</a></header><main></main>
+<script type="module">
+import {CATALOG}from '/src/world/catalog.js';
+const jobs=new Map();for(const [theme,c]of Object.entries(CATALOG))for(const kind of ['world','weapons','enemies','doors','props'])for(const a of c[kind])if(!jobs.has(a.model))jobs.set(a.model,{...a,theme,kind});
+const page=Number(new URLSearchParams(location.search).get('page'))||0,all=[...jobs.values()];document.querySelector('#title').textContent=`Catalog ${page+1} / ${Math.ceil(all.length/20)} · ${all.length} unique selectable models`;
+document.querySelector('#prev').href=`?page=${Math.max(0,page-1)}`;document.querySelector('#next').href=`?page=${Math.min(Math.ceil(all.length/20)-1,page+1)}`;
+for(const a of all.slice(page*20,(page+1)*20)){const f=document.createElement('figure'),i=document.createElement('img'),c=document.createElement('figcaption');i.src=`/assets/catalog/${a.theme}-${a.kind}-${a.id}.png`;i.alt=a.label;c.textContent=`${a.label} · ${a.theme} / ${a.kind}`;f.append(i,c);document.querySelector('main').append(f);}
+</script></html>

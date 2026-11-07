@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>R2 game export check</title>
+<h1>R2 game export check</h1>
+<button id="start">Test all three game exports</button>
+<pre id="report">Ready</pre>
+<script type="module">
+import { exportGame } from '/editor/exportGame.js';
+import { quickMission } from '/src/world/missionCard.js';
+const report=document.querySelector('#report'),button=document.querySelector('#start');
+button.onclick=async()=>{
+  button.disabled=true;const results=[];
+  try{
+    const selected=new URLSearchParams(location.search).get('theme');
+    for(const theme of ['arcade'].filter(t=>!selected||t===selected)){
+      report.textContent=JSON.stringify({status:'exporting',theme,results},null,2);
+      const zip=await exportGame(quickMission(theme));
+      const bytes=new Uint8Array(await zip.arrayBuffer()),view=new DataView(bytes.buffer);
+      if(view.getUint32(0,true)!==0x04034b50||view.getUint32(bytes.length-22,true)!==0x06054b50)throw Error('Invalid ZIP container');
+      const entries=view.getUint16(bytes.length-12,true);
+      if(entries<100)throw Error('Incomplete game archive');
+      results.push({theme,bytes:bytes.length,entries});
+    }
+    report.textContent=JSON.stringify({status:'passed',results},null,2);
+  }catch(error){report.textContent=JSON.stringify({status:'failed',error:String(error),results},null,2);}
+  finally{button.disabled=false;}
+};
+</script>

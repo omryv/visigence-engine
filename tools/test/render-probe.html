@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>render probe</title>
+  <script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+  <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}#err{position:fixed;inset:0;display:none;color:#f88;background:#200;font:13px monospace;white-space:pre-wrap;padding:12px}</style>
+</head>
+<body>
+<div id="stage"><canvas id="c"></canvas></div>
+<pre id="err"></pre>
+<script type="module">
+/**
+ * A bisecting page for the render modules, with no assets: builds only the parts the
+ * URL names into a bare scene and draws a few frames, so a node graph that kills the
+ * context can be found in a minute rather than by loading the whole studio.
+ *
+ *   ?parts=sky,fog,rig,shadow,post  &quality=quality  &frames=6  &theme=arcade&lighting=night
+ */
+import { Scene, PerspectiveCamera, Mesh, BoxGeometry, PlaneGeometry, MeshStandardMaterial, HemisphereLight,
+  DirectionalLight, PointLight, Vector3, Color } from 'three/webgpu';
+import { createRenderer, detectBackend } from '/src/core/Renderer.js';
+import { SkyEnvironment, createAtmosphereFog, createFogUniforms } from '/src/render/Sky.js';
+import { fitSunShadow } from '/src/render/SunShadow.js';
+import { LightRig } from '/src/render/LightRig.js';
+import { PostFX } from '/src/render/PostFX.js';
+import { PROFILES } from '/src/config/quality.js';
+import { lookFor, studioProfile } from '/src/config/looks.js';
+import { uniform } from 'three/tsl';
+
+const q = new URLSearchParams(location.search);
+const parts = new Set((q.get('parts') || '').split(',').filter(Boolean));
+const wantFrames = Number(q.get('frames')) || 6;
+const state = { status: 'booting', frames: 0, errors: [], ready: false, parts: [...parts] };
+const publish = () => { document.body.dataset.capture = JSON.stringify(state); };
+const fail = (stage, e) => { state.status = 'failed'; state.errors.push(`${stage}: ${e?.stack || e?.message || e}`); document.getElementById('err').style.display = 'block'; document.getElementById('err').textContent = state.errors.join('\n\n'); publish(); };
+addEventListener('error', e => { state.errors.push(String(e.message)); publish(); });
+addEventListener('unhandledrejection', e => { state.errors.push(String(e.reason?.message || e.reason)); publish(); });
+window.__capture = { status: () => state };
+
+try {
+  let canvas = document.getElementById('c');
+  const boot = await createRenderer({ canvas, tier: { maxPixelRatio: 1.5, shadows: true, shadowMapSize: 2048, softShadows: false },
+    onNeedFreshCanvas: () => { const n = canvas.cloneNode(); canvas.replaceWith(n); canvas = n; return n; },
+    onDeviceLost: (info) => fail('device lost', info?.message || 'device lost') });
+  const renderer = (await boot.settle()).renderer;
+  renderer.shadowMap.enabled = true;
+  renderer.setSize(innerWidth, innerHeight, false);
+  const look = lookFor({ theme: q.get('theme') || 'arcade', lighting: q.get('lighting') || 'night' });
+  const profile = studioProfile(q.get('quality') || 'quality', PROFILES.standard);
+  const scene = new Scene(); scene.background = new Color(0x223344);
+  const camera = new PerspectiveCamera(70, innerWidth / innerHeight, 0.06, 300); camera.position.set(0, 1.7, 8); camera.lookAt(0, 1, 0);
+  const vmScene = new Scene(); const vmCamera = new PerspectiveCamera(60, innerWidth / innerHeight, 0.01, 10); vmScene.add(vmCamera);
+  const hemi = new HemisphereLight(look.lighting.hemiSky, look.lighting.hemiGround, look.lighting.hemi); scene.add(hemi);
+  const sun = new DirectionalLight(look.lighting.sunColor, look.lighting.sun); sun.castShadow = parts.has('shadow'); sun.shadow.mapSize.set(2048, 2048);
+  sun.position.set(10, 20, 10); scene.add(sun, sun.target);
+  let sky = null;
+  if (parts.has('sky')) { sky = new SkyEnvironment(renderer, look.sky, { accent: 0x25eff0, probeSize: 128 }); sky.applyTo(scene, { environmentIntensity: look.lighting.env }); sun.userData.sunDir = sky.sunDir.clone(); }
+  if (parts.has('fog')) { const fu = createFogUniforms(look.fog, look.sky, sky ? sky.uniforms : { sunDir: uniform(new Vector3(0, 1, 0)) }); scene.fogNode = createAtmosphereFog(fu); }
+  const ground = new Mesh(new PlaneGeometry(80, 80), new MeshStandardMaterial({ color: 0x6fbe48 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  for (let i = 0; i < 6; i++) { const b = new Mesh(new BoxGeometry(1, 1 + i * 0.5, 1), new MeshStandardMaterial({ color: 0x8899aa, roughness: 0.5 })); b.position.set(-5 + i * 2, (1 + i * 0.5) / 2, -2); b.castShadow = b.receiveShadow = true; scene.add(b); }
+  let rig = null;
+  if (parts.has('rig')) { rig = new LightRig(scene, profile.lights); for (let i = 0; i < 10; i++) { const l = new PointLight(0x8ddfff, 30, 16, 2); l.position.set(-10 + i * 2.2, 5, 2); scene.add(l); rig.add(l); } }
+  let post = null;
+  if (parts.has('post')) { post = new PostFX({ renderer, worldScene: scene, worldCamera: camera, viewmodelScene: vmScene, viewmodelCamera: vmCamera }, profile); post.setLook(look); }
+  state.backend = detectBackend(renderer); state.status = 'drawing'; publish();
+  renderer.setAnimationLoop(() => {
+    try {
+      if (parts.has('shadow') && sky) fitSunShadow(sun, new Vector3(0, 0, 0), { halfExtent: 26 });
+      if (rig) rig.update(camera.position, null, 0, 1 / 60);
+      if (post) post.render(); else renderer.render(scene, camera);
+      state.frames++;
+      if (state.frames === wantFrames) { state.ready = true; state.status = 'ready'; state.draws = renderer.info.render.drawCalls ?? renderer.info.render.calls; publish(); renderer.setAnimationLoop(null); }
+    } catch (e) { renderer.setAnimationLoop(null); fail('frame', e); }
+  });
+} catch (e) { fail('boot', e); }
+</script>
+</body>
+</html>

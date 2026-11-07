@@ -1,0 +1,15 @@
+<!-- @dsCard group="Selection" height=80 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'vg-stage', style: { gap: 'var(--space-5)' } },
+    h(V.Segmented, { label: 'Genre', options: [{ value: 'shooter', label: 'Shooter' }, { value: 'exploration', label: 'Exploration' }] }),
+    h(V.Segmented, { options: [{ value: 'play', label: 'Play' }, { value: 'remix', label: 'Remix' }, { value: 'publish', label: 'Publish' }], defaultValue: 'remix' })));
+
+</script>
+</body>
+</html>

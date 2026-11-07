@@ -1,0 +1,72 @@
+{
+  "status": "ready",
+  "frames": 90,
+  "errors": [],
+  "ready": true,
+  "backend": "webgpu",
+  "draws": 329,
+  "triangles": 682300,
+  "buffer": [
+    1397,
+    900
+  ],
+  "css": [
+    1397,
+    900
+  ],
+  "post": {
+    "ao": true,
+    "ssr": false,
+    "traa": true,
+    "bloom": true,
+    "dof": false,
+    "film": true,
+    "volumetric": false
+  },
+  "lights": {
+    "visible": 8,
+    "emitters": 6
+  },
+  "pose": {
+    "position": [
+      0,
+      0,
+      28
+    ],
+    "yaw": 0,
+    "pitch": 0
+  },
+  "lookAtCapture": {
+    "sun": 2.9,
+    "sunColor": 16767408,
+    "hemiSky": 10272989,
+    "hemiGround": 5196354,
+    "hemi": 0.95,
+    "env": 0.85,
+    "exposure": 1.14,
+    "lamps": 0,
+    "lampColor": 16764308,
+    "wet": 0.25
+  },
+  "viewLight": {
+    "hemi": 1.52,
+    "key": 2.465
+  },
+  "firstPerson": {
+    "authored": true,
+    "body": false,
+    "arms": false,
+    "meshes": [
+      "ChargingHandle_Stem",
+      "ChargingHandle_Tab",
+      "leftHand_Mesh",
+      "Magazine_Fresh",
+      "Magazine_Old",
+      "rightHand_Mesh",
+      "SMG_Receiver",
+      "Trigger"
+    ]
+  },
+  "quality": "balanced",
+  "seed": "K7QN-3F2A-9XBD"
+}

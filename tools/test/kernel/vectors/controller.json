@@ -1,0 +1,18 @@
+{
+  "climb": {
+    "flatPerClimb": 8.333333333333334,
+    "flatPerDescent": 0,
+    "rule": "naismith"
+  },
+  "head": 1.9,
+  "kind": "visigenesis.controller",
+  "maxSlope": 0.85,
+  "radius": 0.42,
+  "run": 14,
+  "stepUp": 0.55,
+  "swim": 3.5,
+  "swimRun": 7,
+  "version": 1,
+  "wadeDepth": 0.9,
+  "walk": 6
+}

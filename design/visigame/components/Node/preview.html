@@ -1,0 +1,16 @@
+<!-- @dsCard group="Blueprint" height=250 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'vg-stage', style: { gap: 'var(--space-7)', padding: 'var(--space-6)', alignItems: 'flex-start' } },
+    h(V.Node, { kind: 'World pool', icon: 'mountain', title: 'Meadow Village', outputs: [{ label: 'World', type: 'asset', connected: true }] }, 'Temperate · houses, trees, landmarks'),
+    h(V.Node, { kind: 'Objective', icon: 'target', title: 'Activate controls', selected: true, status: h(V.Tally, { state: 'ready' }, '3'), inputs: [{ label: 'Previous', type: 'flow', connected: true }], outputs: [{ label: 'Next', type: 'flow' }] }),
+    h(V.Node, { kind: 'Output', icon: 'bolt', title: 'Playable game', inputs: [{ label: 'World', type: 'asset', connected: true }, { label: 'Mission', type: 'flow', connected: true }], outputs: [{ label: 'Build', type: 'output', connected: true }] })));
+
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+{
+  "bucket": "game-engine",
+  "origin": "https://pub-f1c1beced9f54323ac7db4d8f77fc346.r2.dev",
+  "files": [
+    {
+      "path": "assets/v2/landing/focus-near.jpg",
+      "remotePath": "assets/v2/landing/focus-near.jpg",
+      "key": "assets/v2/landing/focus-near.jpg",
+      "bytes": 84173,
+      "sha256": "ea039783e8e13e092be09dd35b50d7f46245d52c8f1629603bb2776fade7dc09",
+      "purpose": "Landing hero plate, focus 11.8 m (f/0.35)"
+    },
+    {
+      "path": "assets/v2/landing/focus-mid.jpg",
+      "remotePath": "assets/v2/landing/focus-mid.jpg",
+      "key": "assets/v2/landing/focus-mid.jpg",
+      "bytes": 131842,
+      "sha256": "845f95465dc9d0fa5c3fff4f7175b8f40a3c0afa64ccb3efe607d4037d51c160",
+      "purpose": "Landing hero plate, focus 43.6 m (f/0.2)"
+    },
+    {
+      "path": "assets/v2/landing/focus-far.jpg",
+      "remotePath": "assets/v2/landing/focus-far.jpg",
+      "key": "assets/v2/landing/focus-far.jpg",
+      "bytes": 98143,
+      "sha256": "9c6d46441f5af14ed005dc3f0500c7abff704021aa62957c6d56a1be2c609f0a",
+      "purpose": "Landing hero plate, focus 98 m (f/0.1)"
+    },
+    {
+      "path": "assets/v2/landing/card-meadow.jpg",
+      "remotePath": "assets/v2/landing/card-meadow.jpg",
+      "key": "assets/v2/landing/card-meadow.jpg",
+      "bytes": 46970,
+      "sha256": "901f07341fa8047564522af989a4b925229c4210fb075bdd672f8c05434c89ce",
+      "purpose": "Landing world card: Meadow Village"
+    },
+    {
+      "path": "assets/v2/landing/card-desert.jpg",
+      "remotePath": "assets/v2/landing/card-desert.jpg",
+      "key": "assets/v2/landing/card-desert.jpg",
+      "bytes": 26424,
+      "sha256": "b3fb454d6fad830d66f9a035e8f7cb62ccc78d819f2a7786fbed851996c02d87",
+      "purpose": "Landing world card: Desert Oasis"
+    },
+    {
+      "path": "assets/v2/landing/card-snow.jpg",
+      "remotePath": "assets/v2/landing/card-snow.jpg",
+      "key": "assets/v2/landing/card-snow.jpg",
+      "bytes": 25020,
+      "sha256": "32eef4966ed3cf8d21012676ba0fc1195ffccaf0119403cbba4eb1608513db65",
+      "purpose": "Landing world card: Snow Village"
+    },
+    {
+      "path": "assets/v2/landing/bee.glb",
+      "remotePath": "assets/v2/landing/bee.glb",
+      "key": "assets/v2/landing/bee.glb",
+      "bytes": 214192,
+      "sha256": "6eae7abc1d5565e7bbba5529a0735fa71b78930ad49565a4b9d8011cc4863e2c",
+      "purpose": "Landing page live bee: rig with Fly, Flap, Hover and Hey clips"
+    },
+    {
+      "path": "assets/v2/landing/transition-dive.mp4",
+      "remotePath": "assets/v2/landing/transition-dive.mp4",
+      "key": "assets/v2/landing/transition-dive.mp4",
+      "bytes": 462103,
+      "sha256": "bd9ccb7fc5f42437f2703e72613241616917a50bea68f2aea82636926f230f0b",
+      "purpose": "Landing to studio: the Blender dive into the diorama, 36 frames H.264"
+    },
+    {
+      "path": "assets/v2/landing/transition-end.jpg",
+      "remotePath": "assets/v2/landing/transition-end.jpg",
+      "key": "assets/v2/landing/transition-end.jpg",
+      "bytes": 20272,
+      "sha256": "e7034bb3ecadb41aa0d47e4a2fcacfaf4c8d8d8dce34ba534f73baeeb874d289",
+      "purpose": "The dive's last frame; the studio opens on it and defocuses into the canvas"
+    }
+  ]
+}

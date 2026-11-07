@@ -1,0 +1,18 @@
+{
+  "name": "@omryv/visigence-engine",
+  "version": "0.1.0",
+  "description": "Visigence Engine: one WebGPU engine for a seed's world, the games played on it, and the studio that makes them.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "peerDependencies": {
+    "three": "^0.185.1"
+  },
+  "scripts": {
+    "check": "node tools/check-imports.mjs && node tools/three/check.mjs",
+    "three:locate": "node tools/three/locate.mjs",
+    "three:vendor": "node tools/three/vendor.mjs",
+    "test": "node tools/test/run.mjs",
+    "assets:fetch": "node tools/build/fetch-runtime-assets.mjs"
+  }
+}

@@ -1,0 +1,24 @@
+<!-- @dsCard group="Actions" height=150 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Preview</title></head>
+<body>
+<div id="root"></div>
+<script>
+  var V = window.Visigame, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'vg-stack' },
+    h('div', { style: { display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexWrap: 'wrap' } },
+      h(V.Button, { variant: 'primary', size: 'lg', icon: 'bolt', iconEnd: 'arrow' }, 'Generate & play'),
+      h(V.Button, { size: 'lg', icon: 'download' }, 'Export project'),
+      h(V.Button, { variant: 'ghost', size: 'lg' }, 'Choose a world')),
+    h('div', { style: { display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexWrap: 'wrap' } },
+      h(V.Button, { variant: 'primary', icon: 'play', shortcut: 'Space' }, 'Start mission'),
+      h(V.Button, null, 'Beat this'),
+      h(V.Button, { variant: 'danger' }, 'Delete world'),
+      h(V.Button, { icon: 'undo', 'aria-label': 'Undo' }),
+      h(V.Button, { icon: 'redo', 'aria-label': 'Redo', disabled: true }),
+      h(V.Button, { variant: 'secondary', size: 'lg', icon: 'play', 'aria-label': 'Play' }))));
+
+</script>
+</body>
+</html>
