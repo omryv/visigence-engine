@@ -1,0 +1,67 @@
+/* ══ THE CURSOR ══
+   A dot, its wake, and a lens. js/cursor.js builds the layer; this is what it
+   looks like.
+
+   ITS OWN STYLESHEET BECAUSE IT HAS TWO READERS. The editor drew it first and
+   the landing page draws the same object now — the hand is the product's, not
+   one page's — and the moment a rule like this is pasted into a second sheet
+   it starts drifting from the first. Linked by editor.html and index.html.
+
+   The two custom properties it used to inherit from the editor's palette are
+   declared here with fallbacks, so the sheet stands up on a page that has
+   never heard of them. */
+:root {
+  --cur-ink: #eef1f4;
+  --cur-snap: cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+
+body.cur-live, body.cur-live button, body.cur-live a, body.cur-live select,
+body.cur-live canvas, body.cur-live [role="button"], body.cur-live kbd,
+body.cur-live input[type="range"], body.cur-live input[type="checkbox"],
+body.cur-live label { cursor: none; }
+#cursor-layer { position: fixed; inset: 0; z-index: 120; pointer-events: none; transition: opacity 0.25s var(--cur-snap); }
+#cursor-layer.parked { opacity: 0; }
+#cursor-layer.ibeam .cur-dot, #cursor-layer.ibeam .cur-trail { opacity: 0 !important; }
+.cur-dot {
+  position: absolute; top: 0; left: 0;
+  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%; background: var(--cur-ink);
+  box-shadow: 0 0 8px rgba(238, 241, 244, 0.55), 0 1px 2px rgba(0, 0, 0, 0.45);
+  transition: opacity 0.2s var(--cur-snap);
+}
+.cur-trail {
+  position: absolute; top: 0; left: 0;
+  width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%; background: var(--cur-ink);
+  transition: opacity 0.2s var(--cur-snap);
+}
+/* The lens is looked THROUGH, so the blur stays under a pixel. The holder
+   carries position (JS); this carries scale and shape (CSS), so the morph
+   never fights the follow. */
+.cur-ring-hold { position: absolute; top: 0; left: 0; }
+.cur-ring {
+  position: absolute; top: 0; left: 0;
+  width: 52px; height: 52px; margin: -26px 0 0 -26px;
+  display: block; border-radius: 50%;
+  background:
+    radial-gradient(circle at 33% 28%, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.03) 46%, transparent 70%),
+    radial-gradient(circle at 70% 78%, rgba(255, 255, 255, 0.055), transparent 55%);
+  backdrop-filter: blur(0.75px) saturate(1.2) brightness(1.06) contrast(1.03);
+  -webkit-backdrop-filter: blur(0.75px) saturate(1.2) brightness(1.06) contrast(1.03);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+    inset 0 1px 3px rgba(255, 255, 255, 0.36),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2),
+    0 3px 14px rgba(0, 0, 0, 0.3);
+  transform: scale(0); opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.34, 1.45, 0.5, 1),
+              opacity 0.22s var(--cur-snap),
+              border-radius 0.7s cubic-bezier(0.34, 1.3, 0.45, 1);
+}
+.cur-ring.on { transform: scale(1); opacity: 1; }
+.cur-ring.on.held { animation: curBlob 2.1s ease-in-out infinite; }
+@keyframes curBlob {
+  0%, 100% { border-radius: 34% 66% 62% 38% / 60% 36% 64% 40%; transform: scale(1.14) rotate(0deg); }
+  33%      { border-radius: 64% 36% 40% 60% / 38% 62% 38% 62%; transform: scale(1.08) rotate(8deg); }
+  66%      { border-radius: 42% 58% 66% 34% / 64% 40% 60% 36%; transform: scale(1.16) rotate(-6deg); }
+}

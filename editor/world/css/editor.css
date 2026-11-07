@@ -1,0 +1,1740 @@
+/* WorldFoundry — the machined system.
+   ══════════════════════════════════════════════════════════════════════════
+
+   THE BRIEF. Treat the interface as precision-machined hardware, not as SVG
+   widgets. One alloy, one lamp, one set of corners, one border budget, one
+   type hierarchy — and a viewport the whole thing is built to frame.
+
+   ── ONE LAMP ───────────────────────────────────────────────────────────────
+   There is exactly one light source in this interface, above and slightly to
+   the left, and every surface is described in terms of it. That single
+   decision is what replaces the old decorative gradients: nothing here fades
+   from one colour to another because a fade looked good, it does it because
+   that is what this alloy does under that lamp.
+
+     A RAISED face  catches the lamp on its top edge (a 1px specular line),
+                    carries a soft wash where the light lands, and darkens
+                    toward its lower edge as it turns away.
+     A CUT face     is in shadow from the lip above it and catches a thin
+                    bounce on the lower inside edge. That is a recess, and it
+                    is how every field, track, screen and list floor is made.
+     CONTACT        every floating body lays a tight dark line under itself,
+                    then its own mass, then the room. Three shadows, never
+                    one: one shadow is a drawing of a shadow.
+
+   ── FIVE ELEVATIONS, AND NOTHING BETWEEN THEM ──────────────────────────────
+     E0  the world          the canvas. Nothing is drawn on it.
+     E1  a CUT              a recess in a face: fields, tracks, screens, lists
+     E2  a FACE             the body of a module
+     E3  a KEY              a control standing proud of a face
+     E4  a MODULE           a body floating over the world: bars, deck, rail
+     E5  an OVERLAY         transient, over a dimmed scene — the only glass
+
+   ── THE BORDER BUDGET ──────────────────────────────────────────────────────
+   The previous system drew 69 edges. This one draws 38 — a 45% reduction —
+   and every one that survives is doing a job no shadow can do:
+
+     · a SIGNAL       chosen (blue), armed (amber), destructive (red), focus
+     · a JUNCTION     a hairline where two materials genuinely meet inside one
+                      body, e.g. a module's head against its scroll
+
+   A module's own edge is its lit top and its shadow. It gets no outline,
+   because hardware does not have one.
+
+   ── COLOUR ────────────────────────────────────────────────────────────────
+   Near-monochrome graphite, and three signals that have never meant anything
+   else here:
+
+     ACCENT (amber)  the commit — the primary key, and an armed tool. Armed
+                     remains the only state in the system that MOVES.
+     SELECT (blue)   what is chosen: an object, an option, a tab.
+     DANGER (red)    what cannot be undone.
+
+   Everything else communicates the way hardware does: by getting brighter.
+
+   ── THE FRAME ─────────────────────────────────────────────────────────────
+   THE VIEWPORT IS THE HERO. Chrome is pinned to the EDGES — a bar along the
+   top, a deck along the bottom, one instrument in the bottom-left corner, and
+   ONE RAIL down the right — and the middle of the screen is never covered by
+   any of it. The block library, the world settings and the object register
+   are the same rail at the same coordinates; one is open at a time. Choosers
+   that used to black the screen out are popovers anchored under the button
+   that opened them.
+
+   Type is the system stack — no font host is permitted by the CSP — in three
+   voices: micro-caps for anything naming a value, the text face for controls,
+   mono for every value itself. Built touch-first: 44px targets, and nothing
+   in here needs a hover to be usable. */
+
+:root {
+  /* ── the alloy ──
+     Anodized graphite. Two stops per material, and the second is always the
+     first turned away from the lamp — never a different hue. */
+  --bg: #08090b;
+  --face-hi: #16191e;    /* a module's face, where the light lands  */
+  --face-lo: #0e1014;    /* …and where it turns away                */
+  --bar-hi: #14171b;     /* bars sit one step quieter than sheets   */
+  --bar-lo: #0c0e11;
+  --key-hi: #1d2127;     /* a raised key                            */
+  --key-lo: #14171c;
+  --key-hot-hi: #242931; /* …under the hand                         */
+  --key-hot-lo: #191d23;
+  --cut-floor: #050608;  /* the floor of a recess                   */
+
+  /* ── the lamp ──
+     The specular line along a top edge, and the wash where the light lands.
+     The wash is a radial pinned OUTSIDE the top-left corner of whatever
+     carries it, which is what keeps every module lit by the same lamp instead
+     of each one carrying its own private gradient. */
+  --lit: inset 0 1px 0 rgba(255, 255, 255, 0.072);
+  --lit-key: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --wash: radial-gradient(140% 180% at 20% -40%, rgba(255, 255, 255, 0.055), transparent 64%);
+  --wash-key: radial-gradient(150% 200% at 26% -50%, rgba(255, 255, 255, 0.07), transparent 66%);
+
+  /* ── the cut ──
+     Shadow from the lip, then a bounce on the lower inside edge. A recess
+     with no bounce reads as a hole; the bounce is what makes it a machined
+     pocket. */
+  --cut: inset 0 2px 5px rgba(0, 0, 0, 0.6),
+         inset 0 1px 1px rgba(0, 0, 0, 0.72),
+         inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  --cut-deep: inset 0 3px 9px rgba(0, 0, 0, 0.7),
+              inset 0 1px 1px rgba(0, 0, 0, 0.8),
+              inset 0 -1px 0 rgba(255, 255, 255, 0.045);
+
+  /* ── ambient occlusion ── contact, mass, room. */
+  --ao-bar: 0 1px 1px rgba(0, 0, 0, 0.6), 0 5px 14px rgba(0, 0, 0, 0.34),
+            0 18px 40px rgba(0, 0, 0, 0.26);
+  --ao-rail: 0 1px 2px rgba(0, 0, 0, 0.62), 0 10px 26px rgba(0, 0, 0, 0.42),
+             0 34px 76px rgba(0, 0, 0, 0.38);
+  --ao-pop: 0 2px 4px rgba(0, 0, 0, 0.6), 0 16px 40px rgba(0, 0, 0, 0.5),
+            0 46px 110px rgba(0, 0, 0, 0.44);
+  --ao-overlay: 0 2px 5px rgba(0, 0, 0, 0.62), 0 26px 66px rgba(0, 0, 0, 0.56),
+                0 70px 150px rgba(0, 0, 0, 0.5);
+  --ao-key: 0 1px 1px rgba(0, 0, 0, 0.52), 0 3px 7px rgba(0, 0, 0, 0.3);
+  --ao-key-up: 0 1px 1px rgba(0, 0, 0, 0.5), 0 6px 14px rgba(0, 0, 0, 0.34);
+
+  /* ── junctions ── the only hairlines left. */
+  --seam: rgba(255, 255, 255, 0.055);
+  --seam-2: rgba(255, 255, 255, 0.1);
+
+  /* ── type ── neutral; warmth belongs to the accent alone. */
+  --text: #eef1f4;
+  --text-2: #99a2ab;
+  --text-3: #5c646d;
+  --text-4: #414850;
+
+  /* ── the signals ── */
+  --acc: #f2a13f;
+  --acc-hi: #ffc476;
+  --acc-ink: #1c1103;
+  --acc-dim: rgba(242, 161, 63, 0.13);
+  --acc-line: rgba(242, 161, 63, 0.55);
+  --ion: #5aa9f2;
+  --ion-dim: rgba(90, 169, 242, 0.13);
+  --ion-line: rgba(90, 169, 242, 0.55);
+  --danger: #f2564a;
+  --danger-dim: rgba(242, 86, 74, 0.14);
+  --good: #62d29a;
+  --signal-hot: #ffffff;
+  --signal-dim: rgba(255, 255, 255, 0.055);
+
+  /* ── geometry ── one corner family, machined not moulded. */
+  --r-xl: 17px;   /* rails, overlays   */
+  --r-lg: 13px;   /* modules           */
+  --r-md: 9px;    /* keys, cards       */
+  --r-sm: 6px;    /* cuts, chips       */
+  --r-xs: 4px;    /* micro             */
+
+  /* ── the spacing scale ── every gap in this file is one of these. */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 26px; --s7: 34px;
+
+  /* Two curves. Snap is for state that flips; glide is for things that
+     travel. */
+  --snap: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --glide: cubic-bezier(0.36, 0.8, 0.12, 1);
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Micro-caps are the workhorse label of this interface. */
+  --t-key: 9.5px;
+  --t-xs: 10.5px;
+  --t-sm: 12px;
+  --t-md: 13px;
+  --t-lg: 15px;
+  --track: 0.15em;
+
+  /* ── the frame ── */
+  --gap: 12px;
+  --bar-h: 42px;
+  --deck-h: 54px;
+  /* The letterbox during a build's arrival flight. A token because two rules
+     have to agree about it: the bars are drawn this tall, and the shot
+     caption is parked just under them. */
+  --film-bar: 9.5vh;
+  --rail-w: 396px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --edge-t: max(var(--gap), env(safe-area-inset-top));
+  --edge-r: max(var(--gap), env(safe-area-inset-right));
+  --edge-l: max(var(--gap), env(safe-area-inset-left));
+  --edge-b: max(var(--gap), var(--safe-b));
+  /* The line every floating body under the top bar starts at, and the line
+     every one above the deck stops at. Declared once so the frame cannot
+     drift out of alignment one module at a time. */
+  --frame-top: calc(var(--edge-t) + var(--bar-h) + var(--s3));
+  --frame-bottom: calc(var(--edge-b) + var(--deck-h) + var(--s3));
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+
+/* Cross-document transitions: a browser that can cross-fade whole documents
+   may, between this page and /make. */
+@view-transition { navigation: auto; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--t-md);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; }
+/* Any rule that sets `display` outranks the hidden attribute's UA default, so
+   state that lives in markup has to be re-asserted here. */
+[hidden] { display: none !important; }
+svg { width: 100%; height: 100%; display: block; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+/* ONE STROKE WEIGHT across the entire glyph set. The icons are authored at
+   1.6 and CSS outranks the presentation attribute, so this is the single
+   source of truth for the whole hand. */
+[data-icon] svg, .thumb svg, .ci-icon svg, .held-thumb svg,
+.or-thumb svg { stroke-width: 1.5; }
+
+/* ── the three voices ──
+   1 · the KEY: anything that names a value rather than being read as prose. */
+.rd-key, .panel-title, .rail-sub, .dock-group, .cmd-group, .ex-note, .sp-title {
+  font-size: var(--t-key);
+  font-weight: 700;
+  letter-spacing: var(--track);
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.rd-key { white-space: nowrap; }
+
+/* 2 · a keycap: the one control the whole world already knows as machined. */
+kbd {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  padding: 2px 5px;
+  border-radius: var(--r-xs);
+  color: var(--text-2);
+  background: linear-gradient(180deg, #1e2229, #14171b);
+  /* Two shadows, no border: the lit top and the seat under it ARE the cap. */
+  box-shadow: var(--lit-key), 0 1px 0 rgba(0, 0, 0, 0.7);
+}
+
+/* Text that exists only for assistive tech. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THE MATERIALS
+   Four constructions. Every panel, bar, popup, field, tab, card and
+   button in this product is one of them, with no exceptions and no
+   local variants.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── E4 · A MODULE ──
+   A body of alloy floating over the world. Lit top, the lamp's wash, and the
+   three-part contact stack. No outline: hardware does not have one, and the
+   ring this used to carry was the single biggest line in the old border
+   budget. Opaque wherever it is permanent — a compositor-priced blur has no
+   business running under a live 3D canvas, and anodized metal is not glass. */
+.mod {
+  position: relative;
+  border-radius: var(--r-lg);
+  background: var(--wash), linear-gradient(180deg, var(--face-hi), var(--face-lo));
+  box-shadow: var(--lit), var(--ao-rail);
+}
+/* Bars are the quiet furniture at the screen's edges. */
+.mod.bar {
+  background: var(--wash), linear-gradient(180deg, var(--bar-hi), var(--bar-lo));
+  box-shadow: var(--lit), var(--ao-bar);
+}
+/* A popover is a module that arrived: it sits closer to the eye, so its
+   contact stack is deeper and its corners are the module family's largest. */
+.mod.pop {
+  border-radius: var(--r-lg);
+  box-shadow: var(--lit), var(--ao-pop);
+  animation: popIn 0.22s var(--snap);
+}
+@keyframes popIn { from { opacity: 0; transform: translateY(-6px) scale(0.99); } }
+/* An overlay is the ONE glass in the system, and it is glass because it is
+   transient and sits over a scene that has been dimmed for it. */
+.mod.overlay {
+  border-radius: var(--r-xl);
+  background: var(--wash), linear-gradient(180deg, rgba(23, 26, 31, 0.9), rgba(13, 15, 18, 0.94));
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  box-shadow: var(--lit), var(--ao-overlay);
+}
+
+/* ── E1 · A CUT ──
+   A recess machined into a face. Every field, track, screen and list floor in
+   the product is this and nothing else. */
+.cut, .field, input[type="text"], input[type="search"], select, #minimap,
+#dock-cats, #obj-list, .obj-sort-wrap select {
+  background: var(--cut-floor);
+  box-shadow: var(--cut);
+}
+
+/* ── E3 · A KEY ──
+   Anything pressable that is not the commit. Machined face, the lamp on its
+   top edge, and it TRAVELS when pressed — which is the whole reason to build
+   a key rather than fill a div. */
+.key, .chz, #dock-cats button.active, #obj-flags button,
+#obj-nav button, .sel-acts button, .ob-acts button, .sp-axis button,
+#sculpt-modes button.active, #export-watch, #held-change, #sp-reset,
+#site-cards button, #structure-cards button, .opt-row button,
+#sp-styles button {
+  border-radius: var(--r-md);
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: var(--lit-key), var(--ao-key);
+  color: var(--text-2);
+  transition: background 0.16s var(--snap), box-shadow 0.16s var(--snap),
+              color 0.16s var(--snap), transform 0.12s var(--snap);
+}
+.key:hover, .chz:hover, #obj-flags button:hover,
+#obj-nav button:hover, .sel-acts button:hover, .ob-acts button:hover,
+.sp-axis button:hover, #export-watch:hover, #held-change:hover, #sp-reset:hover,
+#site-cards button:hover, #structure-cards button:hover, .opt-row button:hover,
+#sp-styles button:hover {
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hot-hi), var(--key-hot-lo));
+  box-shadow: var(--lit-key), var(--ao-key-up);
+  color: var(--text);
+}
+.key:active, .chz:active, #obj-nav button:active,
+.sel-acts button:active, .ob-acts button:active, .sp-axis button:active {
+  transform: translateY(1px);
+  box-shadow: var(--lit-key), 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+/* CHOSEN is a signal, and a signal is one of the four things still allowed to
+   draw an edge. Inset, so it reads as anodize under the rim rather than as
+   paint over the face — and it survives on top of hover instead of being
+   cancelled by it. */
+.chz.active, #site-cards button.active, #structure-cards button.active,
+.opt-row button.active, #sp-styles button.active, #obj-flags button.on {
+  color: var(--text);
+  background:
+    linear-gradient(180deg, rgba(90, 169, 242, 0.16), rgba(90, 169, 242, 0.04)),
+    var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: inset 0 0 0 1px var(--ion-line), var(--lit-key), var(--ao-key);
+}
+
+/* ── E3 · THE COMMIT ──
+   The one accent-anodized key per surface: the action that finishes
+   something. Real anodize is a bright shoulder, a saturated body and a dark
+   heel, with the type struck INTO it rather than laid on top. */
+.plate {
+  position: relative;
+  border-radius: var(--r-md);
+  background:
+    radial-gradient(120% 160% at 26% -30%, rgba(255, 255, 255, 0.4), transparent 58%),
+    linear-gradient(180deg, #f6ba63 0%, #eca340 48%, #d4851f 100%);
+  color: var(--acc-ink);
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 210, 0.7),
+    inset 0 -1px 0 rgba(84, 47, 4, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.5), 0 5px 14px rgba(0, 0, 0, 0.34),
+    0 2px 14px rgba(242, 161, 63, 0.16);
+  transition: filter 0.16s var(--snap), transform 0.14s var(--snap),
+              box-shadow 0.16s var(--snap);
+}
+.plate:hover { filter: brightness(1.06) saturate(1.03); transform: translateY(-1px); }
+.plate:active {
+  transform: translateY(1px);
+  filter: brightness(0.95);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 210, 0.45),
+              inset 0 -1px 0 rgba(84, 47, 4, 0.55), 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+.plate:disabled { filter: grayscale(0.7) brightness(0.6); pointer-events: none; }
+.plate span[data-icon] svg { stroke: var(--acc-ink); }
+
+/* ── fields ── */
+input[type="text"], input[type="search"] {
+  height: 36px; padding: 0 var(--s3);
+  border-radius: var(--r-sm);
+  border: 0; color: var(--text); font-size: var(--t-sm); width: 100%;
+  transition: box-shadow 0.18s var(--snap);
+}
+input[type="search"]:focus, input[type="text"]:focus {
+  outline: none;
+  box-shadow: var(--cut), inset 0 0 0 1px var(--ion-line);
+}
+/* A native select carries the platform's own chevron, which is the one
+   control that would arrive wearing somebody else's design. Stripped, and
+   given the system's own mark drawn in the padding. */
+select {
+  height: 32px; padding: 0 26px 0 var(--s2);
+  border-radius: var(--r-sm); border: 0;
+  -webkit-appearance: none; appearance: none;
+  color: var(--text); font-size: var(--t-sm); cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-3) 50%, var(--text-3) 56%, transparent 56%),
+    linear-gradient(-45deg, transparent 50%, var(--text-3) 50%, var(--text-3) 56%, transparent 56%);
+  background-position: right 13px center, right 8px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+select option { background: #14171b; color: var(--text); }
+::placeholder { color: var(--text-4); }
+
+/* ── the icon key ── the smallest control in the system. */
+.icon-btn {
+  width: 30px; height: 30px; flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  transition: color 0.16s var(--snap), background 0.16s var(--snap);
+}
+.icon-btn span { width: 15px; height: 15px; }
+.icon-btn:hover { color: var(--signal-hot); background: var(--signal-dim); }
+
+/* ── the world ── */
+#viewport { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+/* A vignette, not a frame: it seats the chrome without drawing an edge. */
+#vignette {
+  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  background:
+    radial-gradient(122% 92% at 50% 42%, transparent 54%, rgba(0, 0, 0, 0.42) 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.3), transparent 15%, transparent 76%, rgba(0, 0, 0, 0.38));
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THE TOP EDGE — identity, the world's name, live telemetry, and the
+   one lamp that says where this session's state lives.
+   ══════════════════════════════════════════════════════════════════ */
+#readout {
+  position: fixed; z-index: 20;
+  top: var(--edge-t); left: var(--edge-l);
+  display: flex; align-items: center; gap: var(--s3);
+  height: var(--bar-h); padding: 0 var(--s3);
+}
+/* A rule inside one body is a JUNCTION, and a junction is quiet. */
+.rd-rule { width: 1px; height: 15px; flex: none; background: var(--seam-2); }
+
+/* The mark is ENGRAVED. Cut type — a dark heel and a lit shoulder — rather
+   than a cast plaque, which would be the one illustrated object inside a
+   machined room. */
+#mark {
+  display: flex; align-items: baseline; gap: 1px;
+  text-decoration: none; white-space: nowrap;
+  font-size: var(--t-sm); letter-spacing: 0.19em;
+  transition: filter 0.2s var(--snap);
+}
+#mark b { font-weight: 750; color: var(--text); }
+#mark i { font-style: normal; font-weight: 400; color: var(--text-3); }
+#mark:hover b { color: var(--signal-hot); }
+#mark:hover i { color: var(--text-2); }
+
+#seed-chip { display: flex; align-items: center; gap: var(--s2); cursor: pointer; min-width: 0; }
+#seed-text {
+  font-size: var(--t-sm); font-weight: 600; color: var(--text);
+  letter-spacing: 0.07em; white-space: nowrap;
+}
+#seed-chip:hover #seed-text { color: var(--signal-hot); }
+/* The seed pulses when the world changes — the one place motion ANNOUNCES
+   state rather than answering an input. */
+#seed-text.pulse { animation: seedPulse 0.7s var(--snap); }
+@keyframes seedPulse {
+  0% { color: var(--signal-hot); text-shadow: 0 0 14px rgba(255, 255, 255, 0.7); }
+  100% { color: var(--text); text-shadow: none; }
+}
+#seed-roll {
+  width: 26px; height: 26px; flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm); color: var(--text-4);
+  transition: color 0.18s var(--snap), background 0.18s var(--snap), transform 0.4s var(--snap);
+}
+#seed-roll span { width: 14px; height: 14px; }
+#seed-roll:hover { color: var(--signal-hot); background: var(--signal-dim); transform: rotate(-180deg); }
+
+#telemetry { display: flex; align-items: center; gap: var(--s3); }
+.tl { display: flex; align-items: baseline; gap: var(--s1); }
+.tl .mono { font-size: var(--t-xs); color: var(--text-2); min-width: 36px; }
+
+/* The sandbox lamp: a green LED with its own bloom, and the word beside it.
+   It is a reading, not a badge — js/vault.js is what makes it true. */
+#sandbox { display: flex; align-items: center; gap: 7px; cursor: default; }
+#sandbox i {
+  width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: var(--good);
+  box-shadow: 0 0 7px rgba(98, 210, 154, 0.85), inset 0 -1px 1px rgba(0, 0, 0, 0.35);
+  animation: lamp 3.4s var(--glide) infinite;
+}
+@keyframes lamp { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+#sandbox .rd-key { color: var(--text-4); }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   ACTIONS
+   ══════════════════════════════════════════════════════════════════ */
+#actions {
+  position: fixed; z-index: 30;
+  top: var(--edge-t); right: var(--edge-r);
+  display: flex; align-items: center; gap: var(--s2);
+}
+#history-btns { display: flex; align-items: center; height: var(--bar-h); padding: 0 var(--s1); }
+#history-btns button {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  color: var(--text-2); border-radius: var(--r-sm);
+  transition: color 0.16s var(--snap), background 0.16s var(--snap);
+}
+#history-btns button span { width: 16px; height: 16px; }
+#history-btns button:hover:not(:disabled) { color: var(--signal-hot); background: var(--signal-dim); }
+#history-btns button:disabled { color: var(--text-4); opacity: 0.4; cursor: default; }
+
+/* The world as a file — the same shape as the history group, and next to it
+   on purpose. Undo and Save are the same class of act: both are about not
+   losing what you have. Save carries its label because it is the one people
+   look for; Open is the glyph alone, or the pair would outweigh the seed
+   readout beside them. */
+#file-btns { display: flex; align-items: center; height: var(--bar-h); padding: 0 var(--s1); gap: 2px; }
+#file-btns button {
+  height: 30px; display: flex; align-items: center; gap: var(--s2);
+  padding: 0 var(--s2); color: var(--text-2); border-radius: var(--r-sm);
+  font-size: var(--t-md); font-weight: 600;
+  transition: color 0.16s var(--snap), background 0.16s var(--snap);
+}
+#file-btns button span[data-icon] { width: 16px; height: 16px; flex: none; }
+#file-btns button:hover { color: var(--signal-hot); background: var(--signal-dim); }
+#btn-open { width: 30px; padding: 0; justify-content: center; }
+
+/* Keep: lit while a world is tied to a file. Deliberately a STATE and not an
+   alert — the ordinary condition of a linked world is that everything is
+   already on disk, and a control that pulses at you about it would be noise
+   forty times an hour. The one moment it does speak up is a write it could
+   not make, because that is the moment the author's assumption stops being
+   true and only the interface can say so. */
+#btn-keep.on { color: var(--signal-hot); background: var(--signal-dim); }
+#btn-keep.warn { color: var(--danger); background: var(--danger-dim); }
+@media (max-width: 860px) { #btn-keep b { display: none; } }
+
+/* A module that is also a button brightens the way a key does. */
+.mod.bar.labelled, .mod.bar.icon-only, #btn-cmd, #btn-advanced {
+  display: flex; align-items: center; gap: var(--s2);
+  height: var(--bar-h); padding: 0 var(--s4);
+  font-size: var(--t-md); font-weight: 600; color: var(--text-2);
+  transition: color 0.18s var(--snap), background 0.18s var(--snap), transform 0.18s var(--snap);
+}
+.mod.bar.labelled span[data-icon], .mod.bar.icon-only span[data-icon] { width: 16px; height: 16px; flex: none; }
+.mod.bar.labelled:hover, .mod.bar.icon-only:hover, #btn-cmd:hover {
+  color: var(--signal-hot); transform: translateY(-1px);
+  background: var(--wash), linear-gradient(180deg, #191d23, #101318);
+}
+.mod.bar.icon-only { width: var(--bar-h); padding: 0; justify-content: center; }
+/* One of these is an anchor rather than a button (#btn-library, the way back
+   to the shelf). It is a real link on purpose — a visitor who typed /editor
+   never came from the library, so history.back() would take them somewhere
+   else — and the only thing that costs is the underline the UA puts on it. */
+a.mod.bar.icon-only { text-decoration: none; }
+#btn-cmd { padding: 0 var(--s3); color: var(--text-3); gap: 7px; }
+#btn-cmd span[data-icon] { width: 14px; height: 14px; }
+#btn-cmd b { font-family: var(--mono); font-size: var(--t-xs); font-weight: 600; }
+
+/* ── the Advanced switch ──
+   A real toggle: a cut track with a machined bead that TRAVELS. It is the one
+   control in the product that changes how much product there is, so it says
+   so with a mechanism rather than with a highlight. */
+#btn-advanced { padding: 0 var(--s3) 0 10px; gap: 10px; }
+#btn-advanced b { font-size: var(--t-sm); font-weight: 600; letter-spacing: 0.01em; }
+.sw-track {
+  position: relative; width: 30px; height: 16px; flex: none;
+  border-radius: 999px;
+  background: var(--cut-floor);
+  box-shadow: var(--cut);
+  transition: background 0.24s var(--snap);
+}
+.sw-bead {
+  position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #ffffff, #b8c0c8 52%, #656d76);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+  transition: transform 0.28s var(--snap), background 0.24s var(--snap);
+}
+#btn-advanced[aria-pressed="true"] { color: var(--text); }
+#btn-advanced[aria-pressed="true"] .sw-track {
+  background: linear-gradient(180deg, rgba(90, 169, 242, 0.34), rgba(90, 169, 242, 0.16));
+  box-shadow: var(--cut), inset 0 0 0 1px var(--ion-line);
+}
+#btn-advanced[aria-pressed="true"] .sw-bead { transform: translateX(14px); }
+
+/* ── the one accent key on the top bar ──
+   Layout only: `.plate` carries the amber and the icon's stroke colour. This
+   was `.act-play` until Play and its two runtimes were deleted; Export took
+   the position rather than the bar going flat, since it is now both the last
+   thing you do here and the thing you pay for. */
+.act-primary {
+  display: flex; align-items: center; gap: var(--s2);
+  height: var(--bar-h); padding: 0 var(--s4);
+  font-size: var(--t-md);
+}
+.act-primary span[data-icon] { width: 16px; height: 16px; flex: none; }
+
+/* ══════════════════════════════════════════════════════════════════
+   TOAST — on the TOP edge, under the instruments.
+   It used to sit above the deck, across the ground being worked on. A
+   notice belongs where the readings are.
+   ══════════════════════════════════════════════════════════════════ */
+#toast {
+  position: fixed; z-index: 80;
+  left: 50%; transform: translateX(-50%);
+  top: calc(var(--edge-t) + var(--bar-h) + var(--s3));
+  padding: 10px var(--s4);
+  font-size: var(--t-sm); font-weight: 600; color: var(--text);
+  max-width: min(560px, calc(100vw - 2 * var(--gap))); text-align: center;
+  animation: toastIn 0.3s var(--snap);
+}
+#toast.two { display: flex; flex-direction: column; gap: 2px; padding: 9px var(--s5) 11px; }
+#toast.two b {
+  font-size: var(--t-key); font-weight: 700; letter-spacing: var(--track);
+  text-transform: uppercase; color: var(--text-3);
+}
+#toast.two span { font-size: var(--t-sm); font-weight: 600; color: var(--text); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-8px); } }
+
+/* ══════════════════════════════════════════════════════════════════
+   THE DECK — the console, and the only furniture always on screen.
+   ══════════════════════════════════════════════════════════════════ */
+#deck {
+  position: fixed; z-index: 24;
+  left: 50%; transform: translateX(-50%);
+  bottom: var(--edge-b);
+  display: flex; align-items: stretch;
+  max-width: min(1180px, calc(100vw - 2 * var(--gap)));
+  padding: 5px 6px;
+  transition: max-width 0.4s var(--glide);
+}
+.deck-rule { width: 1px; margin: 11px 6px; background: var(--seam); flex: none; }
+
+/* ── the tool segment ──
+   ONE SLIDING KEY, not six lit buttons. The marker is a raised key
+   travelling under the labels: the live tool reads as the key that is
+   currently up, and arming it anodizes that key amber. */
+#tool-seg { position: relative; display: flex; align-items: center; gap: 1px; flex: none; }
+#seg-marker {
+  position: absolute; z-index: 0; top: 0; left: 0;
+  width: 0; height: 100%;
+  border-radius: var(--r-md);
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: var(--lit-key), var(--ao-key);
+  opacity: 0; pointer-events: none;
+  transition: transform 0.4s var(--snap), width 0.4s var(--snap),
+              opacity 0.22s var(--snap), background 0.22s var(--snap),
+              box-shadow 0.22s var(--snap);
+}
+#seg-marker.armed {
+  background: linear-gradient(180deg, rgba(242, 161, 63, 0.2), rgba(242, 161, 63, 0.05)),
+              var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: inset 0 0 0 1px var(--acc-line), var(--lit-key), var(--ao-key);
+}
+
+.tool {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 7px;
+  height: 44px; padding: 0 11px;
+  color: var(--text-2);
+  font-size: var(--t-sm); font-weight: 600;
+  transition: color 0.2s var(--snap);
+}
+.tool span[data-icon] { width: 17px; height: 17px; flex: none; }
+.tool:hover, .tool.active, .tool.open { color: var(--text); }
+.tool.armed { color: var(--acc); }
+/* An armed tool BREATHES — the interface saying "your next click lands in the
+   world" — and it is still the only motion in the signal system. */
+.tool.armed span[data-icon] { animation: armedPulse 1.9s var(--glide) infinite; }
+@keyframes armedPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.92); }
+}
+/* The register's count rides its own key: "how many have I placed" is
+   answered before it is asked. */
+#obj-badge {
+  font-style: normal; font-size: var(--t-key); font-weight: 700;
+  min-width: 16px; padding: 2px 4px; text-align: center;
+  border-radius: var(--r-xs);
+  color: var(--text-3);
+  background: var(--cut-floor);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.tool.active #obj-badge, .tool.open #obj-badge { color: var(--text-2); }
+
+/* ── the morphing middle ── */
+#deck-context {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: var(--s3);
+  padding: 0 var(--s1); overflow: hidden;
+}
+.deck-hint {
+  font-size: var(--t-sm); color: var(--text-3); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.deck-hint b { color: var(--text-2); font-weight: 650; }
+.deck-hint i { font-style: normal; color: var(--text-4); }
+.deck-hint kbd { margin: 0 1px; }
+#deck-context > *[hidden] { display: none; }
+#sculpt-opts, #grass-opts, #river-opts, #blocks-hint, #build-status {
+  display: flex; align-items: center; gap: var(--s3); min-width: 0;
+  animation: ctxIn 0.3s var(--snap);
+}
+#spawn-hint:not([hidden]) { animation: ctxIn 0.3s var(--snap); }
+@keyframes ctxIn { from { opacity: 0; transform: translateY(5px); } }
+
+/* The brush row's shrink order: the dials are values you read and must never
+   be cut; the keyboard hint is what gives way. */
+#sculpt-opts .dial, #grass-opts .dial, #river-opts .dial, #sculpt-modes { flex: none; }
+#sculpt-opts .deck-hint, #river-opts .deck-hint { flex: 0 1 auto; min-width: 0; }
+
+/* ── holding a block ── amber throughout: the world is waiting. */
+#blocks-hint b { color: var(--acc); font-weight: 650; }
+.held-thumb {
+  width: 30px; height: 30px; flex: none; display: grid; place-items: center;
+  color: var(--acc);
+  border-radius: var(--r-sm);
+  background: var(--acc-dim);
+  box-shadow: inset 0 0 0 1px var(--acc-line);
+}
+.held-thumb svg { width: 17px; height: 17px; }
+#held-change { height: 26px; padding: 0 11px; font-size: var(--t-xs); font-weight: 650; }
+
+/* ── building a world ──
+   The one operation long enough to need a reading, so it takes the deck's
+   middle: a bead spinning in a cut track, and a bar that fills. */
+.bs-spin {
+  width: 15px; height: 15px; flex: none; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, var(--acc) 300deg, transparent 360deg);
+  mask: radial-gradient(circle, transparent 4.5px, #000 5px);
+  -webkit-mask: radial-gradient(circle, transparent 4.5px, #000 5px);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#build-status b { color: var(--acc); }
+.bs-bar {
+  width: 120px; height: 4px; flex: none; border-radius: 999px;
+  background: var(--cut-floor); box-shadow: var(--cut);
+  overflow: hidden;
+}
+.bs-bar i {
+  display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, #d4851f, var(--acc-hi));
+  box-shadow: 0 0 8px rgba(242, 161, 63, 0.5);
+  transition: width 0.4s var(--glide);
+}
+
+#sculpt-modes { display: flex; gap: 2px; }
+#sculpt-modes button {
+  width: 32px; height: 32px; display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  transition: color 0.16s var(--snap), background 0.16s var(--snap), box-shadow 0.16s var(--snap);
+}
+#sculpt-modes button span { width: 16px; height: 16px; }
+#sculpt-modes button:hover { color: var(--signal-hot); background: var(--signal-dim); }
+#sculpt-modes button.active {
+  color: var(--acc);
+  background: var(--acc-dim);
+  box-shadow: inset 0 0 0 1px var(--acc-line);
+}
+
+/* ── the dials ──
+   A track CUT into the face, a machined steel bead riding in it: the same two
+   materials as everything else, at slider scale. */
+.dial { display: flex; align-items: center; gap: var(--s2); }
+.dial .t-val { font-size: var(--t-xs); color: var(--text-2); min-width: 36px; text-align: right; }
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 92px; height: 20px; background: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 999px;
+  background: var(--cut-floor); box-shadow: var(--cut);
+}
+input[type="range"]::-moz-range-track {
+  height: 4px; border-radius: 999px;
+  background: var(--cut-floor); box-shadow: var(--cut);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; margin-top: -4.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 26%, #ffffff, #b8c0c8 52%, #656d76);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7), inset 0 -1px 1px rgba(0, 0, 0, 0.28);
+  transition: transform 0.16s var(--snap), filter 0.16s var(--snap);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 13px; height: 13px; border: 0; border-radius: 50%;
+  background: radial-gradient(circle at 34% 26%, #ffffff, #b8c0c8 52%, #656d76);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.16); filter: brightness(1.1); }
+input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--ion); cursor: pointer; }
+
+/* ── camera modes: the same sliding key as the tools ── */
+#explore-pills { position: relative; display: flex; align-items: center; gap: 1px; flex: none; }
+#pill-marker {
+  position: absolute; z-index: 0; top: 0; left: 0;
+  width: 0; height: 100%;
+  border-radius: var(--r-md);
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: var(--lit-key), var(--ao-key);
+  transition: transform 0.4s var(--snap), width 0.4s var(--snap);
+  pointer-events: none;
+}
+.pill {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 6px;
+  height: 44px; padding: 0 10px;
+  color: var(--text-3);
+  font-size: var(--t-sm); font-weight: 600;
+  transition: color 0.2s var(--snap);
+}
+.pill span[data-icon] { width: 15px; height: 15px; flex: none; }
+.pill:hover { color: var(--text-2); }
+.pill.active { color: var(--text); }
+
+/* ══════════════════════════════════════════════════════════════════
+   CHART — the minimap as an instrument recessed into a plate.
+   ══════════════════════════════════════════════════════════════════ */
+#chart {
+  position: fixed; z-index: 18;
+  left: var(--edge-l);
+  bottom: var(--frame-bottom);
+  width: 150px; height: 150px; padding: 12px;
+  transition: opacity 0.3s var(--snap), transform 0.4s var(--glide);
+}
+#minimap {
+  position: absolute; inset: 12px;
+  width: calc(100% - 24px); height: calc(100% - 24px);
+  border-radius: var(--r-xs); cursor: crosshair;
+  box-shadow: var(--cut-deep), inset 0 0 22px rgba(0, 0, 0, 0.5);
+}
+#chart-ring { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+#chart-ring .ticks line { stroke: rgba(255, 255, 255, 0.14); stroke-width: 0.7; }
+#chart-ring .ticks line.major { stroke: rgba(255, 255, 255, 0.3); stroke-width: 1; }
+#chart-ring .card {
+  fill: var(--text-4); font-family: var(--mono); font-size: 5px;
+  font-weight: 700; letter-spacing: 0.1em; text-anchor: middle;
+}
+#chart-ring .card.n { fill: var(--acc); }
+#chart:hover { transform: translateY(-2px); }
+
+/* ══════════════════════════════════════════════════════════════════
+   THE RAIL — one column, four contents.
+
+   Worlds, Blocks, World settings and the Object register are the SAME
+   module at the SAME coordinates: they differ in what is inside them and
+   in nothing else. One is open at a time, so the frame never loses more
+   than one edge — and the centre of the viewport is never covered.
+   ══════════════════════════════════════════════════════════════════ */
+.rail {
+  position: fixed; z-index: 26;
+  top: var(--frame-top); right: var(--edge-r); bottom: var(--frame-bottom);
+  width: var(--rail-w);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  transform-origin: 100% 50%;
+  transition: opacity 0.26s var(--snap), transform 0.34s var(--snap), visibility 0.34s;
+}
+.rail.collapsed {
+  opacity: 0; visibility: hidden;
+  transform: translateX(18px) scale(0.99);
+  pointer-events: none;
+}
+
+/* The head is where the alloy meets the working surface, so it is one of the
+   few places a hairline is still doing a job. */
+.rail-head {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s4) var(--s3) var(--s3) var(--s5);
+  border-bottom: 1px solid var(--seam);
+  flex: none;
+}
+.rail-head h2 {
+  font-size: var(--t-sm); font-weight: 700; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--text);
+}
+.rail-sub { flex: 1; color: var(--text-4); }
+.rail-sub.mono { font-size: var(--t-xs); letter-spacing: 0.04em; text-transform: none; }
+.rail-scroll {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--s4) var(--s5) var(--s6);
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  /* The rail is shorter than its contents on purpose: the last row admits
+     there is more under it instead of being guillotined. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent);
+}
+.rail-scroll::-webkit-scrollbar, #dock-cards::-webkit-scrollbar,
+#obj-list::-webkit-scrollbar, #cmdk-list::-webkit-scrollbar,
+#export-card::-webkit-scrollbar { width: 9px; }
+.rail-scroll::-webkit-scrollbar-thumb, #dock-cards::-webkit-scrollbar-thumb,
+#obj-list::-webkit-scrollbar-thumb, #cmdk-list::-webkit-scrollbar-thumb,
+#export-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.13);
+  border-radius: 999px; border: 3px solid transparent; background-clip: content-box;
+}
+.rail-lede { font-size: var(--t-sm); color: var(--text-2); line-height: 1.62; margin-bottom: var(--s4); }
+
+
+.rail-lede b { color: var(--text); font-weight: 650; }
+
+/* A section head: micro-caps with a hairline running out to the edge — the
+   spec-sheet idiom. It marks a group without becoming furniture. */
+.panel-title {
+  display: flex; align-items: center; gap: var(--s3);
+  margin: var(--s6) 0 var(--s3);
+}
+.panel-title > span { flex: none; }
+.panel-title::after { content: ""; flex: 1; height: 1px; background: var(--seam); }
+.panel-title:first-child { margin-top: 0; }
+
+.opt-hint { font-size: var(--t-xs); color: var(--text-3); line-height: 1.6; margin-top: var(--s2); }
+.opt-hint b { color: var(--text-2); font-weight: 650; }
+.opt-hint kbd { margin: 0 2px; }
+
+.t-row { display: flex; align-items: center; gap: var(--s3); margin: var(--s2) 0; }
+.t-row label { font-size: var(--t-sm); color: var(--text-2); flex: 0 0 72px; }
+.t-row input[type="range"] { flex: 1; width: auto; }
+.t-row .t-val { font-size: var(--t-xs); color: var(--text-2); flex: 0 0 44px; text-align: right; }
+.t-row.check { gap: var(--s2); }
+
+/* ── the shape stack ──
+   A layer row is a .t-row with more in it, and its own knobs hang under it
+   indented, so the list reads as layers-with-settings rather than as one
+   undifferentiated column of sliders. */
+.t-row.stack-layer { gap: var(--s2); }
+.t-row.stack-layer .st-name { flex: 1 1 auto; font-weight: 600; color: var(--text-1); }
+.t-row.stack-layer .st-blend { flex: 0 0 84px; font-size: var(--t-xs); }
+.t-row.stack-layer .st-str { flex: 0 0 56px; }
+.t-row.stack-layer .icon-btn { flex: none; width: 22px; height: 22px; font-size: var(--t-xs); }
+.t-row.stack-param { margin-left: var(--s4); opacity: 0.86; }
+.t-row.stack-param label { flex: 0 0 88px; font-size: var(--t-xs); }
+#stack-add { grid-template-columns: 1fr auto; align-items: center; }
+#stack-add .st-addsel { height: 36px; font-size: var(--t-sm); width: 100%; }
+
+/* Climate chips wrap to as many biomes as the catalogue holds, rather than
+   forcing the three-column grid the fixed option rows use. */
+#climate-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+#climate-chips button { flex: 0 0 auto; padding: 0 10px; height: 30px; }
+
+.opt-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.opt-row button {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; font-size: var(--t-sm); font-weight: 600;
+}
+.opt-row button span[data-icon] { width: 14px; height: 14px; flex: none; }
+#export-pipes { grid-template-columns: 1fr 1fr; }
+
+/* ══════════════════════════════════════════════════════════════════
+   WORLDS — five grammars, one engine.
+
+   A card is a SPEC PLATE with a map recessed into the top of it. The map is
+   the point and it takes the space: a plan of the world itself, generated,
+   in the world's own colours (js/world-preview.js). Everything under it —
+   the name, what it reads as at a glance, the sentence, the readings — is
+   caption to that.
+
+   THE CHROME STAYS OUT OF THE WAY HERE MORE THAN ANYWHERE ELSE IN THE TOOL.
+   Four worlds with four palettes are already four loud things in a column
+   396 px wide; a card that also carried a coloured header, an accent border
+   and a tinted button would be competing with the only content that matters.
+   So the plate is the same graphite as every other module and the only
+   saturated pixels on it are the world's own.
+   ══════════════════════════════════════════════════════════════════ */
+#world-cards { display: flex; flex-direction: column; gap: var(--s3); }
+
+/* The plan: a map sunk into the face of the plate. Dark until it is drawn,
+   because the drawing is lazy and a light empty box would read as a broken
+   image rather than as one that has not arrived yet. */
+/* A hairline horizon across the sunken map, so the recess reads as a recess
+   at the top edge where the light would catch it. */
+
+/* The palette sample, now a thin band directly under the map: it is the same
+   information the map is already showing, so it is a legend rather than a
+   feature. Real data — the biome's own gradient stops — and it goes on
+   through the CSSOM because the policy allows no style attributes. */
+
+/* What the world reads as at thumbnail scale, in the instrument face. This
+   is the line that has to do the work when five cards are scrolled past in
+   two seconds. */
+/* The pair's second half: what the landmark is like INSIDE, said in the four
+   colours its rooms are actually dressed in. The chip is data, not
+   decoration — the same `interior` object the furnisher reads. */
+.wi-chip {
+  --wi0: #565049; --wi1: #6b5a44; --wi2: #7d8a9c; --wi3: #9a7f6a;
+  flex: none; width: 36px; height: 15px; margin-top: 2px; border-radius: 4px;
+  background: linear-gradient(90deg,
+    var(--wi0) 0 25%, var(--wi1) 25% 50%, var(--wi2) 50% 75%, var(--wi3) 75% 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THE BLOCK CONSOLE
+   Not an asset browser. A console: a titled module, a cut search field, a
+   tab rail riding in its own track, and a catalogue with room to breathe —
+   grouped by family, each family stating its own count, because fifty-one
+   parts in one undifferentiated grid is a drawer rather than a console.
+   ══════════════════════════════════════════════════════════════════ */
+#dock-tools {
+  display: flex; flex-direction: column; gap: var(--s3);
+  padding: var(--s4) var(--s5) var(--s3);
+  border-bottom: 1px solid var(--seam);
+  flex: none;
+}
+.dock-search-wrap { position: relative; min-width: 0; border-radius: var(--r-sm); }
+.dock-search-wrap .ds-icon {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--text-4); pointer-events: none; z-index: 1;
+}
+.dock-search-wrap input { padding-left: 33px; background: none; box-shadow: none; }
+.dock-search-wrap:focus-within { box-shadow: var(--cut), inset 0 0 0 1px var(--ion-line); }
+.dock-search-wrap input:focus { box-shadow: none; }
+
+/* The tab rail: a cut track with key-shaped tabs riding in it. The active tab
+   is the RAISED one — state carried by elevation, not by hue. */
+/* ONE ROW, and it scrolls. Seven tabs wrapping onto a second line left a
+   ragged half-row under a full one — a rail that reads as a rail has to be a
+   rail, so it stays on one line and the overflow slides. */
+#dock-cats, #obj-cats {
+  display: flex; gap: 2px; flex-wrap: nowrap;
+  padding: 3px; border-radius: var(--r-sm);
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+#dock-cats::-webkit-scrollbar, #obj-cats::-webkit-scrollbar { height: 0; }
+#dock-cats button, #obj-cats button { flex: none; }
+#dock-cats button, #obj-cats button {
+  height: 26px; padding: 0 10px;
+  border-radius: var(--r-xs);
+  color: var(--text-4);
+  font-size: var(--t-key); font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase;
+  transition: color 0.16s var(--snap), background 0.16s var(--snap), box-shadow 0.16s var(--snap);
+}
+#dock-cats button:hover, #obj-cats button:hover { color: var(--text-2); }
+#dock-cats button.active, #obj-cats button.active {
+  color: var(--text);
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: var(--lit-key), 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+#obj-cats button.empty { opacity: 0.4; }
+#obj-cats button::after {
+  content: attr(data-n);
+  margin-left: 5px; font-family: var(--mono); color: var(--text-4);
+}
+
+#dock-cards {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--s3) var(--s2);
+  padding: var(--s4) var(--s5) var(--s5);
+  align-content: start;
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 24px), transparent);
+}
+
+/* A family header spans the grid: micro-caps, a count, a hairline running
+   out. This is the grouping that turns a drawer of parts into a console. */
+.dock-group {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: var(--s2);
+  margin: var(--s4) 0 0;
+}
+.dock-group:first-child { margin-top: 0; }
+.dock-group .n { font-family: var(--mono); color: var(--text-4); }
+.dock-group::after { content: ""; flex: 1; height: 1px; background: var(--seam); }
+
+/* A PART IN THE CATALOGUE. The glyph is seated in its own cut tray with the
+   name under it — the tray is what makes a row of these read as a kit rather
+   than as a toolbar. Hover raises the whole card into a key; armed anodizes
+   it and lights the status dot. */
+#dock-cards .block-card {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+  padding: var(--s3) 6px 11px;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  transition: background 0.16s var(--snap), box-shadow 0.16s var(--snap),
+              transform 0.16s var(--snap);
+}
+#dock-cards .thumb {
+  width: 52px; height: 52px; flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--cut-floor);
+  box-shadow: var(--cut);
+  color: var(--text-2);
+  transition: color 0.16s var(--snap), box-shadow 0.16s var(--snap);
+}
+#dock-cards .thumb svg { width: 28px; height: 28px; }
+#dock-cards .label {
+  font-size: var(--t-xs); font-weight: 600; text-align: center;
+  line-height: 1.3; color: var(--text-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  transition: color 0.16s var(--snap);
+}
+#dock-cards .block-card:hover {
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: var(--lit-key), var(--ao-key-up);
+  transform: translateY(-2px);
+}
+#dock-cards .block-card:hover .thumb { color: var(--signal-hot); }
+#dock-cards .block-card:hover .label { color: var(--text-2); }
+#dock-cards .block-card.armed {
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: inset 0 0 0 1px var(--acc-line), var(--lit-key), var(--ao-key);
+}
+#dock-cards .block-card.armed .thumb,
+#dock-cards .block-card.armed .label { color: var(--acc); }
+#dock-cards .block-card.armed::after {
+  content: "";
+  position: absolute; top: 8px; right: 8px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 7px rgba(242, 161, 63, 0.85);
+}
+#dock-cards .empty {
+  grid-column: 1 / -1; padding: var(--s7) 0;
+  text-align: center; color: var(--text-3); font-size: var(--t-sm);
+}
+
+#dock-foot {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s3) var(--s5) var(--s4);
+  border-top: 1px solid var(--seam);
+  flex: none;
+}
+#dock-import {
+  display: flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 var(--s3);
+  font-size: var(--t-xs); font-weight: 650;
+}
+#dock-import span[data-icon] { width: 13px; height: 13px; }
+#dock-foot .opt-hint { margin: 0; }
+
+/* ══════════════════════════════════════════════════════════════════
+   WORLD SETTINGS
+   ══════════════════════════════════════════════════════════════════ */
+#biome-rows { display: flex; flex-direction: column; gap: 3px; }
+#biome-rows button {
+  display: flex; align-items: center; gap: var(--s3);
+  min-height: 38px; padding: 0 var(--s2) 0 var(--s2);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: var(--t-sm); font-weight: 600; text-align: left;
+  transition: color 0.18s var(--snap), background 0.18s var(--snap), box-shadow 0.18s var(--snap);
+}
+/* A biome sample is a strip of the palette's own stops, cut into the face. */
+#biome-rows .strip {
+  display: flex; width: 44px; height: 15px; flex: none; overflow: hidden;
+  border-radius: var(--r-xs);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5), 0 1px 1px rgba(0, 0, 0, 0.4);
+}
+#biome-rows .strip i { flex: 1; background: var(--band, #333); }
+#biome-rows button:hover { color: var(--text); background: var(--signal-dim); }
+#biome-rows button.active {
+  color: var(--text);
+  background: var(--ion-dim);
+  box-shadow: inset 0 0 0 1px var(--ion-line);
+}
+
+#structure-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#structure-cards button { padding: 6px; }
+#structure-cards .swatch {
+  height: 28px; border-radius: var(--r-xs); margin-bottom: 5px;
+  background: var(--sample, #333);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+#structure-cards .name { font-size: var(--t-xs); font-weight: 600; text-align: left; padding-left: 2px; }
+
+#site-cards { display: grid; grid-template-columns: 1fr; gap: 6px; }
+#site-cards button { padding: 11px var(--s3); text-align: left; }
+.world-name { font-size: var(--t-sm); font-weight: 650; }
+.world-meta {
+  margin-top: 4px; font-size: var(--t-xs); color: var(--text-3);
+  font-family: var(--mono); letter-spacing: 0.02em; line-height: 1.45;
+}
+.world-go {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 38px; margin-top: var(--s3);
+  font-size: var(--t-sm);
+}
+#gen-go.armed { animation: armedPulse 1.9s var(--glide) infinite; }
+
+.tod-wrap { display: flex; align-items: center; gap: var(--s3); }
+.tod-wrap input { flex: 1; width: auto; }
+.tod-readout { font-size: var(--t-sm); color: var(--acc); flex: 0 0 44px; text-align: right; }
+
+/* ══════════════════════════════════════════════════════════════════
+   THE OBJECT REGISTER
+   The only rail whose contents are the world's own state rather than a
+   catalogue of possibilities, so it is the only one carrying a live count
+   in its head and a navigation strip under its filters. The list is a CUT
+   with the rows riding in it as keys — the same construction as the tab
+   rail, for the same reason: a list you pick from should read as a tray of
+   parts, not as a document.
+   ══════════════════════════════════════════════════════════════════ */
+#obj-tools {
+  display: flex; flex-direction: column; gap: var(--s2);
+  padding: var(--s3) var(--s5);
+  flex: none;
+}
+.obj-sort-wrap { display: flex; align-items: center; gap: var(--s2); }
+.obj-sort-wrap select { flex: 1; }
+#obj-flags { display: flex; gap: 4px; flex-wrap: wrap; }
+#obj-flags button {
+  height: 28px; padding: 0 10px;
+  font-size: var(--t-key); font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-3);
+}
+
+/* Navigation is a strip of keys, not a menu: these are the moves an author
+   makes dozens of times an hour. */
+#obj-nav {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  padding: 0 var(--s5) var(--s3);
+  flex: none;
+}
+#obj-nav button {
+  height: 34px; display: grid; place-items: center;
+  color: var(--text-3);
+}
+#obj-nav button span { width: 15px; height: 15px; }
+#obj-nav button:hover { color: var(--signal-hot); }
+
+#obj-list {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  margin: 0 var(--s3) var(--s3);
+  border-radius: var(--r-sm);
+  padding: 5px;
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+#obj-list:focus-visible { outline: none; box-shadow: var(--cut), inset 0 0 0 1px var(--ion-line); }
+.obj-row {
+  display: grid; align-items: center; gap: var(--s2);
+  grid-template-columns: 30px minmax(0, 1fr) auto auto;
+  padding: 6px 7px; margin-bottom: 2px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.13s var(--snap), box-shadow 0.13s var(--snap);
+}
+.obj-row:hover {
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: var(--lit-key), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+/* SELECTED is the one state that gets the signal colour, because it is the
+   one state the world is also showing. */
+.obj-row.sel {
+  background: linear-gradient(180deg, rgba(90, 169, 242, 0.15), rgba(90, 169, 242, 0.05)),
+              var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: inset 0 0 0 1px var(--ion-line), var(--lit-key);
+}
+.obj-row.off { opacity: 0.45; }
+.or-thumb {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  border-radius: var(--r-xs);
+  color: var(--tint, var(--text-3));
+  background: var(--cut-floor);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.or-thumb svg { width: 17px; height: 17px; }
+.or-main { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.or-main b {
+  font-size: var(--t-sm); font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.or-main i { font-size: var(--t-key); font-style: normal; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.07em; }
+.or-new {
+  margin-left: 6px; padding: 1px 5px; border-radius: var(--r-xs);
+  font-size: 8.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--acc); background: var(--acc-dim);
+}
+/* Coordinates are what make two identical oaks two different objects, so
+   they are on the row — and they step aside for the verbs on approach. */
+.or-xyz { font-size: var(--t-key); color: var(--text-4); white-space: nowrap; }
+.or-acts { display: none; gap: 1px; }
+.obj-row:hover .or-acts, .obj-row.sel .or-acts { display: flex; }
+.obj-row:hover .or-xyz, .obj-row.sel .or-xyz { display: none; }
+.or-acts button {
+  width: 26px; height: 26px; display: grid; place-items: center;
+  border-radius: var(--r-xs); color: var(--text-4);
+  transition: color 0.13s var(--snap), background 0.13s var(--snap);
+}
+.or-acts button span, .or-acts button svg { width: 14px; height: 14px; }
+.or-acts button:hover { color: var(--signal-hot); background: var(--signal-dim); }
+.or-acts button.on { color: var(--acc); }
+.or-acts button.danger:hover { color: var(--danger); background: var(--danger-dim); }
+.obj-empty { padding: var(--s7) var(--s4); text-align: center; }
+.obj-empty b { display: block; font-size: var(--t-sm); color: var(--text-2); margin-bottom: 6px; }
+.obj-empty span { font-size: var(--t-xs); color: var(--text-4); line-height: 1.6; }
+.obj-more { padding: var(--s3); text-align: center; font-size: var(--t-key); color: var(--text-4); text-transform: uppercase; letter-spacing: var(--track); }
+
+#obj-batch {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  padding: var(--s2) var(--s3) var(--s3) var(--s5);
+  border-top: 1px solid var(--seam);
+  flex: none;
+}
+#obj-batch-label { font-size: var(--t-xs); color: var(--ion); }
+.ob-acts { display: flex; gap: 3px; }
+.ob-acts button { width: 32px; height: 32px; display: grid; place-items: center; color: var(--text-3); }
+.ob-acts button span { width: 15px; height: 15px; }
+.ob-acts button.danger:hover { color: var(--danger); }
+
+/* ══════════════════════════════════════════════════════════════════
+   SCREEN-SPACE CUES
+   ══════════════════════════════════════════════════════════════════ */
+#cue-layer { position: fixed; inset: 0; z-index: 23; pointer-events: none; overflow: hidden; }
+.cue-label {
+  position: absolute; top: 0; left: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 11px 7px;
+  border-radius: var(--r-md);
+  background: var(--wash), linear-gradient(180deg, rgba(23, 27, 32, 0.95), rgba(12, 14, 17, 0.95));
+  box-shadow: inset 0 0 0 1px var(--acc-line), var(--lit), var(--ao-key);
+  white-space: nowrap;
+  animation: cueIn 0.4s var(--snap);
+  transition: opacity 0.2s linear;
+  will-change: transform;
+}
+@keyframes cueIn { from { opacity: 0; scale: 0.94; } }
+.cue-label b { font-size: var(--t-sm); font-weight: 650; color: var(--text); }
+.cue-label i { font-size: var(--t-key); font-style: normal; color: var(--acc); text-transform: uppercase; letter-spacing: 0.08em; }
+.cue-label.fade { opacity: 0; }
+.cue-edge {
+  position: absolute; top: 0; left: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--wash), linear-gradient(180deg, rgba(23, 27, 32, 0.92), rgba(12, 14, 17, 0.92));
+  box-shadow: var(--lit), var(--ao-key);
+  pointer-events: auto; cursor: pointer;
+  font-size: var(--t-key); color: var(--text-2); text-transform: uppercase; letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.ce-arrow { width: 0; height: 0; border-left: 5px solid var(--acc); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+
+/* ══════════════════════════════════════════════════════════════════
+   SELECTION
+   ══════════════════════════════════════════════════════════════════ */
+#selection-chip {
+  position: fixed; z-index: 27;
+  left: 50%; transform: translateX(-50%);
+  bottom: var(--frame-bottom);
+  display: flex; align-items: center; gap: var(--s3);
+  height: 44px; padding: 0 6px 0 var(--s4);
+  /* The one time a module's own edge carries a signal, because the whole bar
+     exists only while something is held. */
+  box-shadow: inset 0 0 0 1px var(--ion-line), var(--lit), var(--ao-rail);
+  animation: selIn 0.28s var(--snap);
+}
+@keyframes selIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } }
+#sel-label { font-size: var(--t-sm); font-weight: 650; color: var(--ion); white-space: nowrap; }
+#sel-meta { font-size: var(--t-key); color: var(--text-4); white-space: nowrap; }
+.sel-acts { display: flex; gap: 2px; }
+.sel-acts button { width: 32px; height: 32px; display: grid; place-items: center; color: var(--text-3); }
+.sel-acts button span { width: 16px; height: 16px; }
+.sel-acts button.danger:hover { color: var(--danger); }
+
+#style-pop {
+  position: absolute; bottom: calc(100% + var(--s2)); right: 0;
+  width: 268px; padding: var(--s3);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sp-title { margin-top: 4px; }
+.sp-title:first-child { margin-top: 0; }
+#sp-styles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+#sp-styles button { height: 30px; font-size: var(--t-xs); font-weight: 600; }
+#sp-swatches { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+#sp-swatches button {
+  height: 24px; border-radius: var(--r-xs);
+  background: var(--swatch, #888);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+#sp-swatches button.active { box-shadow: inset 0 0 0 2px var(--ion), 0 0 0 1px rgba(0, 0, 0, 0.5); }
+.sp-axes { display: flex; flex-direction: column; gap: 3px; }
+.sp-axis { display: flex; align-items: center; gap: 6px; }
+.sp-axis b { width: 12px; font-size: var(--t-xs); color: var(--text-3); }
+.sp-axis button { width: 26px; height: 26px; display: grid; place-items: center; font-size: var(--t-sm); }
+.sp-val { flex: 1; text-align: center; font-size: var(--t-xs); color: var(--text-2); }
+#sp-reset { height: 30px; font-size: var(--t-xs); margin-top: 4px; }
+
+/* ══════════════════════════════════════════════════════════════════
+   COMMAND PALETTE
+   ══════════════════════════════════════════════════════════════════ */
+#cmdk {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: start center;
+  padding: max(13vh, 64px) var(--s4) var(--s4);
+  background: rgba(4, 5, 7, 0.58);
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+  animation: veilIn 0.18s var(--snap);
+}
+@keyframes veilIn { from { opacity: 0; } }
+#cmdk-card { width: min(600px, 100%); padding: 4px; overflow: hidden; animation: cmdIn 0.26s var(--snap); }
+@keyframes cmdIn { from { opacity: 0; transform: translateY(-12px) scale(0.985); } }
+#cmdk-field {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: 0 var(--s3); height: 50px;
+  border-bottom: 1px solid var(--seam);
+}
+#cmdk-field > span[data-icon] { width: 16px; height: 16px; color: var(--text-4); flex: none; }
+#cmdk-input {
+  flex: 1; height: 100%; border: 0; background: none; padding: 0;
+  font-size: var(--t-lg); color: var(--text); box-shadow: none;
+}
+#cmdk-input:focus { outline: none; background: none; box-shadow: none; }
+#cmdk-list {
+  max-height: min(48vh, 384px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 6px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+}
+.cmd-group { padding: var(--s3) var(--s2) 5px; }
+.cmd-item {
+  display: flex; align-items: center; gap: var(--s3); width: 100%;
+  padding: 8px var(--s2);
+  border-radius: var(--r-sm);
+  color: var(--text-2); text-align: left;
+  transition: background 0.1s var(--snap), color 0.1s var(--snap);
+}
+.cmd-item .ci-icon { width: 16px; height: 16px; flex: none; color: var(--text-4); }
+.cmd-item .ci-name { flex: 1; font-size: var(--t-md); font-weight: 600; }
+.cmd-item .ci-hint { font-family: var(--mono); font-size: var(--t-xs); color: var(--text-4); }
+.cmd-item[aria-selected="true"] {
+  color: var(--text);
+  background: var(--wash-key), linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: var(--lit-key), 0 1px 2px rgba(0, 0, 0, 0.42);
+}
+.cmd-item[aria-selected="true"] .ci-icon { color: var(--signal-hot); }
+.cmd-empty { padding: var(--s7) var(--s3); text-align: center; color: var(--text-3); font-size: var(--t-sm); }
+#cmdk-foot {
+  display: flex; align-items: center; gap: var(--s4);
+  padding: var(--s2) var(--s3);
+  border-top: 1px solid var(--seam);
+  font-size: var(--t-xs); color: var(--text-4);
+}
+#cmdk-foot span { display: flex; align-items: center; gap: 4px; }
+.cmdk-brand { margin-left: auto; font-weight: 700; letter-spacing: 0.18em; font-size: var(--t-key); }
+
+/* ══════════════════════════════════════════════════════════════════
+   EXPORT — the one dialogue that is a DOCUMENT, so the one that is
+   still a centred card. Everything else that used to be a veil is now a
+   popover or a rail.
+   ══════════════════════════════════════════════════════════════════ */
+#export-veil {
+  position: fixed; inset: 0; z-index: 70;
+  display: grid; place-items: center; padding: var(--s5);
+  background: rgba(4, 5, 7, 0.62);
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+  animation: veilIn 0.18s var(--snap);
+}
+#export-card {
+  position: relative; width: min(600px, 100%);
+  max-height: min(88vh, 880px); overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--s6) var(--s7) var(--s7);
+  animation: cmdIn 0.26s var(--snap);
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+#export-card .icon-btn { position: absolute; top: var(--s3); right: var(--s3); }
+.ex-head { display: flex; align-items: center; gap: var(--s4); padding-right: var(--s7); }
+#export-card h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.012em; color: var(--text); margin-bottom: 3px; }
+.ex-sub { font-size: var(--t-key); font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; color: var(--text-3); }
+.veil-lede { font-size: var(--t-sm); color: var(--text-2); line-height: 1.62; margin: var(--s3) 0 var(--s5); }
+.veil-lede b { color: var(--text); }
+.ex-note { display: flex; align-items: center; gap: var(--s2); margin: var(--s5) 0 var(--s3); }
+.ex-note::after { content: ""; flex: 1; height: 1px; background: var(--seam); }
+/* The manifest: seven CUT chips, one per thing the exporter writes. They are
+   the same recess the fields and the tab rail are made of, which is the whole
+   reason they replaced the painted plaques that used to be here. */
+#export-manifest {
+  list-style: none;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 5px;
+}
+#export-manifest li {
+  display: flex; align-items: center; gap: var(--s2);
+  min-height: 42px; padding: 0 var(--s3);
+  border-radius: var(--r-sm);
+  background: var(--cut-floor);
+  box-shadow: var(--cut);
+  font-size: var(--t-xs); font-weight: 600; color: var(--text-2);
+}
+#export-manifest li span[data-icon] { width: 17px; height: 17px; flex: none; color: var(--acc); }
+/* A photograph of the other side, seated in a cut like every other screen in
+   the product. The source art is matted in a painted parchment frame, which
+   is the only illustrated border left in this dialogue — so it is CROPPED
+   out rather than reproduced: the picture is the evidence, the mat is not. */
+.ex-preview {
+  width: 114%; max-width: none; height: auto; display: block;
+  margin: var(--s2) -7% var(--s1);
+  clip-path: inset(7.5% 6.5% 7% 6.5% round 8px);
+}
+.veil-keys { list-style: none; margin: var(--s3) 0 var(--s5); display: flex; flex-direction: column; }
+.veil-keys li {
+  display: flex; align-items: baseline; gap: var(--s3);
+  color: var(--text-2); font-size: var(--t-sm); line-height: 1.5;
+  padding: 7px 2px; border-bottom: 1px solid var(--seam);
+}
+.veil-keys li:last-child { border-bottom: 0; }
+.veil-keys li b { flex: 0 0 96px; color: var(--text-3); font-size: var(--t-key); font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; }
+.veil-keys li span { flex: 1; min-width: 0; color: var(--text); }
+#export-summary:empty { display: none; }
+#export-go, #export-buy {
+  display: flex; margin: var(--s2) auto 0;
+  width: auto; min-width: 250px; height: 48px; padding: 0 var(--s6);
+  align-items: center; justify-content: center; gap: var(--s2);
+  font-size: var(--t-lg);
+}
+#export-go span[data-icon], #export-buy span[data-icon] { width: 17px; height: 17px; flex: none; }
+#export-gate { display: flex; flex-direction: column; align-items: center; }
+#export-key { display: flex; align-items: center; gap: var(--s2); width: min(370px, 100%); margin: var(--s3) auto 0; }
+#export-key label { font-size: var(--t-key); font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+#export-key input { flex: 1; min-width: 0; }
+.ex-fine { margin: var(--s2) auto 0; max-width: 380px; font-size: var(--t-xs); color: var(--text-4); line-height: 1.55; text-align: center; }
+#export-gate-msg { margin: var(--s3) auto 0; max-width: 380px; font-size: var(--t-sm); line-height: 1.5; color: var(--text-2); text-align: center; }
+#export-gate-msg:empty { display: none; }
+#export-gate-msg.bad { color: var(--danger); }
+#export-gate-msg.good { color: var(--acc); }
+#export-watch {
+  display: flex; align-items: center; justify-content: center;
+  width: auto; max-width: 280px; height: 38px; margin: var(--s3) auto 0;
+  font-size: var(--t-sm); font-weight: 600; text-decoration: none;
+}
+#export-pipes button { height: 36px; font-size: var(--t-sm); font-weight: 700; letter-spacing: 0.07em; }
+
+/* ══════════════════════════════════════════════════════════════════
+   COACH — first-run guidance, in the same alloy as everything else.
+   The painted paper slip and the globe that used to carry this were the
+   only illustrated objects in a machined room; one material language means
+   one material. Still pointer-events: none — guidance may never get between
+   the author and the world it is explaining.
+   ══════════════════════════════════════════════════════════════════ */
+#coach {
+  position: fixed; z-index: 55; pointer-events: none;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--frame-bottom) + 52px);
+  max-width: min(560px, calc(100vw - 2 * var(--gap)));
+  padding: 11px var(--s4);
+  box-shadow: inset 0 0 0 1px var(--acc-line), var(--lit), var(--ao-pop);
+  animation: coachIn 0.44s var(--snap);
+}
+#coach p { font-size: var(--t-sm); font-weight: 500; line-height: 1.5; color: var(--text-2); text-align: center; }
+#coach b { color: var(--acc); font-weight: 650; }
+#coach img { display: block; max-width: 210px; height: auto; margin: 0 auto; }
+@keyframes coachIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } }
+/* A rail is up: guidance stands down — it may never cover the thing it told
+   you to open. */
+body.sheet-open #coach { opacity: 0; }
+/* The last line points at Play, so it stands under the key it names. */
+#coach.coach-play {
+  left: auto; right: var(--edge-r);
+  top: calc(var(--edge-t) + var(--bar-h) + var(--s3)); bottom: auto;
+  transform: none;
+  animation: coachPlayIn 0.44s var(--snap);
+}
+@keyframes coachPlayIn { from { opacity: 0; transform: translateY(-8px); } }
+
+
+/* THE CURSOR lives in css/cursor.css — the landing page draws the same one,
+   and two copies of a design that is meant to be one object is how the two
+   drift. js/cursor.js builds it; both pages link the sheet. */
+
+/* ══════════════════════════════════════════════════════════════════
+   MODES
+   ══════════════════════════════════════════════════════════════════ */
+/* SIMPLE is the shipping default: the instruments are not there. Advanced
+   ADDS them; it never takes anything away, which is why every one of these
+   is a display rule and not a disabled state. */
+body.simple .adv { display: none !important; }
+
+/* Walk and fly are not editing modes. */
+body.mode-walk #chart, body.mode-fly #chart { opacity: 0.4; }
+body.mode-walk #chart:hover, body.mode-fly #chart:hover { opacity: 1; }
+body.mode-walk #tool-seg, body.mode-fly #tool-seg,
+body.mode-walk .deck-rule:first-of-type, body.mode-fly .deck-rule:first-of-type { display: none; }
+body.mode-walk #telemetry, body.mode-fly #telemetry { display: none; }
+body.mode-walk::after, body.mode-fly::after {
+  content: ""; position: fixed; z-index: 15;
+  left: 50%; top: 50%; width: 18px; height: 18px;
+  transform: translate(-50%, -50%); pointer-events: none;
+  background:
+    linear-gradient(var(--text), var(--text)) 50% 0 / 1px 6px no-repeat,
+    linear-gradient(var(--text), var(--text)) 50% 100% / 1px 6px no-repeat,
+    linear-gradient(var(--text), var(--text)) 0 50% / 6px 1px no-repeat,
+    linear-gradient(var(--text), var(--text)) 100% 50% / 6px 1px no-repeat;
+  opacity: 0.55;
+}
+
+/* BUILDING. The renderer is stood down while a world is assembled (see
+   js/worlds.js), so the viewport holds its last frame. This says so: the
+   world recedes, the deck's progress reading is the brightest thing on
+   screen, and a held frame reads as "working" rather than as "hung". */
+body.building #vignette {
+  background:
+    radial-gradient(120% 90% at 50% 42%, rgba(4, 5, 7, 0.42) 0%, rgba(4, 5, 7, 0.72) 100%);
+  transition: background 0.5s var(--glide);
+}
+body.building #chart, body.building #selection-chip { opacity: 0.35; }
+
+/* THE STAGE. Every piece of chrome stands down and the frame is nothing but
+   the world — for a screenshot, for a client in the room, or for looking at
+   what you actually built. `\` toggles it. */
+body.stage #readout, body.stage #actions, body.stage #deck, body.stage #chart,
+body.stage .rail, body.stage #selection-chip, body.stage #coach,
+body.stage #cue-layer {
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.45s var(--glide);
+}
+body.stage #vignette { opacity: 0.55; }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE — the deck is the layout; it becomes a thumb bar on a
+   phone, and the rail becomes a bottom sheet because a 396px column is
+   the whole screen.
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1280px) {
+  #telemetry .tl:nth-child(3) { display: none; }
+}
+@media (max-width: 1140px) {
+  .tool b, .pill b { display: none; }
+  .tool, .pill { padding: 0 11px; }
+  #btn-advanced b { display: none; }
+  #btn-advanced { padding: 0 var(--s3); }
+}
+@media (max-width: 920px) {
+  :root { --rail-w: 340px; }
+  #telemetry, #sandbox { display: none; }
+  #readout .rd-rule:nth-last-of-type(-n+2) { display: none; }
+  .mod.bar.labelled span:last-child { display: none; }
+  .mod.bar.labelled { width: var(--bar-h); padding: 0; justify-content: center; }
+  /* Save keeps its glyph and loses its word, like every other labelled key
+     at this width. The button stays — a narrow window is not a reason to
+     take away the only way out of the session. */
+  #btn-save b { display: none; }
+  #btn-save { width: 30px; padding: 0; justify-content: center; }
+  #deck-context { display: none; }
+  #deck .deck-rule:first-of-type { display: none; }
+}
+@media (max-width: 860px) {
+  :root { --gap: 9px; --deck-h: 52px; --bar-h: 40px; }
+
+  /* The rail becomes a bottom sheet that clears the deck. */
+  .rail {
+    left: var(--gap); right: var(--gap); width: auto;
+    top: auto; bottom: var(--frame-bottom);
+    max-height: min(62vh, 520px);
+    transform-origin: 50% 100%;
+  }
+  .rail.collapsed { transform: translateY(16px) scale(0.99); }
+  .rail-scroll, #dock-tools, #obj-tools, #obj-nav { padding-left: var(--s4); padding-right: var(--s4); }
+  #chart { display: none; }
+
+  /* Touch has no hover, so a row cannot hide its verbs behind one. */
+  .or-acts { display: flex; }
+  .or-xyz { display: none; }
+  .obj-row { grid-template-columns: 30px minmax(0, 1fr) auto; padding: 7px; }
+
+  #deck {
+    left: var(--gap); right: var(--gap); transform: none;
+    max-width: none; width: auto; padding: 4px;
+  }
+  #tool-seg { flex: 1; justify-content: space-between; }
+  .tool { flex: 1; flex-direction: column; gap: 3px; height: 46px; padding: 0 2px; }
+  .tool span[data-icon] { width: 18px; height: 18px; }
+  .tool b { display: block; font-size: 9px; font-weight: 700; letter-spacing: 0.02em; }
+  #obj-badge { display: none; }
+  #deck .deck-rule { display: none; }
+
+  /* The two islands on the top edge may never collide. The reserve is the
+     action row's own width at this size — switch, export, Play — and the seed
+     is what gives way, because a truncated seed is still a seed and an
+     overlapped one is a bug. */
+  #readout { gap: var(--s2); padding: 0 var(--s2); max-width: calc(100vw - 250px); }
+  #seed-chip { min-width: 0; flex: 0 1 auto; }
+  #seed-text { font-size: 11px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  #actions { gap: 5px; }
+  /* #btn-cmd STAYS at this size, where it used to be hidden with the history
+     buttons. There is no ⌘K on a phone, so with the Worlds rail gone this
+     button is the only way to reach "Build a world" on a touch device —
+     hiding it here would leave a phone unable to build one at all. Its label
+     drops instead, which is what the rest of this block does to everything. */
+  #history-btns { display: none; }
+  #btn-cmd b { display: none; }
+
+  /* Camera modes leave the deck and float above it, thumb-side. */
+  #explore-pills {
+    position: fixed; right: var(--gap); bottom: var(--frame-bottom);
+    z-index: 23; height: 38px; padding: 0 3px;
+    border-radius: var(--r-md);
+    background: var(--wash), linear-gradient(180deg, var(--bar-hi), var(--bar-lo));
+    box-shadow: var(--lit), var(--ao-bar);
+  }
+  .pill { height: 32px; padding: 0 10px; }
+  #pill-marker { top: 3px; height: 32px; }
+  body.sheet-open #explore-pills { opacity: 0; pointer-events: none; }
+
+  #selection-chip { left: var(--gap); right: var(--gap); transform: none; justify-content: space-between; animation: selInPhone 0.28s var(--snap); }
+  @keyframes selInPhone { from { opacity: 0; transform: translateY(8px); } }
+  #style-pop { left: 0; right: 0; width: auto; }
+  #coach { bottom: calc(var(--frame-bottom) + 46px); }
+}
+@media (max-width: 560px) {
+  #mark i { display: none; }
+  /* About lives in the mark, which is a link to the same page. */
+  #readout { max-width: calc(100vw - 208px); }
+  #dock-cards { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+}
+@media (max-height: 460px) and (max-width: 950px) {
+  .rail { max-height: calc(100vh - var(--deck-h) - 36px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* Keyboard focus is visible everywhere, and only for keyboards. It is one of
+   the four signals still permitted to draw an edge. */
+:focus-visible { outline: 2px solid var(--ion); outline-offset: 3px; border-radius: var(--r-xs); }
+
+/* ── Reset, asking ──
+   The first press arms the button and puts the question on screen; the second
+   does it. Armed reads as the danger colour the rest of the chassis reserves
+   for destructive verbs, and pulses slowly enough to be noticed without
+   becoming an alarm — the action is undoable, and the styling should not
+   claim otherwise. */
+#btn-reset.armed {
+  color: var(--signal-hot);
+  background: var(--signal-dim);
+  animation: reset-armed 1.1s ease-in-out infinite;
+}
+
+@keyframes reset-armed {
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #btn-reset.armed { animation: none; }
+}
