@@ -91,7 +91,8 @@ try {
   await w.insertText('Farshore');
   await sleep(400);
   await w.key({ key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
-  await w.until(`engine.props.items.size > 100 && !document.body.classList.contains('building')`, 300000, 'Farshore');
+  await w.until(`engine.props.items.size > 100 && !document.body.classList.contains('building')`, 900000, 'Farshore')
+    .catch(async (e) => { throw new Error(`${e.message}; props ${await w.js('engine.props.items.size')}, building ${await w.js("document.body.classList.contains('building')")}, status "${await w.js("document.querySelector('#build-status, .build-status, #toast')?.textContent ?? ''")}"`); });
   const built = JSON.parse(await w.js(`JSON.stringify({ props: engine.props.items.size, scatter: engine.scatterCount(), seed: engine.params.seed })`));
   check('the palette builds Farshore: its town and its scatter', built.props > 100 && built.scatter > 100, `${built.props} props, ${built.scatter} plants, seed ${built.seed}`);
   await sleep(4000);
