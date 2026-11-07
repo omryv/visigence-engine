@@ -1,4 +1,4 @@
-import { assetURL } from '../src/config/assetDelivery.js';
+import { assetURL, isPackagedGame } from '../src/config/assetDelivery.js';
 import { localFile as stored, fileBytes as importedBytes } from './localFiles.js';
 import { normalizeImportedProps } from '../src/world/importedProps.js';
 import { registerLocalAsset } from '../src/config/localAssets.js';
@@ -45,7 +45,7 @@ export function inspectGLB(buffer) {
   return {json,triangles:Math.ceil(triangles)};
 }
 export { fileBytes as importedBytes } from './localFiles.js';
-export async function prepareImportedAssets(project) {if(document.body.dataset.build==='standalone')return;for(const p of project.importedProps??[])registerLocalAsset(p.model,await importedBytes(p));}
+export async function prepareImportedAssets(project) {if(isPackagedGame())return;for(const p of project.importedProps??[])registerLocalAsset(p.model,await importedBytes(p));}
 function disposeModel(scene) {const textures=new Set(),materials=new Set(),geometry=new Set();scene?.traverse(o=>{if(o.geometry)geometry.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){materials.add(m);for(const v of Object.values(m))if(v?.isTexture)textures.add(v);}});textures.forEach(t=>t.dispose());materials.forEach(m=>m.dispose());geometry.forEach(g=>g.dispose());}
 export async function openAssetImport({getProject,onChange,toast,notice}) {
   const dialog=document.createElement('dialog');dialog.className='prop-dialog';dialog.setAttribute('aria-label','Import static prop');

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { ASSET_ORIGIN, assetURL } from '../../src/config/assetDelivery.js';
+import { ASSET_ORIGIN, assetURL, isPackagedGame } from '../../src/config/assetDelivery.js';
 import { runtimeAssets } from '../build/asset-manifest.mjs';
 for (const file of runtimeAssets()) {
   assert.equal(assetURL(file),`${ASSET_ORIGIN}/${file}`);
@@ -22,4 +22,16 @@ try {
   for(const file of runtimeAssets().filter(p=>p.startsWith('assets/studio/')))assert.equal(assetURL(file),'/'+file,'standalone artwork must remain local');
 }
 finally {delete globalThis.document;}
-console.log('All runtime paths route to R2; standalone ZIPs retain local asset paths.');
+// The editor's Play runs the same runtime, standalone, on the site (data-embed="world"): its art is on the asset origin,
+// not beside the page. This is the deployed failure: every model asked of www.visigenesis.com/assets/, 404.
+globalThis.document={body:{dataset:{build:'standalone',embed:'world'}}};
+globalThis.location={hostname:'www.visigenesis.com',search:'?embed=world'};
+try {
+  assert.equal(isPackagedGame(),false,'a game played in the editor is not a downloaded ZIP');
+  assert.equal(assetURL('assets/v2/arcade/characters/arcade-hero.glb?v=7dd45daf9161'),`${ASSET_ORIGIN}/assets/v2/arcade/characters/arcade-hero.glb?v=7dd45daf9161`);
+  for(const file of runtimeAssets())assert.equal(assetURL(file),`${ASSET_ORIGIN}/${file}`,`${file} in the editor's game`);
+}
+finally {delete globalThis.document;delete globalThis.location;}
+globalThis.document={body:{dataset:{build:'standalone'}}};
+try { assert.equal(isPackagedGame(),true); } finally {delete globalThis.document;}
+console.log('All runtime paths route to R2, the editor\'s game included; standalone ZIPs retain local asset paths.');
