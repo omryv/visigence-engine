@@ -23,7 +23,7 @@ import { makeParams, mergeParams } from "../../../src/kernel/presets.js";
 import { bakeHeightField } from "../../../src/kernel/terrain/heightfield.js";
 import { groundBundle } from "../../../src/kernel/terrain/ground.js";
 import { buildWorldFile, groundBlock, validateWorldFile } from "../../../src/genesis/world/worldfile.js";
-import { DEFAULT_WORLD } from "../../../src/genesis/world/default-world.js";
+import { SEED_WORLD } from "./seed-world.js";
 import {
   buildCertificate, verifyCertificate, generateSigningKey, keyFingerprint, canonicalJSON,
   deriveWorldClaims, worldDigest, CERT_FORMAT, ESTABLISHES,
@@ -212,10 +212,10 @@ async function main() {
   /* ── the default world, canonical grid, end to end ── */
   t = clock();
   const kept = { ...(await generateSigningKey()), ephemeral: false };
-  const certD = await buildCertificate(DEFAULT_WORLD, { key: kept });
+  const certD = await buildCertificate(SEED_WORLD, { key: kept });
   const buildDMs = clock() - t;
   t = clock();
-  const vD = await verifyCertificate(certD, DEFAULT_WORLD, { tier: 2 });
+  const vD = await verifyCertificate(certD, SEED_WORLD, { tier: 2 });
   const verifyDMs = clock() - t;
   const keptPrint = await keyFingerprint(await globalThis.crypto.subtle.exportKey("jwk", kept.publicKey));
 

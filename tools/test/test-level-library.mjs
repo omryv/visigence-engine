@@ -7,8 +7,8 @@ const memory = (seed = {}, { full = false } = {}) => {
   const m = new Map(Object.entries(seed));
   return { m, getItem: k => m.has(k) ? m.get(k) : null, setItem: (k, v) => { if (full) throw Error('QuotaExceededError'); m.set(k, String(v)); }, removeItem: k => m.delete(k) };
 };
-let t = 1000, r = 0;
-const clock = { now: () => t, random: () => (r = (r + 0.137) % 1) };
+let t = 1000;
+const clock = { now: () => t };
 
 {
   const store = memory(), lib = createLibrary(store, clock);
@@ -18,6 +18,7 @@ const clock = { now: () => t, random: () => (r = (r + 0.137) % 1) };
   t = 2000;
   const b = lib.add({ name: 'Honey Harvest', genre: 'collect', levels: [{}] });
   assert.match(a, /^g[a-z0-9]{10}$/); assert.notEqual(a, b);
+  assert.deepEqual([a, b], ['g0000000001', 'g0000000002'], 'ids are counted, not drawn');
   assert.deepEqual(lib.list().map(e => [e.name, e.genre, e.levels]), [['Honey Harvest', 'collect', 1], ['Hive Patrol', 'shooter', 3]], 'newest first');
   assert.equal(JSON.parse(lib.text(a)).name, 'Hive Patrol', 'the document is kept under its own key');
   assert.ok(store.m.has(LIBRARY_KEY) && store.m.has(lib.key(a)));

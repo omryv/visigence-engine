@@ -17,7 +17,7 @@
 import { test, eq, ok, close, report } from "./harness.js";
 import {
   CORE_MODULES, makeParams, mergeParams, DEFAULT_PARAMS,
-  mulberry32, seedChannel, randomSeed, normalizeSeed,
+  mulberry32, seedChannel, drawSeed, normalizeSeed,
   createHeightSampler, bakeHeightField, elevNorm,
   screenSeed, SculptLayer,
   subdivide, adjacency,
@@ -76,7 +76,7 @@ test("the same seed builds the same land, twice", () => {
   };
   eq(JSON.stringify(of("REPEAT")), JSON.stringify(of("REPEAT")));
   ok(JSON.stringify(of("REPEAT")) !== JSON.stringify(of("OTHER")), "two seeds made one world");
-  eq(normalizeSeed(randomSeed(mulberry32(3))).length > 0, true);
+  eq(normalizeSeed(drawSeed(mulberry32(3))).length > 0, true);
 });
 
 test("a sculpt layer is a replayable list of strokes, not a grid", () => {
@@ -161,7 +161,7 @@ test("a placement's volume and its openings are geometry, not meshes", () => {
 
 test("a seed can be screened before anybody is shown it", () => {
   const s = screenSeed({
-    mint: () => randomSeed(mulberry32(11)),
+    mint: () => drawSeed(mulberry32(11)),
     samplerFor: (seed) => {
       const p = makeParams({ seed, biome: "verdant" });
       return { height: createHeightSampler(p), size: p.terrain.size };

@@ -17,7 +17,7 @@ import { test, eq, ok, report } from "../kernel/harness.js";
 import { readFileSync } from "node:fs";
 import { groundBundle, GROUND_KIND, GROUND_MANIFEST_VERSION } from "../../../src/kernel/core/index.js";
 import { makeParams, mergeParams } from "../../../src/kernel/presets.js";
-import { DEFAULT_WORLD } from "../../../src/genesis/world/default-world.js";
+import { SEED_WORLD } from "./seed-world.js";
 import { paramsFromWorldFile } from "../../../src/genesis/world/worldfile.js";
 
 const SCHEMA = JSON.parse(readFileSync(new URL("../../../schema/ground.schema.json", import.meta.url), "utf8"));
@@ -29,8 +29,8 @@ const clock = typeof performance !== "undefined" && performance.now
 
 /* The default world, the manifest a consumer is most likely to be handed,
    baked once without a clock and once with one. */
-const PLAIN = groundBundle(paramsFromWorldFile(DEFAULT_WORLD));
-const TIMED = groundBundle(paramsFromWorldFile(DEFAULT_WORLD), { now: clock });
+const PLAIN = groundBundle(paramsFromWorldFile(SEED_WORLD));
+const TIMED = groundBundle(paramsFromWorldFile(SEED_WORLD), { now: clock });
 
 // ── the schema ──────────────────────────────────────────────────────────────
 

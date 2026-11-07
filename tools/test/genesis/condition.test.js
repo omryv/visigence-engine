@@ -25,8 +25,7 @@ import {
 } from "../../../src/kernel/terrain/condition.js";
 import { conditionSeed, measureGround } from "../../../src/kernel/core/survey.js";
 import { terrainParameterHash } from "../../../src/kernel/terrain/fingerprint.js";
-import { randomSeed, mulberry32 } from "../../../src/kernel/seed.js";
-import { WORLDS, WORLD_IDS, screenFor, paramsFor, fullParams } from "../../../src/genesis/world/worlds.js";
+import { drawSeed, mulberry32 } from "../../../src/kernel/seed.js";
 
 const SEEDS = ["K7QN-3F2A-9XBD", "TMNR-2J2A-PG43", "Q375-ND9S-NSQV", "6QKX-J4XR-Z5D3"];
 const withIntent = (p, intent) => ({ ...p, terrain: { ...p.terrain, intent } });
@@ -206,7 +205,6 @@ test("a file carrying bad intent is told which record and which number", () => {
 
 const BARS = [
   ["default", (seed) => makeParams({ seed }), { land: [0.38, 0.82], relief: 180 }],
-  ...WORLD_IDS.map((id) => [id, (seed) => withIntent(fullParams(WORLDS[id], seed), []), WORLDS[id].screen]),
 ];
 const meets = (m, bar) => m.land >= bar.land[0] && m.land <= bar.land[1] && m.relief > bar.relief;
 
@@ -218,7 +216,7 @@ test("every seed is carried onto its bar, and the numbers reported are the groun
     const rng = mulberry32(0xC0DE + name.length);
     let unaided = 0;
     for (let i = 0; i < 24; i++) {
-      const seed = randomSeed(rng);
+      const seed = drawSeed(rng);
       const params = paramsOf(seed);
       const out = conditionSeed({ params, bar });
       ok(out.met, `${name} ${seed}: land ${out.land.toFixed(3)} relief ${out.relief.toFixed(0)} misses its bar`);
@@ -243,7 +241,7 @@ test("conditioning moves a seed no further than its bar needs", () => {
   const rng = mulberry32(0xFACE);
   let seen = 0;
   for (let i = 0; i < 60 && seen < 6; i++) {
-    const params = makeParams({ seed: randomSeed(rng) });
+    const params = makeParams({ seed: drawSeed(rng) });
     const raw = measureGround({ height: createHeightSampler(params), size: params.terrain.size });
     if (raw.land <= bar.land[1] || raw.relief <= bar.relief) continue;
     seen++;
@@ -257,36 +255,10 @@ test("conditioning is a pure function of the seed and the bar", () => {
   for (const [name, paramsOf, bar] of BARS) {
     const rng = mulberry32(0xBEEF + name.length);
     for (let i = 0; i < 6; i++) {
-      const seed = randomSeed(rng);
+      const seed = drawSeed(rng);
       const a = conditionSeed({ params: paramsOf(seed), bar }), b = conditionSeed({ params: paramsOf(seed), bar });
       eq(JSON.stringify(a), JSON.stringify(b), `${name} ${seed}:`);
     }
-  }
-});
-
-/* ══ and a world built from a seed comes back from it ══════════════════ */
-
-test("a named seed comes back as the world it was built as", () => {
-  for (const id of WORLD_IDS) {
-    const rng = mulberry32(0x5EED + id.length);
-    for (let i = 0; i < 6; i++) {
-      const drawn = screenFor(WORLDS[id], { rng });
-      ok(drawn.screened, `${id} ${drawn.seed}: a drawn seed always clears its bar now`);
-      const named = screenFor(WORLDS[id], { seed: drawn.seed });
-      eq(JSON.stringify(named.intent), JSON.stringify(drawn.intent), `${id} ${drawn.seed}: the same intent comes back;`);
-      eq(JSON.stringify(paramsFor(WORLDS[id], drawn.seed).terrain.intent), JSON.stringify(drawn.intent),
-        `${id} ${drawn.seed}: and it is the intent the build applies;`);
-    }
-  }
-});
-
-test("a world's patch always states its intent, so the last world's cannot leak", () => {
-  for (const id of WORLD_IDS) {
-    const patch = paramsFor(WORLDS[id], "K7QN-3F2A-9XBD");
-    ok(Array.isArray(patch.terrain.intent), `${id}: intent is written even when empty`);
-    patch.terrain.intent.push({ type: "level", h: 999 });
-    ok(!paramsFor(WORLDS[id], "K7QN-3F2A-9XBD").terrain.intent.some((r) => r.h === 999),
-      `${id}: editing one patch does not edit the next`);
   }
 });
 

@@ -223,7 +223,7 @@ export function createBiomeField(params, resolveAnchor) {
   }
   if (names.length < 2) return null;
   /* Centred on the FIRST surviving anchor: the list's head is the world's own
-     biome by convention (worlds.js writes it there, and it is the one that
+     biome by convention (it is written there first, and it is the one that
      owns the water, the sky and the materials), so the world reads as itself
      and the rest appear where the climate has drifted toward them. */
   const sample = createClimateSampler(params, anchors[0]);

@@ -19,6 +19,7 @@ import {
   tileByCode, decorByCode, entityDef, propsFor, optionsFor, defaultProps, canLink, viewOf,
 } from './catalog.js';
 import { rleEncode, rleDecode } from './grid.js';
+import { mulberry32 } from '../../kernel/seed.js';
 
 export const FORMAT_KIND = 'visigame.builder';
 export const FORMAT_VERSION = 1;
@@ -29,8 +30,11 @@ export class FormatError extends Error {
 }
 
 let idCounter = 0;
-/** Short ids. Deterministic when a seed function is supplied (tests, templates). */
-export function newId(prefix = 'e', rand = Math.random) {
+/* The ids' own stream: fixed, so a session's ids are the same every time (the engine draws nothing from ambient
+   entropy). Uniqueness inside a document is the callers' (they check what is taken and draw again). */
+const ID_STREAM = mulberry32(0x1d5eed);
+/** Short ids, from the module's fixed stream or the one supplied (tests, templates). */
+export function newId(prefix = 'e', rand = ID_STREAM) {
   idCounter = (idCounter + 1) % 1296;
   const r = Math.floor(rand() * 2176782336).toString(36).padStart(6, '0');
   return prefix + r + idCounter.toString(36).padStart(2, '0');

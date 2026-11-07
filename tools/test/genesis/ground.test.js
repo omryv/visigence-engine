@@ -35,7 +35,7 @@ import {
   hashFloat32, hashMask, hashString, placementsHash, canonicalPlacements, PLACEMENT_QUANTUM,
 } from "../../../src/kernel/terrain/fingerprint.js";
 import { makeParams, mergeParams } from "../../../src/kernel/presets.js";
-import { DEFAULT_WORLD } from "../../../src/genesis/world/default-world.js";
+import { SEED_WORLD } from "./seed-world.js";
 import { paramsFromWorldFile } from "../../../src/genesis/world/worldfile.js";
 
 const clock = typeof performance !== "undefined" && performance.now
@@ -113,7 +113,7 @@ test("the old way of measuring really did report a range its data left", () => {
 
 // ── the bundle ──────────────────────────────────────────────────────────────
 
-const WORLD = paramsFromWorldFile(DEFAULT_WORLD);
+const WORLD = paramsFromWorldFile(SEED_WORLD);
 
 /* The default world, baked once WITH a clock (the timing test reads it) and
    once without, independently. Module-level so the heavier tests below share
@@ -121,7 +121,7 @@ const WORLD = paramsFromWorldFile(DEFAULT_WORLD);
 const t0 = clock();
 const TIMED = groundBundle(WORLD, { now: clock });
 const TIMED_MS = clock() - t0;
-const PLAIN = groundBundle(paramsFromWorldFile(DEFAULT_WORLD));
+const PLAIN = groundBundle(paramsFromWorldFile(SEED_WORLD));
 
 const fingerprintOf = (b, params) =>
   canonicalTerrainFingerprint({ params, field: b.field, wet: b.wet, flow: b.flow });

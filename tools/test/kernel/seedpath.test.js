@@ -123,7 +123,7 @@ test("a lowercase or spaced seed lands on the engine's normalized stream", () =>
 
 test("a typed seed that is not twelve characters: seedPath keeps it, worldSeedPath is the engine's", () => {
   // The engine pads a short seed and truncates a long one (setSeed:
-  // normalizeSeed(seed) || randomSeed()). seedPath does neither — pinned here
+  // normalizeSeed(seed)). seedPath does neither — pinned here
   // so nobody "fixes" it into padding "unseeded" — and worldSeedPath does
   // exactly what the engine does.
   const cases = [

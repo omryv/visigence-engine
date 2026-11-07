@@ -14,7 +14,7 @@ import {
 import { GENERATOR_VERSION, hashString } from "../../../src/kernel/terrain/fingerprint.js";
 import { groundBundle } from "../../../src/kernel/terrain/ground.js";
 import { groundBlock, groundFromWorldFile, GROUND_BLOCK_FIELDS } from "../../../src/genesis/world/worldfile.js";
-import { DEFAULT_WORLD } from "../../../src/genesis/world/default-world.js";
+import { SEED_WORLD } from "./seed-world.js";
 
 const SEED = "K7QN-3F2A-9XBD";
 
@@ -83,7 +83,7 @@ const importedProp = {
 
 const params = workedParams();
 const field = bakeHeightField(params, 129);
-const build = (propRecords = procProps, world = "farshore") =>
+const build = (propRecords = procProps, world = "harbour-town") =>
   buildWorldFile({ params, propRecords, field, world });
 
 test("a world file is a valid, versioned envelope", () => {
@@ -91,7 +91,7 @@ test("a world file is a valid, versioned envelope", () => {
   eq(doc.kind, WORLD_FILE_KIND);
   eq(doc.fileVersion, WORLD_FILE_VERSION);
   eq(doc.world.version, FUSION_VERSION);
-  eq(doc.origin, "farshore");
+  eq(doc.origin, "harbour-town");
   eq(validateWorldFile(doc).length, 0, "validation errors:");
 });
 
@@ -193,7 +193,7 @@ test("an authored landing is what the file carries, not the one the scorer likes
   // Both already at the one decimal deriveSpawn rounds a landing to, so this
   // asserts the value travelled rather than re-asserting the rounding.
   const authored = { x: -812.5, z: 640.4 };
-  const doc = buildWorldFile({ params, propRecords: procProps, field, world: "farshore", spawn: authored });
+  const doc = buildWorldFile({ params, propRecords: procProps, field, world: "harbour-town", spawn: authored });
   eq(doc.world.spawn.authored, true, "the file says the landing was chosen, not scored");
   eq(doc.world.spawn.x, -812.5);
   eq(doc.world.spawn.z, 640.4);
@@ -486,14 +486,14 @@ test("the filename is derived from the world, never from the clock", () => {
   const doc = build();
   const name = worldFileName(doc);
   eq(name, worldFileName(doc), "stable");
-  ok(name.startsWith("farshore-"), `named for its world, got ${name}`);
+  ok(name.startsWith("harbour-town-"), `named for its origin, got ${name}`);
   ok(name.endsWith(".world.json"), `compound extension, got ${name}`);
   ok(!/\s/.test(name), "no spaces in a filename");
-  // A world with no grammar behind it still gets a name.
+  // A world with no origin (a seed's own world, built on) still gets a name.
   const loose = buildWorldFile({ params, propRecords: procProps, field, world: null });
   ok(worldFileName(loose).startsWith("verdant-"), "falls back to the biome");
   // Two different seeds are two different files.
-  const other = buildWorldFile({ params: { ...params, seed: "AAAA-BBBB-CCCC" }, propRecords: procProps, field, world: "farshore" });
+  const other = buildWorldFile({ params: { ...params, seed: "AAAA-BBBB-CCCC" }, propRecords: procProps, field, world: "harbour-town" });
   ok(worldFileName(other) !== name, "a different seed is a different file");
 });
 
@@ -517,8 +517,10 @@ test("a file saved without a ground block is the same bytes it was before the bl
   /* Pinned against the code as it stood BEFORE the ground block: this exact
      world was serialised by the HEAD worldfile.js (git archive HEAD, the same
      probe run against both trees) and measured 2,197 bytes with FNV-1a
-     1070186123; the default world's serialisation measured 3427497588. If
-     either moves, a file nobody asked to change has changed. WORLD_FILE_VERSION
+     1070186123 under the origin label it then carried; under "harbour-town"
+     (four bytes longer) the same code measures 2,201 bytes and 1074616563, and
+     the default seed's own world (seed-world.js) 3919690947. If either moves,
+     a file nobody asked to change has changed. WORLD_FILE_VERSION
      did not move either (see worldfile.js's header for why it need not), so
      this is the whole of the migration: there is nothing to migrate. */
   const SEED0 = "K7QN-3F2A-9XBD";
@@ -526,10 +528,10 @@ test("a file saved without a ground block is the same bytes it was before the bl
   p.terrain.sculpt = [{ mode: "raise", x: 120.5, z: -64.25, r: 48, strength: 0.7 }];
   p.water.level = 12;
   const props = [{ uid: makeUid(SEED0, 0), ref: "castle/keep", url: null, label: "Keep", position: [10.25, 5.5, -20.75], rotationY: 0.5, scale: 2, proc: { kind: "block", shape: "tower", w: 6, h: 18, d: 6 } }];
-  const s = serializeWorldFile(buildWorldFile({ params: p, propRecords: props, field: bakeHeightField(p, 65), world: "farshore" }));
-  eq(s.length, 2197, "bytes");
-  eq(hashString(s) >>> 0, 1070186123, "FNV-1a of the file");
-  eq(hashString(serializeWorldFile(DEFAULT_WORLD)) >>> 0, 3427497588, "FNV-1a of the default world");
+  const s = serializeWorldFile(buildWorldFile({ params: p, propRecords: props, field: bakeHeightField(p, 65), world: "harbour-town" }));
+  eq(s.length, 2201, "bytes");
+  eq(hashString(s) >>> 0, 1074616563, "FNV-1a of the file");
+  eq(hashString(serializeWorldFile(SEED_WORLD)) >>> 0, 3919690947, "FNV-1a of the default seed's own world");
   eq(WORLD_FILE_VERSION, 1, "the envelope version did not move");
   ok(!("ground" in build()), "no block unless one is handed in");
 });
@@ -537,7 +539,7 @@ test("a file saved without a ground block is the same bytes it was before the bl
 const GROUND = groundBundle(params, { res: 65 }).manifest;
 
 test("a ground block is written when a manifest is handed in, and survives the round trip", () => {
-  const doc = buildWorldFile({ params, propRecords: procProps, field, world: "farshore", ground: GROUND });
+  const doc = buildWorldFile({ params, propRecords: procProps, field, world: "harbour-town", ground: GROUND });
   eq(Object.keys(doc.ground).join(","), GROUND_BLOCK_FIELDS.join(","), "the eight lines, in order");
   for (const k of GROUND_BLOCK_FIELDS) eq(doc.ground[k], GROUND[k], `ground.${k}`);
   eq(validateWorldFile(doc).length, 0, "validation errors:");
@@ -555,7 +557,7 @@ test("a ground block is written when a manifest is handed in, and survives the r
 });
 
 test("a ground block is held to its shape and to the params it sits beside", () => {
-  const good = buildWorldFile({ params, propRecords: procProps, field, world: "farshore", ground: GROUND });
+  const good = buildWorldFile({ params, propRecords: procProps, field, world: "harbour-town", ground: GROUND });
   const bent = (patch) => validateWorldFile({ ...good, ground: { ...good.ground, ...patch } });
   const cases = [
     ["another world's parameterHash", { parameterHash: (GROUND.parameterHash ^ 1) >>> 0 }, "parameterHash"],

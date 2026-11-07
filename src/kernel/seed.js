@@ -4,7 +4,16 @@
 
 const ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"; // no 0/O/1/I/L ambiguity
 
-export function randomSeed(rng = Math.random) {
+/* The seed the editor opens on when nobody names one. A fixed name, not a draw: the first world anybody sees is the
+   same world every time, and it is this seed's own world, grown from it and nothing else. Chosen once, by measure:
+   about 70 % land and close to 300 m of relief at the default params, a coast with country behind it. */
+export const DEFAULT_SEED = "H22U-WCBP-M4BS";
+
+/* A seed spelled from a stream of numbers in [0, 1): deterministic when the stream is, which every stream in this
+   engine is (mulberry32, channelRng). There is no default: the engine never draws a seed from ambient entropy, so a
+   caller that wants a fresh seed names the stream it comes from. */
+export function drawSeed(rng) {
+  if (typeof rng !== "function") throw new TypeError("drawSeed(rng): name the stream the seed is drawn from");
   let s = "";
   for (let g = 0; g < 3; g++) {
     if (g) s += "-";

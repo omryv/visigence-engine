@@ -9,7 +9,7 @@ import { THEMES } from "./props/themes.js";
 import { Doors } from "./props/doors.js";
 import { Fittings } from "./props/fittings.js";
 import { Blockers } from "./player/collide.js";
-import { randomSeed, normalizeSeed, seedChannel } from "../kernel/seed.js";
+import { normalizeSeed, seedChannel } from "../kernel/seed.js";
 import { createHeightSampler, createBakedSampler, bakeHeightField, elevNorm } from "../kernel/terrain/heightfield.js";
 import { CANONICAL_RES, masksFor } from "../kernel/terrain/canonical.js";
 import { firstGroundHit } from "./terrain/pick.js";
@@ -83,7 +83,7 @@ const SHOULDER_OFFSET = Math.PI * 0.29;
 const MAX_FRAME_DT = 0.25;
 
 
-export { DEFAULT_PARAMS, THEMES, PALETTES, makeParams, mergeParams, randomSeed, normalizeSeed, elevNorm, bakeHeightField, createHeightSampler, resolveDetail, DETAIL_PROTOTYPES, WIND_DEFAULTS };
+export { DEFAULT_PARAMS, THEMES, PALETTES, makeParams, mergeParams, normalizeSeed, elevNorm, bakeHeightField, createHeightSampler, resolveDetail, DETAIL_PROTOTYPES, WIND_DEFAULTS };
 
 export class Engine {
   /**
@@ -1249,15 +1249,17 @@ export class Engine {
     this.params = mergeParams(this.params, patch);
     this._buildWorld();
   }
+  /* Travel to a seed's world. Text that is not a seed changes nothing and returns null: the engine never invents a
+     seed of its own. */
   setSeed(seed) {
-    const s = normalizeSeed(seed) || randomSeed();
+    const s = normalizeSeed(seed);
+    if (!s) return null;
     this.params.seed = s;
     this._buildWorld();
     if (this.mode === "orbit") this.frameWorld();
     this._emit("seed", s);
     return s;
   }
-  rollSeed() { return this.setSeed(randomSeed()); }
   // Structure theme: re-dresses every placed builder block procedurally.
   // Cheap (no world rebuild) — the terrain never changes under it.
   setStructureTheme(name) {

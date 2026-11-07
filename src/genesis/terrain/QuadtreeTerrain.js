@@ -569,10 +569,10 @@ export class QuadtreeTerrain {
      ── AND THE ANALYTIC SAMPLER IS NOT ALWAYS A WINDOW ──
      On a world that runs erosion it is: the baked field replaces it and this
      cap lifts. On a world that does NOT, there is no bake and the analytic
-     field is what every tile is built from, permanently — `lonepalm` sets
-     `erosion: { enabled: false }` (js/worlds.js:306) because there is nothing
-     above water to erode, and its sampler is still `analytic` after a
-     complete build. Profiled, that world costs 27-35 ms per tile at every
+     field is what every tile is built from, permanently: a world whose params
+     set `erosion: { enabled: false }` (an atoll with nothing above water to
+     erode was the measured case) keeps an `analytic` sampler after a complete
+     build. Profiled, that world costs 27-35 ms per tile at every
      depth: ~3.3 s for a full high-tier set and a p90 stall of 220 ms for
      every 8 m walked, which is the one genuinely interactive cost of it.
 

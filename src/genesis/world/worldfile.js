@@ -166,9 +166,9 @@ export function buildWorldFile({ params, propRecords, field, world = null, tacti
     // Written here rather than computed on read: by the time anybody asks,
     // the generator that produced this file is gone.
     generatorVersion: GENERATOR_VERSION,
-    // The world grammar this came out of ("farshore"…), when it came out of
-    // one at all. Advisory: the file is complete without it, and a world
-    // sculpted from scratch has no grammar to name.
+    // A name for what made this world, when the caller gives one (files saved by
+    // older builds carry the name of the sample world they came from). Advisory:
+    // the file is complete without it, and the editor gives none.
     origin: world ? String(world) : null,
     omitted,
     // The geometry table — see dedupeProcs. Written before `world` so a person

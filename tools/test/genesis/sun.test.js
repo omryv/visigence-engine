@@ -17,7 +17,7 @@ import {
   sunDirection, sunElevationDeg, sunAltitudeSine, sunAzimuth, isSunUp,
   SUNRISE_H, SUNSET_H, MIN_WORKING_ELEVATION_DEG,
 } from "../../../src/genesis/sky/sun.js";
-import { DEFAULT_WORLD } from "../../../src/genesis/world/default-world.js";
+import { SEED_WORLD } from "./seed-world.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 const code = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -81,7 +81,7 @@ test("every world this repository ships is authored in daylight", () => {
      every check in the suite passed: the terrain hashed identically across
      the click, the params travelled whole, the card said "Dusk". What none
      of them asked was whether anything in the picture was lit. */
-  const tod = DEFAULT_WORLD.world.params.sky.timeOfDay;
+  const tod = SEED_WORLD.world.params.sky.timeOfDay;
   const elev = sunElevationDeg(tod);
   ok(isSunUp(tod), `the default world is authored at ${tod}, ${(-elev).toFixed(1)}° UNDER the horizon`);
   ok(elev >= MIN_WORKING_ELEVATION_DEG,

@@ -13,9 +13,9 @@ const ID = /^g[a-z0-9]{6,16}$/;
 
 /**
  * @param {Storage} storage  localStorage, or anything with getItem/setItem/removeItem
- * @param {{now?: () => number, random?: () => number}} [o]  clocks and dice, for tests
+ * @param {{now?: () => number}} [o]  the clock, for tests
  */
-export function createLibrary(storage, { now = () => Date.now(), random = Math.random } = {}) {
+export function createLibrary(storage, { now = () => Date.now() } = {}) {
   const read = () => {
     try {
       const list = JSON.parse(storage.getItem(LIBRARY_KEY) ?? '[]');
@@ -26,7 +26,14 @@ export function createLibrary(storage, { now = () => Date.now(), random = Math.r
   const lib = {
     /** Where a game's document lives. */
     key: id => `${LIBRARY_KEY}:${id}`,
-    newId: () => 'g' + Array.from({ length: 10 }, () => Math.floor(random() * 36).toString(36)).join(''),
+    /** The first id no game here holds (g0000000001, g0000000002, …): counted, not drawn, so it is unique in this
+     *  library without any randomness. */
+    newId: () => {
+      for (let n = 1; ; n++) {
+        const id = 'g' + n.toString(36).padStart(10, '0');
+        if (!lib.has(id) && lib.text(id) === null) return id;
+      }
+    },
     /** Newest first. */
     list: () => read().sort((a, b) => b.updated - a.updated),
     has: id => read().some(e => e.id === id),

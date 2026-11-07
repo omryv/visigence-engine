@@ -21,9 +21,9 @@
  * repository's files where a decision was settled — js/worldfile.js,
  * js/landform.js, js/certificate.js, engine/player/*, engine/props/*, and the
  * suites not yet ported here (ground, condition, overworld, ports) — and those
- * citations are to that commit. Neither the WebGL renderer nor the world
- * editor is part of this engine; the world document, the certificate and the
- * town builder are still to be ported (README.md, "What is not in yet").
+ * citations are to that commit. The world editor and its engine have since
+ * moved here (src/genesis/, on WebGPU); the WebGL renderer and that repository's
+ * named sample worlds (its landform and world-grammar files) did not.
  *
  * ── what belongs here, and what does not
  *

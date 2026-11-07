@@ -85,9 +85,6 @@
   <div id="seed-chip" title="Click the seed to travel">
     <span class="rd-key">SEED</span>
     <span id="seed-text" class="mono">····-····-····</span>
-    <button id="seed-roll" type="button" title="Roll a new world" aria-label="Roll a new world">
-      <span data-icon></span>
-    </button>
   </div>
 
   <div class="rd-rule adv" aria-hidden="true"></div>
@@ -185,12 +182,6 @@
     <button id="tool-select" class="tool active" type="button" data-tip="Select · click a block, drag its arrows">
       <span data-icon></span><b>Select</b>
     </button>
-    <!-- Worlds and Gallery stood here. Both are gone, ahead of the one
-         comprehensive World-Gallery that replaces them. The CAPABILITY is
-         not gone with them: js/worlds.js, buildWorld and generateWorld are
-         untouched, and the command palette still carries an entry per world
-         grammar under "Build a world" — which is what the replacement will
-         be built on, and what tools/smoke.mjs now drives. -->
     <button id="tool-blocks" class="tool" type="button" data-tip="Blocks · walls, floors, props">
       <span data-icon></span><b>Blocks</b>
     </button>
@@ -273,15 +264,6 @@
       <button id="held-change" class="key" type="button" title="Pick a different block">Change</button>
       <kbd>Esc</kbd>
     </div>
-
-    <!-- Building a world is the one operation long enough to need a
-         progress reading, and it takes the deck's middle because that is
-         where the author is already looking. -->
-    <div id="build-status" hidden>
-      <span class="bs-spin" aria-hidden="true"></span>
-      <p class="deck-hint"><b id="build-stage">Working…</b> <i id="build-detail"></i></p>
-      <div class="bs-bar" aria-hidden="true"><i id="build-fill"></i></div>
-    </div>
   </div>
 
   <div class="deck-rule" aria-hidden="true"></div>
@@ -317,11 +299,6 @@
      never loses more than one edge, and the middle of the viewport is never
      covered by any of them.
      ══════════════════════════════════════════════════════════════════ -->
-
-<!-- ── WORLDS ── one click, one whole place ── -->
-
-<!-- The Worlds and Gallery rails stood here; see the note on the deck. -->
-
 
 <!-- ── BLOCKS ── the asset console ── -->
 <section id="blocks-dock" class="rail mod collapsed" aria-label="Block library">

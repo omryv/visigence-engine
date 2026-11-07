@@ -5,7 +5,7 @@
  * one you cannot enter or cross, because "there is a door here" is a claim
  * about intent and collision is a fact about geometry. This file holds the
  * facts, and every assertion in it was written against something a headless
- * walk of the four worlds actually found (tools/walk-world.mjs).
+ * walk of built towns actually found.
  *
  * The walk itself is not run here: it needs the whole build — erosion, sculpt
  * strokes, three thousand placements — and the suite is deliberately engine-
@@ -17,14 +17,12 @@
  *   what an open door removes    the leaf, not the building it is in
  *   the way up to a door         a building on a slope needs one
  *   the ground in front of it    and nothing may stand there
- *   the step between two tiles   a way is a surface you have to stay on
  */
 import { test, eq, ok, close, report } from "../kernel/harness.js";
 import { partBox, blockersOf, blocked, surfaceAt, STEP_UP, RADIUS } from "../../../src/kernel/core/reach.js";
 import { doorSteps, groundBuildings, RISER, TREAD } from "../../../src/genesis/world/footing.js";
 import { composeSite, doorwaysOf } from "../../../src/genesis/world/compose.js";
 import { makePlan, blockSpec } from "../../../src/genesis/world/worldplan.js";
-import { layRoad } from "../../../src/genesis/world/roadnet.js";
 import { allItems } from "../../../src/genesis/world/props-packs.js";
 import { buildingParts } from "../../../src/genesis/world/block-shapes.js";
 import { isInterior } from "../../../src/genesis/world/interiors.js";
@@ -35,7 +33,7 @@ test("the collision box knows every shape the renderer can build", () => {
   /* partBox knew four of the eight shapes Props.partGeometry makes, and an
      `extrude` — which is what every wall in this project is — carries no
      `dims` at all, so the first question anybody asked it about a house was
-     a TypeError. Not one of the four worlds could be walked. */
+     a TypeError. No town could be walked. */
   const shapes = [
     { shape: "box", dims: [2, 3, 4], pos: [0, 0, 0] },
     { shape: "cylinder", dims: [1, 4], pos: [0, 0, 0] },
@@ -198,41 +196,6 @@ test("nothing is placed in a doorway", () => {
       }
     }
   }
-});
-
-/* ══ the step between one piece of a way and the next ════════════════════ */
-
-test("a way up a hill is a way, not a flight of walls", () => {
-  /* A road tile is a FLAT slab seated on the ground under its own centre, so
-     a run of them up a slope is a staircase whose riser is the grade times
-     the tile. At the 6 m module anything steeper than about one in eleven
-     stops the player dead: the next tile's edge is a wall. The router will
-     accept a 0.3 grade, which at 6 m is a 1.8 m step. */
-  const road = blockSpec("lane");
-  ok(road, "there is no lane block to lay");
-  for (const grade of [0.05, 0.12, 0.2, 0.3]) {
-    const sampler = (x) => x * grade;
-    const laid = layRoad({
-      route: [{ x: 0, z: 0 }, { x: 240, z: 0 }], road, sampler,
-      uidAt: (n) => `r${n}`, waterLevel: -50,
-    });
-    ok(laid.records.length > 1, `grade ${grade}: nothing was laid`);
-    const ys = laid.records.map((r) => r.position[1]).sort((a, b) => a - b);
-    let worst = 0;
-    for (let i = 1; i < ys.length; i++) worst = Math.max(worst, ys[i] - ys[i - 1]);
-    ok(worst <= STEP_UP, `grade ${grade}: a ${worst.toFixed(2)} m step between two pieces of road`);
-  }
-});
-
-test("a level road is still laid on its own module", () => {
-  // The subdivision is a response to the ground, not a new default: flat
-  // ground has to cost exactly what it always cost.
-  const road = blockSpec("lane");
-  const laid = layRoad({
-    route: [{ x: 0, z: 0 }, { x: 240, z: 0 }], road, sampler: () => 7,
-    uidAt: (n) => `r${n}`, waterLevel: -50,
-  });
-  eq(laid.records.length, 40, "240 m of level lane is 40 six-metre modules");
 });
 
 /* ══ standing on what you are given ══════════════════════════════════════ */

@@ -28,7 +28,6 @@ const ALLOWED = new Set([
   "src/world/buildSpec.js",            // a game level's bake (heightRes), a named field of the level spec
   "src/genesis/Engine.js",             // QUICK_FIELD_RES = 257, the definition
   "src/genesis/world/export-world.js", // EXPORT_MESH_RES = 257, a named presentation choice
-  "src/genesis/world/default-world.js",// a checked-in SAVED DOCUMENT, pasted verbatim
 ]);
 
 // The same stripper idea as boundary.test.js: comments go, strings stay.

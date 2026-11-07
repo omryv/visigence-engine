@@ -10,11 +10,10 @@
  *     certificate verifies at tier 2, and a document with no statements
  *     compiles to the seed's own world — the same parameter hash and the
  *     same ground hash as makeParams(seed) baked directly;
- *   - a grammar's records come first and the statements keep their own
- *     indices; a missed statement is reported at ITS index, with its miss;
- *   - a grammar record the ground misses makes the world NOT met even when
- *     every statement is, and compile and explain say so with the same rows
- *     at the same indices;
+ *   - there are no named worlds: a document that names one is refused, and
+ *     the params are always the seed's own;
+ *   - a missed statement is reported at ITS index, with its miss, and
+ *     compile and explain say so with the same rows at the same indices;
  *   - explain reads back what compile reported, and walks; a bake grid over
  *     MAX_VERIFY_RES, from the file's ground block, is refused before any
  *     bake.
@@ -34,8 +33,7 @@ import { groundBundle } from "../../../src/kernel/terrain/ground.js";
 import { terrainParameterHash } from "../../../src/kernel/terrain/fingerprint.js";
 import { validateWorldFile } from "../../../src/genesis/world/worldfile.js";
 import { verifyCertificate, MAX_VERIFY_RES } from "../../../src/genesis/world/certificate.js";
-import { fullParams, WORLDS } from "../../../src/genesis/world/worlds.js";
-import { compileIntent, explainWorld, paramsForIntent, MET_TOLERANCE, formatCompileReport, formatExplanation } from "../../../src/genesis/world/author.js";
+import { compileIntent, explainWorld, paramsForIntent, intentDocumentErrors, MET_TOLERANCE, formatCompileReport, formatExplanation } from "../../../src/genesis/world/author.js";
 
 const EXAMPLE = JSON.parse(readFileSync(new URL("../../../schema/examples/K7QN.intent.json", import.meta.url), "utf8"));
 const RES = 129;
@@ -51,7 +49,6 @@ async function main() {
   const made = await compileIntent(EXAMPLE, { res: RES });
   const v2 = await verifyCertificate(made.certificate, made.world, { tier: 2 });
   const empty = await compileIntent(doc([]), { res: RES });
-  const far = await compileIntent(doc([{ type: "point", x: 0, z: 0, h: 120 }], { world: "farshore" }), { res: RES });
   /* A summit 50 m from a pad 140 m below it: an ask the lattice cannot
      express (condition.js RIDGE's own example), so one of them misses. */
   const torn = await compileIntent(doc([
@@ -60,15 +57,6 @@ async function main() {
     { type: "pad", x: 350, z: 300, r: 48, h: 40 },
   ]), { res: RES });
   const overridden = await compileIntent(doc([], { seed: "AAAA" }), { seed: "k7qn", res: RES });
-  /* Farshore on K7QN brings one level record of its own (its land bar). With
-     a point that must stand 400 m up and a wider level on top of it, both
-     statements are kept and the grammar's own record is the one that gives:
-     measured at 5.76 cm, over MET_TOLERANCE. */
-  const offBar = await compileIntent(doc([
-    { type: "point", x: 0, z: 0, h: 400, op: ">=" },
-    { type: "level", h: 0, op: ">=", inset: 0.9 },
-  ], { world: "farshore" }), { res: RES });
-
   test("a record's miss is the solve's own: the largest of them is the sampler's miss, on v1 and v2 lists", () => {
     for (const intent of [
       [{ type: "summit", x: 600, z: -400, h: 260 }, { type: "pad", x: -500, z: 300, r: 80, h: 40 }, { type: "level", h: 40 }, { type: "point", x: 0, z: 900, h: -20 }],
@@ -112,14 +100,12 @@ async function main() {
     ok(empty.report.met);
   });
 
-  test("a named world is its grammar's params; its own records come first and the statements keep their indices", () => {
-    const gram = fullParams(WORLDS.farshore, "K7QN-3F2A-9XBD");
-    eq(far.report.grammarRecords, gram.terrain.intent.length);
-    eq(far.world.origin, "farshore");
-    eq(far.world.world.params.terrain.size, gram.terrain.size);
-    eq(far.report.statements.length, 1);
-    eq(far.report.statements[0].type, "point");
-    eq(far.world.world.params.terrain.intent.length, gram.terrain.intent.length + 1);
+  test("there are no named worlds: a document that names one is refused, and the params are the seed's own", () => {
+    const named = intentDocumentErrors(doc([], { world: "farshore" }));
+    ok(named.some((e) => e.startsWith("world is not a field")), JSON.stringify(named));
+    const p = paramsForIntent(doc([{ type: "point", x: 0, z: 0, h: 120 }])).params;
+    eq(JSON.stringify({ ...p, terrain: { ...p.terrain, intent: [] } }), JSON.stringify(mergeParams(makeParams({ seed: "K7QN-3F2A-9XBD" }), { terrain: { intent: [] } })));
+    eq(p.terrain.intent.length, 1);
   });
 
   test("a statement the ground cannot keep is reported at its own index, with its miss", () => {
@@ -131,25 +117,11 @@ async function main() {
     close(Math.max(...torn.report.statements.map((s) => s.miss)), torn.report.conditioning.miss, 0, "the worst is the solve's miss");
   });
 
-  test("a grammar record the ground misses is reported, and the world is NOT met though every statement is", () => {
-    const r = offBar.report;
-    eq(r.grammarRecords, 1); eq(r.grammar.length, 1);
-    ok(r.statements.every((s) => s.met), JSON.stringify(r.statements));
-    eq(r.grammar[0].type, "level"); eq(r.grammar[0].index, 0);
-    ok(!r.grammar[0].met, JSON.stringify(r.grammar));
-    close(r.grammar[0].miss, 0.0576, 5e-4, "the measured miss");
-    ok(r.grammar[0].miss > MET_TOLERANCE);
-    eq(r.grammar[0].miss, r.conditioning.miss, "the grammar's record is the worst miss");
-    ok(!r.met, "not met");
-    ok(formatCompileReport(r).includes("[farshore 0]") && formatCompileReport(r).includes("NOT every statement met"));
-    // explain on the written file: the same rows, at the same indices.
-    const x = explainWorld(offBar.world);
-    eq(JSON.stringify(x.grammar), JSON.stringify(r.grammar));
-    eq(JSON.stringify(x.statements), JSON.stringify(r.statements));
-    ok(!x.met);
-    // A named world whose records the grammar's own already meet: an empty grammar list or every row met.
-    ok(far.report.grammar.every((g) => g.met) && far.report.met === far.report.statements.every((s) => s.met));
-    eq(JSON.stringify(explainWorld(far.world).statements), JSON.stringify(far.report.statements));
+  test("explain reads a compiled file's statements back at the same indices, met or missed", () => {
+    const x = explainWorld(torn.world);
+    eq(JSON.stringify(x.statements), JSON.stringify(torn.report.statements));
+    eq(x.met, torn.report.met);
+    ok(formatCompileReport(torn.report).includes("NOT every statement met"));
   });
 
   test("a seed passed in beats the document's, normalised", () => {

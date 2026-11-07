@@ -1,28 +1,22 @@
 /* author.js — THE AUTHOR INTERFACE: a world asked for in statements, and told
  * back what it kept.
  *
- * ── what this replaces ──
- * js/make-brief.js reads a sentence through a phrase table. That was the
- * honest thing to build when the only author was a person typing into a box:
- * it picks a grammar, reads the dressing, and hashes the rest of the words
- * into a seed. What it cannot do is say "the summit is HERE and 260 m high",
- * because a phrase table has nothing to say it with — and an AI author, the
- * other kind there now is, never needed the table in the first place: it can
- * write the statements condition.js already solves. So the author interface
- * is a DOCUMENT of those statements (schema/intent.schema.json), and this
- * module is the one door both of its readers use — bin/genesis.mjs from a
- * terminal and bin/genesis-mcp.mjs over the Model Context Protocol:
+ * ── what this is ──
+ * A world is its seed's own ground; an author who wants more of it says so in the statements condition.js solves
+ * ("the summit is HERE and 260 m high"). A person does that with the editor's tools; an AI author writes the
+ * statements directly. So the author interface is a DOCUMENT of those statements (schema/intent.schema.json), and
+ * this module is the one door both of its readers use: bin/genesis.mjs from a terminal and bin/genesis-mcp.mjs over
+ * the Model Context Protocol:
  *
  *     intentDocumentErrors(doc, { seed })                 -> string[]
- *     paramsForIntent(doc, { seed })                      -> { params, seed, world, grammarRecords, statements }
+ *     paramsForIntent(doc, { seed })                      -> { params, seed, statements }
  *     compileIntent(doc, { seed, res, key })              -> Promise<{ world, certificate, report }>
  *     explainWorld(worldDoc, { spawn, objective, res })   -> explanation
  *     formatCompileReport(report) / formatExplanation(e)  -> text for a terminal
  *
  * ── what a compile is ──
  * Nothing new: the pipeline every world already goes through, in the order
- * it already runs. makeParams(seed) — or a grammar's fullParams, when the
- * document names one — with the statements appended to the intent; the
+ * it already runs. makeParams(seed) with the statements as its intent; the
  * sampler, whose conditioning IS the report (nats, the per-statement miss,
  * converged); groundBundle at the canonical grid, whose manifest becomes the
  * file's ground block; js/worldfile.js buildWorldFile; and js/certificate.js
@@ -42,25 +36,8 @@
  * (STATEMENT_FIELDS), and the two v1 clamps are bounds. tests/intent-schema
  * .test.js holds the schema, this module and condition.js to the same answer.
  *
- * ── the grammar records come first ──
- * A document that names a world ("farshore", "lonepalm") is that grammar's
- * params for the seed — its terrain, biome and water — and that includes the
- * intent the grammar's own bar asks of the seed (js/worlds.js conditionFor:
- * a level record when the seed misses Farshore's land bar, nothing for a
- * seed that clears it). The author's statements are appended after those, so
- * the world still clears its bar, and the report keeps the two apart: the
- * grammar's records are read back as `grammar` rows, the author's statements
- * as `statements` rows by their own index in the document — and a world is
- * MET only when both are, because a grammar record the ground misses is a
- * world off its own bar whoever wrote the record. explainWorld splits a world
- * file the same way when its origin names a grammar and its intent begins
- * with exactly the records that grammar asks of its seed (an intent edited
- * since is read as statements throughout), so compile and explain report the
- * same rows at the same indices. The grammar's landform (sculpt strokes, its places)
- * is NOT applied: that is a build, with an engine, and this is a compile.
- *
- * No DOM, no three.js, no storage. Not part of engine/core: it reaches
- * js/certificate.js, which needs WebCrypto, and js/worlds.js.
+ * No DOM, no three.js, no storage. Not part of the kernel: it reaches
+ * certificate.js, which needs WebCrypto.
  */
 
 import { makeParams, mergeParams } from "../../kernel/presets.js";
@@ -72,7 +49,6 @@ import { terrainParameterHash, hex } from "../../kernel/terrain/fingerprint.js";
 import { posteriorSigma } from "../../kernel/terrain/sigma.js";
 import { intentErrors, INTENT_VERSION, INTENT_TYPES, MAX_INTENT, GRADIENT_STEP } from "../../kernel/terrain/condition.js";
 import { reachTerrain, parRoute } from "../../kernel/core/terrain-reach.js";
-import { WORLDS, fullParams } from "./worlds.js";
 import { buildWorldFile, validateWorldFile, paramsFromWorldFile, generatorProvenance } from "./worldfile.js";
 import { buildCertificate, MAX_VERIFY_RES } from "./certificate.js";
 
@@ -80,10 +56,6 @@ export const INTENT_KIND = "visigenesis.intent";
 /* The document's version is the vocabulary's: a version-2 document may carry
    every record condition.js INTENT_VERSION 2 solves, and nothing else. */
 export const INTENT_DOC_VERSION = INTENT_VERSION;
-/* The two grammars an author may name. The machine page offers these two
-   (js/make-brief.js worldForBrief), and they are the two whose identity is
-   in their terrain rather than in a landform the compile does not run. */
-export const AUTHOR_WORLDS = Object.freeze(["farshore", "lonepalm"]);
 export const MAX_TITLE = 48;
 
 /* A statement is MET when the ground misses it by no more than this, metres.
@@ -116,7 +88,7 @@ export const STATEMENT_FIELDS = Object.freeze({
   corridor: ["points", "maxGrade"],
   pad: ["x", "z", "r", "h"],
 });
-const DOC_FIELDS = ["$schema", "kind", "version", "seed", "world", "title", "statements"];
+const DOC_FIELDS = ["$schema", "kind", "version", "seed", "title", "statements"];
 
 const finite = (v) => typeof v === "number" && Number.isFinite(v);
 const isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -153,26 +125,17 @@ function documentChecks(doc, seedOverride) {
   if (doc.seed !== undefined && !seedText(doc.seed)) errors.push(`seed ${show(doc.seed)} is not a seed: a string of 1–64 characters with a letter or digit in it`);
   if (seedOverride != null && !seedText(seedOverride)) errors.push(`the seed given ${show(seedOverride)} is not a seed`);
   if (doc.seed === undefined && seedOverride == null) errors.push("no seed: put one in the document (\"seed\": \"K7QN-3F2A-9XBD\") or pass one (--seed)");
-  if (doc.world !== undefined && doc.world !== null && !AUTHOR_WORLDS.includes(doc.world)) {
-    errors.push(`world ${show(doc.world)} is not one of ${AUTHOR_WORLDS.join(", ")} (or null)`);
-  }
   const st = doc.statements;
   if (!Array.isArray(st)) { errors.push("statements is not a list"); return errors; }
   if (st.length > MAX_INTENT) errors.push(`statements holds ${st.length}; the most a world reads is ${MAX_INTENT}`);
   st.forEach((s, i) => errors.push(...statementChecks(s, `statements[${i}]`)));
   if (errors.length) return errors;
 
-  /* The size of the plate the statements land on, and the records a grammar
-     brings with it, decide whether the list as a whole fits: condition.js
-     checks every coordinate against the plate and the rows against MAX_ROWS. */
-  const { params, grammarRecords } = paramsForIntent(doc, { seed: seedOverride });
-  const all = params.terrain.intent;
-  if (all.length > MAX_INTENT) errors.push(`the ${grammarRecords} record${grammarRecords === 1 ? "" : "s"} ${doc.world} brings and ${st.length} statements are ${all.length}; the most a world reads is ${MAX_INTENT}`);
-  for (const e of intentErrors(all, { size: params.terrain.size })) {
-    errors.push(e.replace(/^terrain\.intent\[(\d+)\]/, (_, i) => {
-      const k = Number(i) - grammarRecords;
-      return k >= 0 ? `statements[${k}]` : `${doc.world}'s own record ${i}`;
-    }).replace(/^terrain\.intent /, "the statements "));
+  /* The size of the plate the statements land on decides whether the list fits: condition.js checks every
+     coordinate against the plate and the rows against MAX_ROWS. */
+  const { params } = paramsForIntent(doc, { seed: seedOverride });
+  for (const e of intentErrors(params.terrain.intent, { size: params.terrain.size })) {
+    errors.push(e.replace(/^terrain\.intent\[(\d+)\]/, "statements[$1]").replace(/^terrain\.intent /, "the statements "));
   }
   return errors;
 }
@@ -206,24 +169,16 @@ function statementChecks(s, at) {
  * intentDocumentErrors accepts (it is called from there, before the plate
  * checks, so it must not depend on them).
  *
- * Returns { params, seed, world, grammarRecords, statements } — `seed` the
- * normalised seed (normalizeSeed: "k7qn" is "K7QN-2222-2222"), `world` the
- * grammar id or null, `grammarRecords` how many intent records the grammar
- * brought ahead of the statements.
+ * Returns { params, seed, statements } — `seed` the normalised seed (normalizeSeed: "k7qn" is "K7QN-2222-2222"),
+ * `params` the seed's own params with the statements as their intent.
  */
 export function paramsForIntent(doc, { seed = null } = {}) {
   const raw = seed ?? doc.seed;
   const s = normalizeSeed(raw);
   if (!s) throw new TypeError(`paramsForIntent: ${show(raw)} is not a seed`);
-  const world = doc.world ?? null;
-  /* fullParams is the editor's own door to a grammar's params (js/worlds.js),
-     its bar's intent included. */
-  if (world && !WORLDS[world]) throw new TypeError(`paramsForIntent: no world grammar ${show(world)}`);
-  const base = world ? fullParams(WORLDS[world], s) : makeParams({ seed: s });
-  const grammar = Array.isArray(base.terrain.intent) ? base.terrain.intent : [];
   const statements = (doc.statements || []).map((r) => JSON.parse(JSON.stringify(r)));
-  const params = mergeParams(base, { terrain: { intent: [...grammar, ...statements] } });
-  return { params, seed: s, world, grammarRecords: grammar.length, statements };
+  const params = mergeParams(makeParams({ seed: s }), { terrain: { intent: statements } });
+  return { params, seed: s, statements };
 }
 
 /* ── reading the conditioning back, statement by statement ── */
@@ -249,25 +204,15 @@ export function describeStatement(r) {
    MAX_ROWS, or every row off the plate) and whether that is within
    MET_TOLERANCE. `records` is the list the world carries, which — for a list
    intentErrors accepts — is the list condition.js normalised, in order. */
-function statementRows(records, sampler, from = 0) {
+function statementRows(records, sampler) {
   const misses = sampler.conditioning?.system?.misses || [];
-  return records.slice(from).map((r, k) => {
-    const miss = misses[from + k] ?? null;
+  return records.map((r, k) => {
+    const miss = misses[k] ?? null;
     return {
       index: k, type: r.type, what: describeStatement(r),
       stated: miss !== null, miss, met: miss !== null && miss <= MET_TOLERANCE,
     };
   });
-}
-
-/* How many of a world file's records are its grammar's own: the length of
-   the grammar's records for the seed when the file's intent begins with
-   exactly those (JSON-equal, record by record), else 0. */
-function grammarPrefix(origin, seed, records) {
-  if (!AUTHOR_WORLDS.includes(origin) || !WORLDS[origin]) return 0;
-  const own = fullParams(WORLDS[origin], seed).terrain.intent;
-  if (!Array.isArray(own) || own.length > records.length) return 0;
-  return own.every((r, k) => JSON.stringify(r) === JSON.stringify(records[k])) ? own.length : 0;
 }
 
 const conditioningSummary = (c) => (c
@@ -295,25 +240,21 @@ export async function compileIntent(doc, { seed = null, res = CANONICAL_RES, key
   const errors = intentDocumentErrors(doc, { seed });
   if (errors.length) throw new TypeError(`not a compilable intent document — ${errors.join("; ")}`);
   if (!Number.isInteger(res) || res < 2 || res > MAX_VERIFY_RES) throw new RangeError(`compileIntent: res ${res} is not a grid of 2–${MAX_VERIFY_RES}`);
-  const { params, seed: s, world, grammarRecords } = paramsForIntent(doc, { seed });
+  const { params, seed: s } = paramsForIntent(doc, { seed });
   /* An empty list is a world with no intent: the sampler is the seed's own
      ground, bit for bit (heightfield.js), and the report says so. */
   const sampler = createHeightSampler(params);
   const bundle = groundBundle(params, { res });
-  const file = buildWorldFile({ params, propRecords: [], field: bundle.field, world, ground: bundle.manifest });
+  const file = buildWorldFile({ params, propRecords: [], field: bundle.field, ground: bundle.manifest });
   const certificate = await buildCertificate(file, { res, key });
-  const all = params.terrain.intent;
-  const rows = statementRows(all, sampler, grammarRecords);
-  const grammar = statementRows(all, sampler).slice(0, grammarRecords);
+  const rows = statementRows(params.terrain.intent, sampler);
   const c = sampler.conditioning;
   const report = {
-    seed: s, world, title: doc.title ?? null,
+    seed: s, title: doc.title ?? null,
     parameterHash: terrainParameterHash(params),
-    grammarRecords,
-    grammar,
     statements: rows,
     conditioning: conditioningSummary(c),
-    met: [...grammar, ...rows].every((r) => r.met) && (!c || c.converged),
+    met: rows.every((r) => r.met) && (!c || c.converged),
     ground: {
       res: bundle.manifest.res, size: bundle.manifest.size, min: bundle.manifest.min, max: bundle.manifest.max,
       waterLevel: bundle.manifest.waterLevel, heightHash: bundle.manifest.heightHash,
@@ -328,8 +269,7 @@ export async function compileIntent(doc, { seed = null, res = CANONICAL_RES, key
 /** The compile report as a few lines for a terminal. */
 export function formatCompileReport(r) {
   const out = [];
-  out.push(`world ${r.seed}${r.world ? ` (${r.world})` : ""}${r.title ? ` — ${r.title}` : ""}, parameter hash ${hex(r.parameterHash)}`);
-  out.push(...grammarLines(r.world, r.grammar));
+  out.push(`world ${r.seed}${r.title ? ` — ${r.title}` : ""}, parameter hash ${hex(r.parameterHash)}`);
   out.push(...statementLines(r.statements));
   out.push(conditioningLine(r.conditioning));
   out.push(`ground ${r.ground.res}², ${r.ground.min.toFixed(1)}…${r.ground.max.toFixed(1)} m, height hash ${hex(r.ground.heightHash)}`);
@@ -338,13 +278,6 @@ export function formatCompileReport(r) {
   return out.join("\n");
 }
 
-/* The grammar's own records, before the statements, under their own label so
-   the statements' indices stay the document's. */
-function grammarLines(world, rows) {
-  if (!rows?.length) return [];
-  return [`  ${world} brings ${rows.length} intent record${rows.length === 1 ? "" : "s"} of its own, solved with the statements:`,
-    ...rows.map((s) => `  [${world} ${s.index}] ${s.what}: ${rowVerdict(s)}`)];
-}
 const rowVerdict = (s) => (!s.stated ? "NOT STATED (dropped, or off the plate)" : `${s.met ? "met" : "MISSED"}, miss ${fmtMetres(s.miss)}`);
 
 function statementLines(rows) {
@@ -373,7 +306,7 @@ function conditioningLine(c) {
  *                                     (default the file's ground block's,
  *                                     else CANONICAL_RES)
  * @param {number} [opts.sigmaGrid]    the freedom map's grid (default 65)
- * @returns {object} { seed, origin, generator, parameterHash, grammar,
+ * @returns {object} { seed, origin, generator, parameterHash,
  *          statements, conditioning, met, sigma, ground, reach, route }
  *          Throws a TypeError for a file that does not validate and a
  *          RangeError, when it bakes (a spawn or an objective is given),
@@ -388,19 +321,16 @@ export function explainWorld(doc, { spawn = null, objective = null, res = null, 
   const params = paramsFromWorldFile(doc);
   const sampler = createHeightSampler(params);
   const records = Array.isArray(params.terrain.intent) ? params.terrain.intent : [];
-  const own = grammarPrefix(doc.origin, params.seed, records);
-  const grammar = statementRows(records, sampler).slice(0, own);
-  const rows = statementRows(records, sampler, own);
+  const rows = statementRows(records, sampler);
   const c = sampler.conditioning;
   const sg = posteriorSigma(params, { n: sigmaGrid, sampler }).stats;
   const out = {
     seed: params.seed, origin: doc.origin ?? null,
     generator: generatorProvenance(doc).status,
     parameterHash: terrainParameterHash(params),
-    grammar,
     statements: rows,
     conditioning: conditioningSummary(c),
-    met: [...grammar, ...rows].every((r) => r.met) && (!c || c.converged),
+    met: rows.every((r) => r.met) && (!c || c.converged),
     sigma: { grid: sigmaGrid, priorMedian: sg.priorMedian, postMedian: sg.postMedian, atStatements: sg.atStatements, interiorHalved: sg.interiorHalved, rows: sg.rows },
     ground: null, reach: null, route: null,
   };
@@ -452,7 +382,6 @@ export function bakeGrid(doc, res = null, who = "bake") {
 export function formatExplanation(e) {
   const out = [];
   out.push(`world ${e.seed}${e.origin ? ` (${e.origin})` : ""}, parameter hash ${hex(e.parameterHash)}, generator ${e.generator}`);
-  out.push(...grammarLines(e.origin, e.grammar));
   out.push(...statementLines(e.statements));
   out.push(conditioningLine(e.conditioning));
   const s = e.sigma;

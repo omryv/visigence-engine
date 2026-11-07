@@ -52,15 +52,29 @@ test("the kernel needs no renderer, no browser, no network and no clock", () => 
 test("the kernel reaches for no randomness of its own", () => {
   /* A generator is HANDED its stream. A default of Math.random is the worst kind of determinism bug: output is
      reproducible until somebody adds a call site that omits the argument, and then the same seed quietly produces a
-     different world. randomSeed(rng = Math.random) in seed.js is the ONE legitimate case: minting a brand-new seed
-     is where nondeterminism is supposed to enter. */
+     different world. There is no exception: seed.js drawSeed takes its stream as an argument too. */
   for (const f of jsFiles(KERNEL)) {
     const lines = stripSource(readFileSync(f, "utf8")).split("\n");
     lines.forEach((line, i) => {
-      if (!/Math\.random/.test(line)) return;
-      ok(relative(ROOT, f) === "src/kernel/seed.js" && /randomSeed/.test(line),
-        `${relative(ROOT, f)}:${i + 1} reaches for Math.random — a kernel generator is handed its stream`);
+      ok(!/Math\.random/.test(line), `${relative(ROOT, f)}:${i + 1} reaches for Math.random — a kernel generator is handed its stream`);
     });
+  }
+});
+
+test("nothing in the engine or the editor is random: every draw comes from a seed", () => {
+  /* The whole tool, not only the kernel: the world engine, the game engine, the reconstruction and the editors' page
+     code. A world, a level, the rain and a splash are the same every time from the same seed and the same actions.
+     Math.random, crypto.getRandomValues and crypto.randomUUID are all ambient entropy; none of them may appear. */
+  const AMBIENT = /Math\.random|getRandomValues|randomUUID/;
+  const files = [...jsFiles(join(ROOT, "src")), ...jsFiles(join(ROOT, "editor")),
+    ...readdirSync(join(ROOT, "bin")).filter((n) => n.endsWith(".mjs")).map((n) => join(ROOT, "bin", n))];
+  {
+    for (const f of files) {
+      const lines = stripSource(readFileSync(f, "utf8")).split("\n");
+      lines.forEach((line, i) => {
+        ok(!AMBIENT.test(line), `${relative(ROOT, f)}:${i + 1} draws ambient entropy: ${line.trim().slice(0, 80)}`);
+      });
+    }
   }
 });
 

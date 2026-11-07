@@ -10,6 +10,7 @@
 // stays wet.
 
 import * as THREE from "three";
+import { channelRng } from "../../kernel/seed.js";
 import { instancedBufferAttribute } from "three/tsl";
 
 const POOL = 8;
@@ -58,13 +59,15 @@ export class SplashFX {
     s.ring.material.opacity = 0.85;
     s.ring.visible = true;
     const pos = s.drops.userData.position.array;
+    // The drops a splash throws, drawn from where it lands (to the decimetre): the same splash in the same place.
+    const rng = channelRng("fx", `splash:${Math.round(x * 10)},${Math.round(z * 10)}`);
     for (let i = 0; i < DROPS_PER; i++) {
-      const a = Math.random() * Math.PI * 2, r0 = Math.random() * 0.3 * strength;
+      const a = rng() * Math.PI * 2, r0 = rng() * 0.3 * strength;
       pos[i * 3] = x + Math.cos(a) * r0;
       pos[i * 3 + 1] = waterY + 0.05;
       pos[i * 3 + 2] = z + Math.sin(a) * r0;
-      const up = (2.2 + Math.random() * 2.6) * strength;
-      const out = (0.6 + Math.random() * 1.6) * strength;
+      const up = (2.2 + rng() * 2.6) * strength;
+      const out = (0.6 + rng() * 1.6) * strength;
       s.vel[i * 3] = Math.cos(a) * out;
       s.vel[i * 3 + 1] = up;
       s.vel[i * 3 + 2] = Math.sin(a) * out;

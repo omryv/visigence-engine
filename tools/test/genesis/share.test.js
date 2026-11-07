@@ -10,12 +10,11 @@
 // Needs CompressionStream (Node ≥18, every current browser); jsc has none,
 // and this file says so and skips.
 import { test, eq, ok, report } from "../kernel/harness.js";
-import { makeParams } from "../../../src/kernel/presets.js";
+import { makeParams, mergeParams } from "../../../src/kernel/presets.js";
 import { bakeHeightField } from "../../../src/kernel/terrain/heightfield.js";
 import { makeUid } from "../../../src/genesis/world/fusion.js";
 import { buildWorldFile, serializeWorldFile } from "../../../src/genesis/world/worldfile.js";
-import { DEFAULT_WORLD } from "../../../src/genesis/world/default-world.js";
-import { WORLDS, fullParams } from "../../../src/genesis/world/worlds.js";
+import { SEED_WORLD } from "./seed-world.js";
 import { encodeWorldLink, decodeWorldLink, FormatError, MAX_LINK_BYTES } from "../../../src/genesis/world/share.js";
 
 const clock = () => (globalThis.performance ? performance.now() : 0);
@@ -32,14 +31,14 @@ async function refusal(promise) {
 
 async function main() {
   /* ── round trips ── */
-  const defaultLink = await encodeWorldLink(DEFAULT_WORLD);
+  const defaultLink = await encodeWorldLink(SEED_WORLD);
   const defaultBack = await decodeWorldLink(defaultLink);
 
-  /* A generated world: Farshore's own params for a seed, scored on a baked
-     field, carrying procedural placements that share one geometry spec — the
-     shape a composed town has, so the geometry table is exercised too. */
+  /* A built-on world: a seed's own params with a statement in its intent, scored on a baked field, carrying
+     procedural placements that share one geometry spec — the shape a composed town has, so the geometry table is
+     exercised too. */
   const SEED = "K7QN-3F2A-9XBD";
-  const params = fullParams(WORLDS.farshore, SEED);
+  const params = mergeParams(makeParams({ seed: SEED }), { terrain: { intent: [{ type: "level", h: 30, op: ">=" }] } });
   const chair = { kind: "block", shape: "chair", parts: [
     { g: "box", pos: [0, 0.42, 0], size: [0.46, 0.06, 0.44], mat: "wood" },
     { g: "box", pos: [0, 0.72, -0.2], size: [0.46, 0.54, 0.06], mat: "wood" },
@@ -48,7 +47,7 @@ async function main() {
     uid: makeUid(SEED, i), ref: "interior/chair", url: null, label: "Chair",
     position: [i * 1.25, 3.5, -i * 0.75], rotationY: i * 0.1, scale: 1, proc: chair,
   }));
-  const generated = buildWorldFile({ params, propRecords: props, field: bakeHeightField(params, 129), world: "farshore" });
+  const generated = buildWorldFile({ params, propRecords: props, field: bakeHeightField(params, 129) });
   const generatedLink = await encodeWorldLink(generated);
   const generatedBack = await decodeWorldLink(generatedLink.slice(1)); // without its '#'
 
@@ -56,7 +55,7 @@ async function main() {
   const Real = { C: globalThis.CompressionStream, D: globalThis.DecompressionStream };
   globalThis.CompressionStream = undefined;
   let plainLink;
-  try { plainLink = await encodeWorldLink(DEFAULT_WORLD); } finally { globalThis.CompressionStream = Real.C; }
+  try { plainLink = await encodeWorldLink(SEED_WORLD); } finally { globalThis.CompressionStream = Real.C; }
   const plainBack = await decodeWorldLink(plainLink);
   globalThis.DecompressionStream = undefined;
   let noInflate;
@@ -101,11 +100,11 @@ async function main() {
     ["bytes that are not UTF-8", "#world=0.__79", "utf8"],
     ["text that is not JSON", "#world=0." + enc("hello"), "json"],
     ["JSON that is not a world", "#world=0." + enc(JSON.stringify({ kind: "something-else" })), "world"],
-    ["a world with its version bent", "#world=0." + enc(JSON.stringify({ ...DEFAULT_WORLD, fileVersion: 99 })), "world"],
+    ["a world with its version bent", "#world=0." + enc(JSON.stringify({ ...SEED_WORLD, fileVersion: 99 })), "world"],
     // Shapes validateWorldFile once threw a TypeError on (the M4 review).
-    ["a world whose props is a number", "#world=0." + enc(JSON.stringify({ ...DEFAULT_WORLD, world: { ...DEFAULT_WORLD.world, props: 5 } })), "world"],
-    ["a world with a null placement", "#world=0." + enc(JSON.stringify({ ...DEFAULT_WORLD, world: { ...DEFAULT_WORLD.world, props: [null] } })), "world"],
-    ["a world whose world is a list", "#world=0." + enc(JSON.stringify({ ...DEFAULT_WORLD, world: [1, 2] })), "world"],
+    ["a world whose props is a number", "#world=0." + enc(JSON.stringify({ ...SEED_WORLD, world: { ...SEED_WORLD.world, props: 5 } })), "world"],
+    ["a world with a null placement", "#world=0." + enc(JSON.stringify({ ...SEED_WORLD, world: { ...SEED_WORLD.world, props: [null] } })), "world"],
+    ["a world whose world is a list", "#world=0." + enc(JSON.stringify({ ...SEED_WORLD, world: [1, 2] })), "world"],
     ["a link longer than any capped world", "#world=0." + "A".repeat(3 * 1024 * 1024), "too-long"],
   ];
   const garbageOut = [];
@@ -116,8 +115,8 @@ async function main() {
 
   test("the default world round-trips through a link, exactly", () => {
     ok(defaultLink.startsWith("#world=1."), defaultLink.slice(0, 12));
-    eq(serializeWorldFile(defaultBack), serializeWorldFile(DEFAULT_WORLD));
-    const raw = JSON.stringify(DEFAULT_WORLD).length;
+    eq(serializeWorldFile(defaultBack), serializeWorldFile(SEED_WORLD));
+    const raw = JSON.stringify(SEED_WORLD).length;
     print(`    default world: ${raw} bytes of JSON → a ${defaultLink.length}-character link`);
   });
 
@@ -125,14 +124,14 @@ async function main() {
     eq(serializeWorldFile(generatedBack), serializeWorldFile(generated));
     eq(generated.procs.length, 1, "forty chairs, one geometry spec");
     eq(generatedBack.world.props.length, 40);
-    ok(generatedBack.world.params.terrain.intent !== undefined, "the grammar's intent travelled");
+    ok(generatedBack.world.params.terrain.intent !== undefined, "the intent travelled");
     const raw = JSON.stringify(generated).length;
-    print(`    farshore ${SEED}, 40 placements: ${raw} bytes of JSON → a ${generatedLink.length}-character link`);
+    print(`    ${SEED} with a statement, 40 placements: ${raw} bytes of JSON → a ${generatedLink.length}-character link`);
   });
 
   test("the uncompressed fallback round-trips, and a compressed link says why it cannot open without an inflater", () => {
     ok(plainLink.startsWith("#world=0."), plainLink.slice(0, 12));
-    eq(serializeWorldFile(plainBack), serializeWorldFile(DEFAULT_WORLD));
+    eq(serializeWorldFile(plainBack), serializeWorldFile(SEED_WORLD));
     ok(noInflate instanceof FormatError && noInflate.code === "no-inflate", `${noInflate && noInflate.message}`);
   });
 

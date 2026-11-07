@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /* genesis-mcp — the author interface as a Model Context Protocol server.
  *
- * An AI author does not need a phrase table (js/make-brief.js) to ask for a
- * world: it can write the statements condition.js solves. This hands it the
+ * An AI author asks for a world the way the editor's tools do: it writes the
+ * statements condition.js solves on a seed's own ground. This hands it the
  * four things bin/genesis.mjs does, as tools, over stdio:
  *
  *   genesis_schema    the intent document's JSON Schema (schema/intent.schema.json)

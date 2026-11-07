@@ -1,7 +1,7 @@
 # Visigence Engine
 
 One tool, one engine. **Every seed is a world**: the Genesis Kernel grows a world from a seed, the world engine
-lets you shape it (named worlds with towns and roads, sculpting, rivers, props, weather, walking and flying), and
+lets you shape it (towns, woods, sculpting, rivers, props, weather, walking and flying), and
 the game engine plays missions on it, a level cut from the very ground you made. One repository, one kernel, one
 renderer: three.js `WebGPURenderer` (WebGPU, with WebGL2 only where a browser has no WebGPU), and every shader is a
 TSL node graph that compiles to WGSL and, for that fallback, to GLSL.
@@ -15,18 +15,18 @@ this repository.
 
 | Mode | What it does | Where |
 |---|---|---|
-| **World** (`/world`) | The world engine's editor: a seed's world with its sky, sea, weather and time of day; named worlds (Farshore, Lonepalm) with their towns, roads and props; sculpting, rivers, grass and scatter; orbit, walk and fly; the world file, its certificate and the exporters. **Play here** plays a mission on this world. | `world.html`, `editor/world/`, `src/genesis/` |
+| **World** (`/world`) | The world engine's editor. It opens on one seed's own world (`DEFAULT_SEED`, `src/kernel/seed.js`; `?seed=` names another), with its sky, sea, weather and time of day, and nothing else: no sample worlds. On it you place towns and props, plant the woods the seed grows, sculpt, carve rivers, paint grass; orbit, walk and fly; save the world file, its certificate and the exports. **Play here** plays a mission on this world. | `world.html`, `editor/world/`, `src/genesis/` |
 | **Play** (`/`) | A ready mission in one of five genres (shooter, exploration, action adventure, arena, collect-a-thon). It stands on a 640 m site of the world, played at 1:8: the seed's own world, or the world World handed over. | `index.html`, `editor/playerFront.js`, `src/game/`, [docs/GENRES.md](docs/GENRES.md) |
 | **Remix** | The mission as a node graph: pools, steps, rules. | `editor/studio.js`, [docs/STUDIO.md](docs/STUDIO.md) |
 | **Build** | The 3D level editor: games of several levels, live checks, playtests, export with portal hooks. | `editor/build/`, [docs/EDITOR.md](docs/EDITOR.md) |
-| *Make* (`/make`) | A world from a sentence: a brief becomes a named world's dressing. | `make.html`, `editor/world/make.js` |
 | *See yourself* | A photograph becomes a figure on this device and a prop in a level (inside Play's prop importer, for now). | `src/atlas/`, below |
 
 **Play here.** The world editor stores nothing on the visitor's machine (no local storage, no cookies), so it hands
 its world to Play in the link's fragment (`/?mode=play#world=…`, `src/world/worldLink.js`): the seed and the world's
-terrain and water params, about 700 characters for Farshore. Play opens in a new tab so the world being made stays
-open. The mission's ground is then cut from that world (`src/world/kernelGround.js` `worldParamsFor`): the named
-world's grammar, its own intent statements together with the mission's, and the author's sculpt strokes. The level
+terrain and water params, about 700 characters for a world with a town on it. Play opens in a new tab so the world
+being made stays open. The mission's ground is then cut from that world (`src/world/kernelGround.js`
+`worldParamsFor`): its terrain settings, its own intent statements together with the mission's, and the author's
+sculpt strokes. The level
 carries the world it was cut from (`ground.world.params`), so the world drawn past its rim is the same world.
 
 ## What is not in yet
@@ -66,10 +66,10 @@ installation, builds with `node tools/build/build-preview.mjs` and serves `dist/
 
 | Path | What it is |
 |---|---|
-| `index.html`, `world.html`, `make.html` | The tool's pages: the studio (Play, Remix, Build), World, and Make |
+| `index.html`, `world.html` | The tool's pages: the studio (Play, Remix, Build) and World |
 | `src/kernel/` | The Genesis Kernel: seed, terrain, intent, erosion, flood, reach, claims. Pure: no three, no DOM, no clock, no randomness of its own, imports nothing outside itself |
 | `src/genesis/` | The world engine: `Engine.js` (one public API, on-demand rendering), terrain LOD, sea, rivers, sky, the air (`render/atmosphere.js`), props, grass, scatter, fire, weather, controllers; `render/nodes.js` is the TSL its shaders share |
-| `src/genesis/world/` | World composition: named worlds, landform, towns, roads and footings, interiors, the world file, its certificate, the exporters |
+| `src/genesis/world/` | World composition: towns (site plans), woods, footings, interiors, the world file, its certificate, the exporters |
 | `src/` (the rest) | The game engine: game, simulation, rendering (`render/`, the one `WebGPURenderer` set up in `core/Renderer.js`), levels and their ground (`world/`), genres |
 | `src/atlas/` | The single-image reconstruction (from atlas-core), with its browser half in `src/atlas/web/` |
 | `src/play2d/core/` | The 2D builder's core (from 2dgen) |
@@ -85,8 +85,8 @@ There is no CI, on purpose. `sh check.sh` is the gate; run it before you push.
 ```sh
 sh check.sh                              # = node tools/test/run.mjs: the import and three checks, then every offline suite
 node tools/test/run.mjs genesis          # only the suites whose name contains "genesis"
-node tools/test/check-wgsl.mjs --world farshore   # every program a built world draws, compiled as WGSL
-node tools/test/e2e-world.mjs            # World builds Farshore, Play here plays a mission on it
+node tools/test/check-wgsl.mjs --town    # every program a built-on world draws, compiled as WGSL
+node tools/test/e2e-world.mjs            # World plants woods and places a town, Play here plays a mission on it
 node tools/test/e2e-genres.mjs           # one mission per genre in headless Chromium
 node tools/test/e2e-see-yourself.mjs     # the photograph to a figure, through the studio's own dialog
 ```

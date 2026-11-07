@@ -300,7 +300,7 @@ export function createPanels(root, { store, app }) {
     let html = `<h3 class="bld-h">This level</h3>`
       + `<div class="bld-field"><label for="bld-lvl-name">Name</label><input id="bld-lvl-name" type="text" maxlength="40" value="${esc(lvl.name)}"></div>`
       + sel('bld-lvl-world', 'World', worlds.map(w => [w.id, w.label]), currentWorld, 'data-level="world"')
-      + `<div class="bld-field"><label for="bld-lvl-seed">Seed</label><div style="display:flex;gap:6px"><input id="bld-lvl-seed" type="text" maxlength="24" value="${esc(flat.seed)}" spellcheck="false" style="font-family:var(--font-mono);font-size:12px"><button type="button" class="bld-icon" data-bld="reseed" aria-label="New variation">${icon('shuffle')}</button></div></div>`
+      + `<div class="bld-field"><label for="bld-lvl-seed">Seed</label><div style="display:flex;gap:6px"><input id="bld-lvl-seed" type="text" maxlength="24" value="${esc(flat.seed)}" spellcheck="false" style="font-family:var(--font-mono);font-size:12px"></div></div>`
       + `<p class="bld-note">A new seed grows a new village; your placed things stay, and changes to generated things that no longer exist are listed in Checks.</p>`
       + sel('bld-game-ground', 'Ground', [['world', 'Its seed’s Visigenesis world'], ['village', 'The village’s own hills']], g.ground ?? 'village', 'data-game="ground"')
       + `<p class="bld-note" id="bld-ground-note">${esc(groundNote(app.level))}</p>`

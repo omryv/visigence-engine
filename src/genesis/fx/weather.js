@@ -12,6 +12,7 @@
 // in over seconds instead of snapping.
 
 import * as THREE from "three";
+import { channelRng } from "../../kernel/seed.js";
 import {
   Fn, If, Discard, uniform, texture, attribute, instancedBufferAttribute, uv, varying, vec2, vec3, vec4, float,
   fract, sin, cos, mod, abs, max, pow, length, normalize, smoothstep, step, cameraPosition, positionView,
@@ -84,12 +85,14 @@ function fireflyNodes(material, anchors, seeds, u) {
 }
 
 function precipGeometry(count) {
+  // Each quad's phase in the fall: a fixed stream, so the rain is the same rain every time (no Math.random).
+  const rng = channelRng("fx", "weather:precip");
   const pos = new Float32Array(count * 4 * 3); // unused, three wants it
   const seed = new Float32Array(count * 4 * 3);
   const corner = new Float32Array(count * 4 * 2);
   const idx = [];
   for (let i = 0; i < count; i++) {
-    const sx = Math.random(), sy = Math.random(), sz = Math.random();
+    const sx = rng(), sy = rng(), sz = rng();
     const corners = [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]];
     for (let c = 0; c < 4; c++) {
       const v = i * 4 + c;
@@ -161,12 +164,14 @@ export class WeatherFX {
     if (!this._fireflies) return;
     const pos = this._flyPos;
     const cx = camera.position.x, cz = camera.position.z;
+    // The swarm a place has: drawn from where the viewer stands (to the metre), so the same spot shows the same swarm.
+    const rng = channelRng("fx", `fireflies:${Math.round(cx)},${Math.round(cz)}`);
     for (let i = 0; i < pos.length / 3; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = 8 + Math.sqrt(Math.random()) * 52;
+      const a = rng() * Math.PI * 2;
+      const r = 8 + Math.sqrt(rng()) * 52;
       const x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
       pos[i * 3] = x;
-      pos[i * 3 + 1] = sampler(x, z) + 0.5 + Math.random() * 2.2;
+      pos[i * 3 + 1] = sampler(x, z) + 0.5 + rng() * 2.2;
       pos[i * 3 + 2] = z;
     }
     this._flyAttr.needsUpdate = true;

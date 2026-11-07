@@ -5,8 +5,8 @@
  *   node tools/test/run.mjs kernel     # only the ones whose name contains "kernel"
  *
  * Five groups. KERNEL suites hold the Genesis Kernel (src/kernel/) to its own records: seed vectors, terrain, intent,
- * reach, claims. GENESIS suites hold the world engine World mode runs (src/genesis/): its composition (named worlds,
- * towns, roads, footings), the world file and its certificate, the exporters, the genesis CLI and MCP server. ATLAS is the reconstruction's suites (src/atlas/), run by their own runner, the slowest job here
+ * reach, claims. GENESIS suites hold the world engine World mode runs (src/genesis/): its composition (towns, woods,
+ * footings), the world file and its certificate, the exporters, the genesis CLI and MCP server. ATLAS is the reconstruction's suites (src/atlas/), run by their own runner, the slowest job here
  * (minutes, not seconds). PURE suites import src/ modules that import nothing from three, so they run
  * under bare node. VENDORED suites load src/ modules that import `three`, resolved to
  * vendor/three by tools/lib/_three-real-hook.mjs — the same bytes a page would load. Neither

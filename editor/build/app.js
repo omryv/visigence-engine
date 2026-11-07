@@ -37,12 +37,15 @@ import { resolveGame } from '../../src/world/shooterProject.js';
 import { quickMission } from '../../src/world/missionCard.js';
 import { parseProjectText } from '../../src/world/projectSchema.js';
 import { Group, Vector3 } from 'three/webgpu';
+import { DEFAULT_SEED, drawSeed, channelRng, normalizeSeed } from '../../src/kernel/seed.js';
 
 const SETTLE_FRAMES = 8;
 /** The live preview turns this fast round the level, radians a second. */
 const PREVIEW_SPIN = 0.09;
 const wide = () => matchMedia('(min-width: 900px)').matches;
-const newSeed = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), n => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n % 32]).join('').match(/.{4}/g).join('-');
+/* Seeds are never drawn from the air. A blank game starts on the default seed's world; a level added after another
+   grows from that level's seed (its "next-level" stream), so the same game adds the same levels every time. */
+const nextLevelSeed = (seed) => drawSeed(channelRng(normalizeSeed(seed) || DEFAULT_SEED, 'next-level'));
 const _v = new Vector3();
 
 /**
@@ -471,9 +474,8 @@ export function mountBuild(root, studio) {
       case 'snap': store.setSnap(!store.state.snap); break;
       case 'grid': case 'reach': app.toggleView(act); break;
       case 'reset-start': store.transact('Reset start', () => store.setTransform('start', DEFAULT_START)); break;
-      case 'reseed': store.patch({ seed: Array.from(crypto.getRandomValues(new Uint8Array(12)), n => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n % 32]).join('').match(/.{4}/g).join('-') }, 'New variation'); break;
       case 'graph': studio.openGraph(); break;
-      case 'add-level': store.addLevel(Array.from(crypto.getRandomValues(new Uint8Array(12)), n => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[n % 32]).join('').match(/.{4}/g).join('-')); break;
+      case 'add-level': store.addLevel(nextLevelSeed(levelProject(store.game, store.state.levelIndex).seed)); break;
       case 'wire-from': store.setTool('wire'); panels.setHint('Drag from this lever or zone to a door or a critter.'); break;
       case 'panels-left': case 'sheet-left': panels.setSheet('left', root.dataset.left !== 'open', 'palette'); break;
       case 'sheet-right': panels.setSheet('right', root.dataset.right !== 'open', 'inspector'); break;
@@ -504,7 +506,7 @@ export function mountBuild(root, studio) {
     const t = templateById(id), game = resolveGame(templateGame(id));
     keep({ ...game, name: copyName(id) }, `Your copy of the ${t.name.toLowerCase()}. Name it in the title box; it saves in this browser as you go.`);
   };
-  const blankGame = genre => { const g = resolveGame(quickMission('arcade', newSeed(), genre)); keep({ ...g, name: `New ${GENRES[genre].label.toLowerCase()} game` }, null); };
+  const blankGame = genre => { const g = resolveGame(quickMission('arcade', DEFAULT_SEED, genre)); keep({ ...g, name: `New ${GENRES[genre].label.toLowerCase()} game` }, null); };
   const openSaved = id => {
     try { const doc = parseProjectText(library.text(id) ?? '').project; openEditor(resolveGame(doc), id); }
     catch (e) { studio.toast(`That game could not be opened: ${e.message}`); }

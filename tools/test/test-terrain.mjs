@@ -55,15 +55,14 @@ check('normalisation is idempotent',
 check('hashSeed is a uint32', Number.isInteger(hashSeed('x')) && hashSeed('x') >= 0);
 
 {
-  // randomSeed with injected entropy: the kernel's draw, and no silent Math.random fallback.
-  const { randomSeed, mulberry32 } = await import('../../src/utils/math.js');
-  const { randomSeed: kernelRandomSeed } = await import('../../src/kernel/seed.js');
+  // drawSeed: a seed spelled from a named stream, and no silent Math.random fallback.
+  const { drawSeed, mulberry32 } = await import('../../src/kernel/seed.js');
   let bare = false;
-  try { randomSeed(); } catch { bare = true; }
-  check('randomSeed() without an entropy source throws', bare);
-  check('randomSeed(rng) is the kernel\'s draw, and a seed',
-    randomSeed(mulberry32(7)) === kernelRandomSeed(mulberry32(7)) && normalizeSeed(randomSeed(mulberry32(7))) === randomSeed(mulberry32(7)),
-    randomSeed(mulberry32(7)));
+  try { drawSeed(); } catch { bare = true; }
+  check('drawSeed() without a stream throws', bare);
+  check('drawSeed(rng) is a seed, and the same stream draws the same one',
+    drawSeed(mulberry32(7)) === drawSeed(mulberry32(7)) && normalizeSeed(drawSeed(mulberry32(7))) === drawSeed(mulberry32(7)),
+    drawSeed(mulberry32(7)));
 }
 
 console.log('\ndeterminism');

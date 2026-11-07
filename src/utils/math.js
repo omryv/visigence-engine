@@ -18,24 +18,6 @@
  * caller in this engine already reaches for it here, next to clamp and lerp.
  */
 export { mulberry32 } from '../kernel/seed.js';
-import { randomSeed as kernelRandomSeed } from '../kernel/seed.js';
-
-/**
- * A fresh seed from INJECTED entropy: the kernel's randomSeed, with the one thing this engine's
- * port insisted on and the kernel does not. The kernel's `randomSeed(rng = Math.random)` falls
- * back to Math.random when called bare; here a bare call throws, because a seed drawn from
- * ambient entropy in a code path that was meant to be reproducible is a bug nobody can replay.
- * Pass `Math.random` (or crypto) to mean "random", or a seeded stream to make the "random" seed
- * reproducible. The alphabet and the draw are the kernel's, so there is one algorithm. The
- * studio itself draws its fresh seeds from crypto.getRandomValues and does not call this.
- *
- * @param {() => number} rng  a source of [0, 1)
- */
-export function randomSeed(rng) {
-  if (typeof rng !== 'function') throw new TypeError('randomSeed(rng): pass the entropy source explicitly');
-  return kernelRandomSeed(rng);
-}
-
 export const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 export const lerp = (a, b, t) => a + (b - a) * t;
 

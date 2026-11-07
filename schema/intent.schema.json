@@ -3,7 +3,7 @@
   "$id": "urn:visigenesis:schema:intent:2",
   "title": "Visigenesis intent document",
   "description": "A world asked for in statements about its ground. Each statement is a record engine/terrain/condition.js makes true by the least improbable change to the seed's own lattice; bin/genesis.mjs compile (or the genesis_compile MCP tool) turns a document into a world file, a certificate and a report of what every statement cost and missed. All coordinates are world metres on the plate, centred on (0, 0), +x east and +z south; all heights are metres above the world's sea level of 0.",
-  "$comment": "Version 2: the vocabulary of condition.js INTENT_VERSION 2. What a schema cannot state, and js/author.js intentDocumentErrors checks instead (tests/intent-schema.test.js holds the two to the same answer): every coordinate must lie on the plate, |x| and |z| at most size/2 (4096 m by default, 3072 m for farshore, 2048 m for lonepalm), a pad's whole ring included; a shoreline with a side must go somewhere and never turn straight back on itself; the whole list must state at most 640 rows (condition.js MAX_ROWS) and, with the records a named world brings, at most 48 records; and a document needs a seed, here or from the caller.",
+  "$comment": "Version 2: the vocabulary of condition.js INTENT_VERSION 2. What a schema cannot state, and js/author.js intentDocumentErrors checks instead (tests/intent-schema.test.js holds the two to the same answer): every coordinate must lie on the plate, |x| and |z| at most size/2 (4096 m), a pad's whole ring included; a shoreline with a side must go somewhere and never turn straight back on itself; the whole list must state at most 640 rows (condition.js MAX_ROWS) and at most 48 records; and a document needs a seed, here or from the caller.",
   "type": "object",
   "required": ["kind", "version", "statements"],
   "additionalProperties": false,
@@ -14,10 +14,6 @@
     "seed": {
       "type": "string", "minLength": 1, "maxLength": 64, "pattern": "[A-Za-z0-9]",
       "description": "The world's name, e.g. \"K7QN-3F2A-9XBD\". Normalised the way engine/seed.js normalizeSeed does (\"k7qn\" is \"K7QN-2222-2222\"). Optional here when the caller passes one (--seed)."
-    },
-    "world": {
-      "enum": ["farshore", "lonepalm", null],
-      "description": "A world grammar (js/worlds.js) whose terrain, biome and water the statements are solved on, with the grammar's own bar intent ahead of them. null or absent: the engine's default params."
     },
     "title": { "type": "string", "maxLength": 48, "description": "A name for the world, carried into the compile report." },
     "statements": {

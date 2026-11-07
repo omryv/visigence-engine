@@ -7,13 +7,11 @@
  *
  * Two jobs.
  *
- * SCREENING chooses which seed a fresh world is grown from. Minting one at
- * random is a coin toss between a continent and an atoll with two rocks on
- * it, so the candidate is measured before anybody sees it. (The editor's
- * first world is not minted at all any more — it is authored and checked in,
- * js/default-world.js. Screening is what every world AFTER it goes through:
- * a rolled seed, "another world" on the gate, a world grammar looking for
- * ground it can build its town on.)
+ * SCREENING measures candidate seeds, in the order a caller's `mint` hands
+ * them over, and issues the first with a workable land fraction and some
+ * relief. Nothing in it draws a seed: the engine never rolls one (the editor
+ * opens on src/kernel/seed.js DEFAULT_SEED, or on the seed somebody names),
+ * so a caller that screens decides the candidates, deterministically.
  *
  * READING answers the questions a composer asks of ground it did not choose:
  * where is the high broad shoulder a citadel would stand on, where does the

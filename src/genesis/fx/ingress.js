@@ -25,6 +25,7 @@
  */
 
 import * as THREE from "three";
+import { channelRng } from "../../kernel/seed.js";
 import { Fn, If, Discard, uniform, attribute, uv, varying, vec2, vec3, vec4, float, fract, normalize, smoothstep, cameraPosition } from "three/tsl";
 
 const MAX_POOL = 6;
@@ -83,8 +84,9 @@ function sprayGeometry(slots, perSlot) {
   const corner = new Float32Array(n * 4 * 2);
   const idx = [];
   const corners = [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]];
+  const rng = channelRng("fx", "ingress:spray");   // a fixed stream: the same spray every time
   for (let i = 0; i < n; i++) {
-    const sa = Math.random(), sb = Math.random();
+    const sa = rng(), sb = rng();
     for (let c = 0; c < 4; c++) {
       const v = i * 4 + c;
       seed[v * 2] = sa; seed[v * 2 + 1] = sb;

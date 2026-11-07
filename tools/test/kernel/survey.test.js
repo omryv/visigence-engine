@@ -5,7 +5,7 @@ import { test, eq, ok, report } from "./harness.js";
 import { screenSeed } from "../../../src/kernel/core/survey.js";
 import { createHeightSampler } from "../../../src/kernel/terrain/heightfield.js";
 import { makeParams } from "../../../src/kernel/presets.js";
-import { normalizeSeed, randomSeed } from "../../../src/kernel/seed.js";
+import { normalizeSeed, drawSeed, mulberry32 } from "../../../src/kernel/seed.js";
 
 test("screening issues a seed with land on it", () => {
   let drawn = 0;
@@ -78,8 +78,9 @@ test("it stops drawing as soon as one passes", () => {
 test("what the screen issues survives the trip to the editor", () => {
   // The landing writes a seed and the editor runs it through normalizeSeed
   // before trusting it. A real minted seed has to come back unchanged.
+  const rng = mulberry32(40);
   for (let i = 0; i < 40; i++) {
-    const s = randomSeed();
+    const s = drawSeed(rng);
     eq(normalizeSeed(s), s, "a minted seed did not survive normalization;");
   }
 });

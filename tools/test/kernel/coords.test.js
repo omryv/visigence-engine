@@ -1,12 +1,12 @@
 // Seed identity, noise determinism and heightfield coordinate contracts.
 import { test, eq, close, ok, report } from "./harness.js";
-import { randomSeed, normalizeSeed, hashSeed, seedChannel, mulberry32 } from "../../../src/kernel/seed.js";
+import { drawSeed, normalizeSeed, hashSeed, seedChannel, mulberry32 } from "../../../src/kernel/seed.js";
 import { valueNoise, fbm, ridged } from "../../../src/kernel/terrain/noise.js";
 import { createHeightSampler, bakeHeightField, createBakedSampler, elevNorm } from "../../../src/kernel/terrain/heightfield.js";
 import { DEFAULT_PARAMS, makeParams, mergeParams } from "../../../src/kernel/presets.js";
 
-test("randomSeed format", () => {
-  const s = randomSeed(mulberry32(42));
+test("drawSeed format", () => {
+  const s = drawSeed(mulberry32(42));
   ok(/^[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}$/.test(s), s);
 });
 

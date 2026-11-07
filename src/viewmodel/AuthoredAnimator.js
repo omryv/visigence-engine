@@ -179,12 +179,13 @@ export class AuthoredAnimator {
     slot.aimAction.setEffectiveWeight(w * ads);
   }
 
-  /** The shot clip for this round: a variant other than the last one when the rig has several. */
+  /** The shot clip for this round: the next variant in turn when the rig has several, so no two rounds in a row use
+   *  the same one (in order, not drawn: nothing in the engine is random). */
   _fireClip() {
     const v = this.rig?.fireVariants;
     if (!v || v.length < 2) return this.rig?.actions.fire;
-    const pool = v.filter(a => a !== this.lastFire);
-    return (this.lastFire = pool[Math.floor(Math.random() * pool.length)]);
+    const i = v.indexOf(this.lastFire);
+    return (this.lastFire = v[(i + 1) % v.length]);
   }
 
   /** Stop a named one-shot if it is the running one (the controller's `stop`). */

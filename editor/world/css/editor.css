@@ -190,9 +190,6 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 
-/* Cross-document transitions: a browser that can cross-fade whole documents
-   may, between this page and /make. */
-@view-transition { navigation: auto; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -461,15 +458,6 @@ select option { background: #14171b; color: var(--text); }
   0% { color: var(--signal-hot); text-shadow: 0 0 14px rgba(255, 255, 255, 0.7); }
   100% { color: var(--text); text-shadow: none; }
 }
-#seed-roll {
-  width: 26px; height: 26px; flex: none;
-  display: grid; place-items: center;
-  border-radius: var(--r-sm); color: var(--text-4);
-  transition: color 0.18s var(--snap), background 0.18s var(--snap), transform 0.4s var(--snap);
-}
-#seed-roll span { width: 14px; height: 14px; }
-#seed-roll:hover { color: var(--signal-hot); background: var(--signal-dim); transform: rotate(-180deg); }
-
 #telemetry { display: flex; align-items: center; gap: var(--s3); }
 .tl { display: flex; align-items: baseline; gap: var(--s1); }
 .tl .mono { font-size: var(--t-xs); color: var(--text-2); min-width: 36px; }
@@ -694,7 +682,7 @@ a.mod.bar.icon-only { text-decoration: none; }
 .deck-hint i { font-style: normal; color: var(--text-4); }
 .deck-hint kbd { margin: 0 1px; }
 #deck-context > *[hidden] { display: none; }
-#sculpt-opts, #grass-opts, #river-opts, #blocks-hint, #build-status {
+#sculpt-opts, #grass-opts, #river-opts, #blocks-hint {
   display: flex; align-items: center; gap: var(--s3); min-width: 0;
   animation: ctxIn 0.3s var(--snap);
 }
@@ -717,30 +705,6 @@ a.mod.bar.icon-only { text-decoration: none; }
 }
 .held-thumb svg { width: 17px; height: 17px; }
 #held-change { height: 26px; padding: 0 11px; font-size: var(--t-xs); font-weight: 650; }
-
-/* ── building a world ──
-   The one operation long enough to need a reading, so it takes the deck's
-   middle: a bead spinning in a cut track, and a bar that fills. */
-.bs-spin {
-  width: 15px; height: 15px; flex: none; border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, var(--acc) 300deg, transparent 360deg);
-  mask: radial-gradient(circle, transparent 4.5px, #000 5px);
-  -webkit-mask: radial-gradient(circle, transparent 4.5px, #000 5px);
-  animation: spin 0.9s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-#build-status b { color: var(--acc); }
-.bs-bar {
-  width: 120px; height: 4px; flex: none; border-radius: 999px;
-  background: var(--cut-floor); box-shadow: var(--cut);
-  overflow: hidden;
-}
-.bs-bar i {
-  display: block; height: 100%; width: 0%;
-  background: linear-gradient(90deg, #d4851f, var(--acc-hi));
-  box-shadow: 0 0 8px rgba(242, 161, 63, 0.5);
-  transition: width 0.4s var(--glide);
-}
 
 #sculpt-modes { display: flex; gap: 2px; }
 #sculpt-modes button {
@@ -946,49 +910,6 @@ input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--ion); cu
 }
 .opt-row button span[data-icon] { width: 14px; height: 14px; flex: none; }
 #export-pipes { grid-template-columns: 1fr 1fr; }
-
-/* ══════════════════════════════════════════════════════════════════
-   WORLDS — five grammars, one engine.
-
-   A card is a SPEC PLATE with a map recessed into the top of it. The map is
-   the point and it takes the space: a plan of the world itself, generated,
-   in the world's own colours (js/world-preview.js). Everything under it —
-   the name, what it reads as at a glance, the sentence, the readings — is
-   caption to that.
-
-   THE CHROME STAYS OUT OF THE WAY HERE MORE THAN ANYWHERE ELSE IN THE TOOL.
-   Four worlds with four palettes are already four loud things in a column
-   396 px wide; a card that also carried a coloured header, an accent border
-   and a tinted button would be competing with the only content that matters.
-   So the plate is the same graphite as every other module and the only
-   saturated pixels on it are the world's own.
-   ══════════════════════════════════════════════════════════════════ */
-#world-cards { display: flex; flex-direction: column; gap: var(--s3); }
-
-/* The plan: a map sunk into the face of the plate. Dark until it is drawn,
-   because the drawing is lazy and a light empty box would read as a broken
-   image rather than as one that has not arrived yet. */
-/* A hairline horizon across the sunken map, so the recess reads as a recess
-   at the top edge where the light would catch it. */
-
-/* The palette sample, now a thin band directly under the map: it is the same
-   information the map is already showing, so it is a legend rather than a
-   feature. Real data — the biome's own gradient stops — and it goes on
-   through the CSSOM because the policy allows no style attributes. */
-
-/* What the world reads as at thumbnail scale, in the instrument face. This
-   is the line that has to do the work when five cards are scrolled past in
-   two seconds. */
-/* The pair's second half: what the landmark is like INSIDE, said in the four
-   colours its rooms are actually dressed in. The chip is data, not
-   decoration — the same `interior` object the furnisher reads. */
-.wi-chip {
-  --wi0: #565049; --wi1: #6b5a44; --wi2: #7d8a9c; --wi3: #9a7f6a;
-  flex: none; width: 36px; height: 15px; margin-top: 2px; border-radius: 4px;
-  background: linear-gradient(90deg,
-    var(--wi0) 0 25%, var(--wi1) 25% 50%, var(--wi2) 50% 75%, var(--wi3) 75% 100%);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-}
 
 /* ══════════════════════════════════════════════════════════════════
    THE BLOCK CONSOLE
@@ -1587,17 +1508,6 @@ body.mode-walk::after, body.mode-fly::after {
     linear-gradient(var(--text), var(--text)) 100% 50% / 6px 1px no-repeat;
   opacity: 0.55;
 }
-
-/* BUILDING. The renderer is stood down while a world is assembled (see
-   js/worlds.js), so the viewport holds its last frame. This says so: the
-   world recedes, the deck's progress reading is the brightest thing on
-   screen, and a held frame reads as "working" rather than as "hung". */
-body.building #vignette {
-  background:
-    radial-gradient(120% 90% at 50% 42%, rgba(4, 5, 7, 0.42) 0%, rgba(4, 5, 7, 0.72) 100%);
-  transition: background 0.5s var(--glide);
-}
-body.building #chart, body.building #selection-chip { opacity: 0.35; }
 
 /* THE STAGE. Every piece of chrome stands down and the frame is nothing but
    the world — for a screenshot, for a client in the room, or for looking at

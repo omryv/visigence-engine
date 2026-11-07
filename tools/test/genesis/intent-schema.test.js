@@ -23,9 +23,8 @@ import {
   INTENT_TYPES, INTENT_OPS, INTENT_VERSION, MAX_INTENT, MAX_POLYLINE, GRADIENT_STEP, intentErrors, normalizeIntent,
 } from "../../../src/kernel/terrain/condition.js";
 import {
-  intentDocumentErrors, STATEMENT_FIELDS, INTENT_KIND, AUTHOR_WORLDS, MIN_RADIUS, MIN_SHORE_OFFSET, MAX_RAY_SAMPLES, MAX_TITLE,
+  intentDocumentErrors, STATEMENT_FIELDS, INTENT_KIND, MIN_RADIUS, MIN_SHORE_OFFSET, MAX_RAY_SAMPLES, MAX_TITLE,
 } from "../../../src/genesis/world/author.js";
-import { WORLDS } from "../../../src/genesis/world/worlds.js";
 
 const SCHEMA = JSON.parse(readFileSync(new URL("../../../schema/intent.schema.json", import.meta.url), "utf8"));
 const EXAMPLE = JSON.parse(readFileSync(new URL("../../../schema/examples/K7QN.intent.json", import.meta.url), "utf8"));
@@ -212,9 +211,11 @@ test("the schema's bounds are condition.js's, on both sides of each edge", () =>
   ok(doc({ type: "level", h: 0, inset: 0.05 }) && doc({ type: "level", h: 0, inset: 1 }) && !doc({ type: "level", h: 0, inset: 1.01 }) && !doc({ type: "level", h: 0, inset: 0.04 }), "level inset");
 });
 
-test("the worlds the schema names are the ones author.js compiles on, and both are grammars", () => {
-  eq(JSON.stringify(SCHEMA.properties.world.enum), JSON.stringify([...AUTHOR_WORLDS, null]));
-  for (const w of AUTHOR_WORLDS) ok(WORLDS[w], `${w} is a world grammar`);
+test("a document names no world: the schema has no such field and author.js refuses one", () => {
+  eq(SCHEMA.properties.world, undefined);
+  const d = docOf([MINIMAL.point], { world: "farshore" });
+  ok(!valid(d), "the schema accepted a named world");
+  ok(intentDocumentErrors(d).some((e) => e.startsWith("world is not a field")), "author.js accepted a named world");
 });
 
 test("good documents: the schema and author.js both accept them", () => {
@@ -223,9 +224,8 @@ test("good documents: the schema and author.js both accept them", () => {
     EXAMPLE,
     docOf([]),
     docOf(all),
-    docOf([MINIMAL.point], { world: "farshore", title: "a harbour" }),
-    docOf([{ type: "summit", x: 0, z: 0, h: 50 }], { world: "lonepalm" }),
-    docOf([MINIMAL.level], { world: null, $schema: "https://example.invalid/intent.schema.json" }),
+    docOf([MINIMAL.point], { title: "a harbour" }),
+    docOf([MINIMAL.level], { $schema: "https://example.invalid/intent.schema.json" }),
     { kind: "visigenesis.intent", version: 2, statements: [MINIMAL.point], seed: "k7qn" },
   ]) {
     ok(valid(d), `schema: ${validate(SCHEMA, d).join("; ")}`);
@@ -273,7 +273,7 @@ test("bad documents: the schema and author.js both refuse them", () => {
 test("what the schema cannot state, author.js still refuses — and names in the document's own terms", () => {
   for (const [what, d, says] of [
     ["a point off a 4096 m plate", docOf([{ type: "shoreline", points: [[0, 0], [2100, 0]] }]), "statements[0].points[1]"],
-    ["a pad past lonepalm's 2048 m plate", docOf([{ type: "pad", x: 900, z: 0, r: 200, h: 5 }], { world: "lonepalm" }), "statements[0]"],
+    ["a pad whose ring leaves the 4096 m plate", docOf([{ type: "pad", x: 1950, z: 0, r: 200, h: 5 }]), "statements[0]"],
     ["a shoreline that turns straight back", docOf([{ type: "shoreline", points: [[0, 0], [400, 0], [100, 0]], side: "left" }]), "turns straight back"],
     ["no seed anywhere", { kind: "visigenesis.intent", version: 2, statements: [] }, "no seed"],
   ]) {

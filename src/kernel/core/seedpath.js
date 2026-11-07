@@ -56,7 +56,7 @@
  *
  *   The consequence a consumer has to know: the ROOT IS THE ENGINE'S SEED,
  *   not whatever the user typed. The engine normalizes every typed seed
- *   (Engine.js setSeed: `normalizeSeed(seed) || randomSeed()`), padding a
+ *   (Engine.js setSeed: `normalizeSeed(seed)`, refusing what is not one), padding a
  *   short one and truncating a long one, so "hello" is the world
  *   HELL-O222-2222 and "K7QN-3F2A-9XBD-ZZ" is K7QN-3F2A-9XBD. seedPath does
  *   neither — "hello" and "K7QN3F2A9XBDQ" are verbatim roots to it, and

@@ -154,7 +154,7 @@ runtime, the baker and the tests import the kernel's own files from the reposito
 
 | Was here | Now imported from | Notes |
 |---|---|---|
-| `src/world/seed.js` | `src/kernel/seed.js` | `src/utils/math.js` re-exports the kernel's `mulberry32` (the two were already bit-identical). The kernel's `normalizeSeed` reads a falsy input as no seed; `resolveSpec` and `resolveProject` pass `String(seed ?? '')`, so `seed: 0` keeps the world it had. `randomSeed(rng)` is re-implemented in `src/utils/math.js` on the kernel's: the same draw, but a call with no entropy source throws instead of falling back to `Math.random`. |
+| `src/world/seed.js` | `src/kernel/seed.js` | `src/utils/math.js` re-exports the kernel's `mulberry32` (the two were already bit-identical). The kernel's `normalizeSeed` reads a falsy input as no seed; `resolveSpec` and `resolveProject` pass `String(seed ?? '')`, so `seed: 0` keeps the world it had. Nothing draws a seed from ambient entropy any more: the kernel's `drawSeed(rng)` takes its stream as an argument and throws without one, and the boundary suite holds the whole tool (`src/`, `editor/`, `bin/`) to no `Math.random`, `getRandomValues` or `randomUUID`. |
 | `src/world/terrain/noise.js` | `src/kernel/terrain/noise.js` | All of it now, the five fields the port left behind included. |
 | `src/world/terrain/heightfield.js` | `src/kernel/terrain/heightfield.js` | With the layer stack and terrain intent the port dropped: a world without `terrain.stack` or `terrain.intent` takes the very recipe the port carried. `normalAt`, which only this engine uses, moved to `src/sim/Terrain.js`. |
 

@@ -12,7 +12,6 @@ import { test, eq, ok, close, report } from "../kernel/harness.js";
 import { solveRiver, strokesFor } from "../../../src/genesis/terrain/river.js";
 import { floodFromSea, wetAt } from "../../../src/kernel/water/flood.js";
 import { SculptLayer } from "../../../src/kernel/terrain/sculpt.js";
-import { shapeWorld } from "../../../src/genesis/world/landform.js";
 
 const SIZE = 4096;
 const RES = 129;
@@ -134,28 +133,6 @@ test("after the carve, the sea reaches up the channel — the end-to-end promise
 test("strokesFor on an empty or trivial path is empty, not a throw", () => {
   eq(strokesFor([]).length, 0);
   eq(strokesFor([[0, 0, 5]]).length, 0);
-});
-
-test("the grammar's river op solves, carves and records — no world gets a code branch", () => {
-  // The op is the editor's tool as a grammar word: same solver, ordinary
-  // strokes into the same stream, a record for the ribbon. Run against the
-  // island sampler with no other ops, twice, to hold determinism too.
-  const shape = () => shapeWorld({
-    grammar: [{ op: "river", width: 20, depth: 5 }],
-    seed: "RIVR-GRAM-SEED", size: SIZE, sampler: island, level: 0, res: 48,
-  });
-  const a = shape();
-  eq(a.rivers.length, 1, "one river op, one record");
-  const rv = a.rivers[0];
-  ok(rv.reachedSea, "from the island's highest ground the sea is reachable");
-  ok(rv.strokeCount > 10, "the channel was not carved");
-  eq(a.strokes.length, rv.strokeStart + rv.strokeCount,
-    "the record's slice is not the stroke stream's tail");
-  for (let k = 1; k < rv.path.length; k++) {
-    ok(rv.path[k][2] <= rv.path[k - 1][2] + 1e-9, `water climbs at ${k}`);
-  }
-  const b = shape();
-  eq(JSON.stringify(a.rivers), JSON.stringify(b.rivers), "the op is not deterministic");
 });
 
 report("river");

@@ -1,8 +1,8 @@
 /**
  * EVERY PROGRAM THE WORLD ENGINE DRAWS COMPILES TO VALID WGSL.
  *
- *   node tools/test/check-wgsl.mjs                      the default world, rain, at night
- *   node tools/test/check-wgsl.mjs --world farshore     a built world: its town, scatter and props
+ *   node tools/test/check-wgsl.mjs                      the default seed's own world, rain, at night
+ *   node tools/test/check-wgsl.mjs --town               built on: woods planted and a town placed on its land
  *   node tools/test/check-wgsl.mjs --weather snow --tier high
  *
  * Why this exists. The world engine's shaders were GLSL, run by WebGLRenderer, and are now TSL node graphs that
@@ -12,9 +12,9 @@
  * Chromium's WebGPU adapter here (SwiftShader) loses the device as soon as anything presents to a canvas, so the
  * WebGPU frame cannot be watched; but it compiles shaders correctly, uniformity included. So this:
  *
- *   1. opens world.html on the renderer's WebGL2 backend (which runs here) and lets the world build, optionally a
- *      named world (props, scatter, a town), with a fire lit, weather falling and the clock at night, so that every
- *      kind of object the engine draws is in the scene;
+ *   1. opens world.html on the renderer's WebGL2 backend (which runs here) and lets the world build, optionally built
+ *      on through the editor's own commands (woods planted, a town placed), with a fire lit, weather falling and the
+ *      clock at night, so that every kind of object the engine draws is in the scene;
  *   2. asks a second renderer, on the WebGPU backend, for the WGSL three generates for every distinct material in
  *      that live scene (Renderer.debug.getShaderAsync), the shadow-casting and instanced ones included;
  *   3. compiles each vertex and fragment program on a raw WebGPU device and fails on any compiler error.
@@ -23,9 +23,10 @@
  * same programs this proves valid.
  */
 import { serveRepo, launchBrowser } from '../lib/_headless.mjs';
+import { landPoint } from '../lib/worldProbe.mjs';
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const WORLD = arg('--world', null), WEATHER = arg('--weather', 'rain'), TIER = arg('--tier', 'high'), HOUR = +arg('--hour', 23);
+const TOWN = process.argv.includes('--town'), WEATHER = arg('--weather', 'rain'), TIER = arg('--tier', 'high'), HOUR = +arg('--hour', 23);
 const PORT = 8197;
 const server = await serveRepo(PORT);
 const browser = await launchBrowser({ width: 1280, height: 800, webgpu: true });
@@ -52,12 +53,13 @@ try {
     await sleep(1000);
   }
   await sleep(10000);
-  if (WORLD) {
+  if (TOWN) {
     console.log('built', await js(`(async () => {
-      const { buildWorld } = await import('/src/genesis/world/worlds.js');
-      await buildWorld({ engine, id: ${JSON.stringify(WORLD)}, seed: 'K7QN-3F2A-9XBD', hooks: { stage() {} } });
+      studio.plantWoods();
+      const at = ${landPoint.toString()}(engine);
+      await studio.placeSite(at.x, at.z, 'town');
       await new Promise(r => setTimeout(r, 5000));
-      return JSON.stringify({ props: engine.props.items.size, scatter: engine.scatterCount() });
+      return JSON.stringify({ at, props: engine.props.items.size, scatter: engine.scatterCount() });
     })()`));
   }
   await js(`(() => { engine.addFireAt(0, 0, { r: 2 }); engine.setWeather(${JSON.stringify(WEATHER)}); engine.setTimeOfDay(${HOUR}); })()`);

@@ -6,11 +6,13 @@
  *   node tools/test/e2e-world.mjs
  *
  * Through the pages' own surfaces:
- *   1. world.html opens the world engine on the engine's renderer, with the tool's modes in its top bar;
- *   2. the command palette builds Farshore (⌘K, "Farshore", Enter), as an author would: a town, its props, its scatter;
+ *   1. world.html opens the world engine on the engine's renderer, on the default seed's own world, with the tool's
+ *      modes in its top bar;
+ *   2. the command palette plants the woods (⌘K, "Plant woods", Enter), as an author would, and a town is placed on
+ *      the world's land through the editor's own site command (its pads sculpt the ground);
  *   3. "Play here" opens Play in a new tab, the world in the link (the editor stores nothing);
  *   4. Play names the world it was handed, and the mission it prepares stands on it: the level's world parameter
- *      hash is Farshore's as the editor holds it, not the plain seed's;
+ *      hash is the built world's as the editor holds it, not the plain seed's;
  *   5. a frame of each page is drawn (pixels read on the page's own canvas, WebGL2 backend: see e2e notes in
  *      tools/test/check-wgsl.mjs for why WebGPU frames cannot be read here).
  *
@@ -21,6 +23,7 @@ import path from 'node:path';
 import { ROOT, serveRepo, launchBrowser } from '../lib/_headless.mjs';
 import { STAND_IN_ROOT } from './stand-in-assets.mjs';
 import { decodePNG } from '../lib/png.mjs';
+import { landPoint } from '../lib/worldProbe.mjs';
 
 const PORT = 8173, W = 1280, H = 800;
 const OUT = path.join(ROOT, 'docs/reports/world');
@@ -83,20 +86,25 @@ try {
   const w = await page(`http://127.0.0.1:${PORT}/world.html?renderer=webgl&gfx=low`);
   await w.until(`!!(window.engine && engine.terrain && engine.terrain.tiles.size > 0)`, 180000, 'the world engine');
   check('World opens the world engine on the engine\'s renderer', (await w.js('engine.backend')) === 'webgl2');
+  const opened = await w.js(`(async () => (await import('/src/kernel/seed.js')).DEFAULT_SEED === engine.params.seed)()`);
+  check('on the default seed\'s own world, nothing placed', opened && (await w.js('engine.props.items.size')) === 0 && (await w.js('engine.scatterCount()')) === 0);
   const modes = await w.js(`[...document.querySelectorAll('#modes a')].map(a => a.textContent.trim()).join(' ')`);
   check('its top bar carries the tool\'s modes', modes === 'World Play Remix Build', modes);
-  // ── 2. build Farshore through the command palette ─────────────────────────────
+  // ── 2. build on it: woods through the command palette, a town through the site command ──────────────────
   await w.key({ key: 'k', code: 'KeyK', modifiers: 2, windowsVirtualKeyCode: 75 });
   await w.until(`!document.querySelector('#cmdk').hidden`, 10000, 'the command palette');
-  await w.insertText('Farshore');
+  await w.insertText('Plant woods');
   await sleep(400);
   await w.key({ key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
-  await w.until(`engine.props.items.size > 100 && !document.body.classList.contains('building')`, 900000, 'Farshore')
-    .catch(async (e) => { throw new Error(`${e.message}; props ${await w.js('engine.props.items.size')}, building ${await w.js("document.body.classList.contains('building')")}, status "${await w.js("document.querySelector('#build-status, .build-status, #toast')?.textContent ?? ''")}"`); });
-  const built = JSON.parse(await w.js(`JSON.stringify({ props: engine.props.items.size, scatter: engine.scatterCount(), seed: engine.params.seed })`));
-  check('the palette builds Farshore: its town and its scatter', built.props > 100 && built.scatter > 100, `${built.props} props, ${built.scatter} plants, seed ${built.seed}`);
+  await w.until(`engine.scatterCount() > 500`, 120000, 'the woods');
+  const at = JSON.parse(await w.js(`JSON.stringify(${landPoint.toString()}(engine))`));
+  await w.js(`studio.placeSite(${at.x}, ${at.z}, 'town')`);
+  await w.until(`engine.props.items.size > 50`, 300000, 'the town');
+  const built = JSON.parse(await w.js(`JSON.stringify({ props: engine.props.items.size, scatter: engine.scatterCount(), seed: engine.params.seed, sculpt: engine.sculptStrokes().length })`));
+  check('the world is built on: woods, a town, its pads sculpted', built.props > 50 && built.scatter > 500 && built.sculpt > 0,
+    `${built.props} props, ${built.scatter} plants, ${built.sculpt} strokes at (${at.x}, ${at.z}), seed ${built.seed}`);
   await sleep(4000);
-  const ws = await w.shot('world-farshore');
+  const ws = await w.shot('world-built');
   check('and draws it', ws.colours > 60, `${ws.colours} colours; ${ws.file}`);
   const expected = await w.js(`(async () => {
     const { worldParamsFor } = await import('/src/world/kernelGround.js');
@@ -104,27 +112,29 @@ try {
     return hex(terrainParameterHash(worldParamsFor(engine.params.seed, { terrain: engine.params.terrain, water: engine.params.water })));
   })()`);
   // ── 3. Play here ─────────────────────────────────────────────────────────────
+  // Software rendering of a whole town takes seconds a frame here; stand the world still so the click is handled now.
+  await w.js('engine.setPaused(true)');
   await w.click('#play-here');
   const t0 = Date.now();
-  while (!opened.length && Date.now() - t0 < 10000) await sleep(200);
+  while (!opened.length && Date.now() - t0 < 120000) await sleep(200);
   check('"Play here" opens Play in a new tab, the world in the link', opened.length === 1 && /\/\?mode=play#world=/.test(opened[0]), opened[0]?.slice(0, 90));
   // ── 4. Play, on that world ───────────────────────────────────────────────────
   const link = opened[0].replace('?mode=play#', '?mode=play&debug=1#');
   const p = await page(link);
   await p.until(`!!document.querySelector('.featured-mission [data-play-world]')`, 60000, 'the launcher');
   const chip = await p.js(`(() => { const c = document.querySelector('.carried-world'); return c && !c.hidden ? c.querySelector('strong').textContent : null; })()`);
-  check('Play names the world it was handed', chip === `Farshore · ${built.seed}`, String(chip));
+  check('Play names the world it was handed', chip === `Your world · ${built.seed}`, String(chip));
   await p.js(`document.querySelector('.featured-mission [data-play-world]').click()`);
   const prepared = await p.until(`!!document.querySelector('#preview-panel.expanded') || !!document.querySelector('.front-alert:not([hidden])')`, 240000, 'the mission').catch(e => e);
   const alert = await p.js(`document.querySelector('.front-alert:not([hidden]) pre')?.textContent ?? ''`);
   check('the mission is prepared', !(prepared instanceof Error) && !alert, prepared instanceof Error ? prepared.message : alert || `${prepared} ms`);
   const ground = JSON.parse(await p.js(`JSON.stringify(window.__studio?.session?.level?.ground ?? null)`) || 'null');
   check('the level stands on the world World made', ground?.kind === 'world' && ground.world.parameterHash === expected,
-    ground ? `${ground.kind}: ${ground.world?.parameterHash} vs Farshore ${expected}${ground.reason ? '; ' + ground.reason : ''}` : 'no level');
+    ground ? `${ground.kind}: ${ground.world?.parameterHash} vs the built world ${expected}${ground.reason ? '; ' + ground.reason : ''}` : 'no level');
   const plainHash = await p.js(`(async () => { const { makeParams } = await import('/src/kernel/presets.js'); const { terrainParameterHash, hex } = await import('/src/kernel/terrain/fingerprint.js'); return hex(terrainParameterHash(makeParams({ seed: ${JSON.stringify(built.seed)} }))); })()`);
   check('and not on the plain world of its seed', ground?.world?.parameterHash !== plainHash, `plain ${plainHash}`);
   await sleep(4000);
-  const ps = await p.shot('play-on-farshore');
+  const ps = await p.shot('play-on-built-world');
   console.log(`       play: ${ps.file} (${ps.colours} colours)`);
 } catch (err) {
   check('the run finished', false, err.message);

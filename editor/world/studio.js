@@ -2,14 +2,14 @@
 // only labeled chrome wired to the engine's public API. Status stays quiet:
 // the seed readout pulses on events, details go to the console.
 
-import { Engine, THEMES, PALETTES, randomSeed, bakeHeightField, createHeightSampler, resolveDetail } from "../../src/genesis/Engine.js";
+import { Engine, THEMES, PALETTES, makeParams, bakeHeightField, createHeightSampler, resolveDetail } from "../../src/genesis/Engine.js";
 import { Minimap } from "../../src/genesis/Minimap.js";
 import { allItems, CATEGORIES } from "../../src/genesis/world/props-packs.js";
 import { makeUid, nextUidIndex, scoreSettlements, deriveSpawn } from "../../src/genesis/world/fusion.js";
 import { SITE_KINDS, makePlan } from "../../src/genesis/world/worldplan.js";
-import { screenSeed } from "../../src/kernel/core/survey.js";
+import { DEFAULT_SEED, normalizeSeed } from "../../src/kernel/seed.js";
 import { composeSite } from "../../src/genesis/world/compose.js";
-import { WORLDS, WORLD_IDS, buildWorld } from "../../src/genesis/world/worlds.js";
+import { plantWorld } from "../../src/genesis/world/planting.js";
 import { encodeWorldLink } from "../../src/world/worldLink.js";
 import { groundBuildings } from "../../src/genesis/world/footing.js";
 import { isPinnable, PIN_LEGIBLE_MAX } from "../../src/genesis/world/pinnable.js";
@@ -21,7 +21,6 @@ import {
 import { buildExportBundle } from "../../src/genesis/world/export-world.js";
 import { encodeZip } from "../../src/genesis/world/export/zip.js";
 import { createDurableLink, isFileLinkSupported } from "../../src/genesis/world/durable.js";
-import { DEFAULT_WORLD } from "../../src/genesis/world/default-world.js";
 import { CANONICAL_RES } from "../../src/kernel/terrain/canonical.js";
 import { solveRiver } from "../../src/genesis/terrain/river.js";
 import { floodFromSea } from "../../src/kernel/water/flood.js";
@@ -61,51 +60,28 @@ const pref = {
 mountCursor();
 
 /* ── boot ──
-   THE SESSION OPENS ON THE DEFAULT WORLD, and it is the same world every
-   time. It used to open on a freshly screened seed — candidates minted and
-   measured until one came back with a workable land fraction and some relief
-   — which kept the atoll with two rocks on it off the screen but left the
-   first frame of the product different for every visitor and unnameable in
-   any sentence that stays true. js/default-world.js is that first frame,
-   authored once and checked in as the very thing this tool saves: a
-   `.world.json`, opened here by the same three functions the Open button
-   uses. The landing is not a special path into the engine, it is a file.
+   THE EDITOR OPENS ON ONE SEED'S OWN WORLD, and it is the same world every time: DEFAULT_SEED (src/kernel/seed.js),
+   grown by the kernel from that seed and nothing else, or the seed named by ?seed=. There is no sample world, no
+   authored landing document and no dice anywhere in it: every world this editor shows is a seed's own world, or a
+   file somebody opened, or what somebody built on one of those.
 
-   Screening did not go away — it is what "another world" on the door and a
-   rolled seed still run. It simply
-   stopped deciding the first impression, which was never its job.
-
-   The editor writes nothing to the address bar and reads nothing from it: the
-   URL is not world state anywhere in this codebase, because params define a
-   world and a seed alone does not. The one thing the path DOES decide is
-   whether the entry film plays — see "the gate" at the foot of this file. */
-const withSeed = (base, seed) => ({ ...base, seed });
-/* The same coarse pass over ONE seed — the landing's. The gate's slate quotes
-   land and relief whether the world was screened or chosen, and a number the
-   film prints has to be measured rather than written down: the default world
-   can be re-authored by pasting a new file into default-world.js, and a slate
-   carrying the old world's figures would be the one lie on the door. */
-const measureWorld = (p) => screenSeed({ mint: () => p.seed, samplerFor: (seed) => {
-  const q = withSeed(p, seed);
-  return { height: createHeightSampler(q), size: q.terrain.size };
-}, attempts: 1 });
-
-const landingDoc = DEFAULT_WORLD;
-/* The document the world on screen came from, and therefore the one Reset
-   puts it back to. Moves when — and only when — an Open replaces the world;
-   see resetWorld. */
-let baseDoc = landingDoc;
-const params = paramsFromWorldFile(DEFAULT_WORLD);
-const screened = measureWorld(params);
-console.info("[studio] landing world", params.seed,
-  `· ${params.biome} · land ${(screened.land * 100).toFixed(0)}% · relief ${screened.relief.toFixed(0)}m`);
+   The editor writes nothing to the address bar. The one other thing the path decides is whether the entry film
+   plays: see "the gate" at the foot of this file. */
+const landingSeed = normalizeSeed(new URLSearchParams(location.search).get("seed") || "") || DEFAULT_SEED;
+/* The document the world on screen came from, and therefore the one Reset puts it back to: null while it is still
+   the seed's own world it opened on. Moves when, and only when, an Open replaces the world; see resetWorld. */
+let baseDoc = null;
+const params = makeParams({ seed: landingSeed });
+console.info("[studio] landing world", params.seed, `· ${params.biome}`);
 // ?gfx=low|medium|high|ultra forces a quality tier — a DEV knob (masked GPUs
-// under-detect; QA needs determinism), not world state. Nothing world-shaped
-// is read from the URL at all.
+// under-detect; QA needs determinism), not world state. The seed is the one
+// world-shaped thing the URL may name (above).
 const gfx = new URLSearchParams(location.search).get("gfx");
 const engine = await Engine.create(canvas, params, gfx ? { quality: gfx } : {});
 canvas = engine.canvas;   // the renderer may have needed a fresh canvas (core/Renderer.js)
 window.engine = engine; // console access is the debug UI
+// …and the editor's own commands, for the console and the browser checks (tools/test/e2e-world.mjs, check-wgsl.mjs).
+window.studio = { plantWoods: () => plantWoods(), placeSite: (x, z, kind) => generateSite({ x, z }, kind ? { kind } : {}) };
 // The scatter batcher builds its prototypes from the same catalog the
 // dock places from, so a scattered oak IS a placed oak.
 engine.setScatterCatalog((id) => PROC_BY_ID.get(id) || null);
@@ -114,17 +90,7 @@ let lastField = null;   // latest baked heightfield (post-erosion)
 let spawnInfo = null;
 let customSpawn = null; // authored spawn {x,z}, tagged to the world it was set in
 let spawnTag = null;
-/* WHY EVERY ROOM IS THE WAY IT IS, keyed by the building it belongs to.
-   `composeInteriors` has always reported this and nothing but the suite has
-   ever read it. Filled by a build; emptied when the world is replaced,
-   because a reasoning that outlives the world it explains is a lie with a
-   timestamp on it. */
-const interiorWhy = new Map();
 
-// Which world grammar built what is on screen, when one did. Advisory only —
-// it names the file and nothing reads it back as state — but a file called
-// `farshore-4f2a.world.json` is a file somebody can find again.
-let builtWorldId = null;
 let armedSpawn = false;
 let armedGrass = false;  // grass brush: stays armed so the dev can keep painting
 let armedSculpt = false; // terrain brush
@@ -190,21 +156,18 @@ function showSeed() {
   void seedText.offsetWidth;
   seedText.classList.add("pulse");
 }
-$("#seed-chip").addEventListener("click", (e) => {
-  if (e.target.id === "seed-roll") return;
+$("#seed-chip").addEventListener("click", () => {
   const input = prompt("Travel to seed:", engine.params.seed);
   if (input) engine.setSeed(input);
 });
-$("#seed-roll").addEventListener("click", () => engine.rollSeed());
 
 /* ── the rest of the tool ──
    Play here hands THIS world to Play (src/world/worldLink.js): the seed, and the terrain and water a level's ground is
    cut from, in the link's fragment, because this page stores nothing. Play opens in a new tab so the world being made
-   stays here; the other modes carry the seed. And World opened with ?seed= travels to that seed. */
+   stays here; the other modes carry the seed. */
 function worldLink() {
   return encodeWorldLink({
     seed: engine.params.seed,
-    name: WORLDS[builtWorldId]?.label ?? null,
     worldParams: { terrain: engine.params.terrain, water: engine.params.water },
   });
 }
@@ -218,10 +181,6 @@ for (const a of document.querySelectorAll("[data-mode-link]")) {
     u.searchParams.set("seed", engine.params.seed);
     a.href = u.pathname + u.search;
   });
-}
-{
-  const wanted = new URLSearchParams(location.search).get("seed");
-  if (wanted && wanted !== engine.params.seed) engine.setSeed(wanted);
 }
 
 /* ── undo / redo ──
@@ -254,7 +213,7 @@ const undoStack = {
      described could no longer be undone or redone by anything.
 
      Not a narrow race. Every undo body is async (a world undo awaits
-     `props.restore` once per placement — 890 of them for Farshore), so
+     `props.restore` once per placement — hundreds of them for a town), so
      `busy` is true for seconds, and the ⌘Z handler below has no `e.repeat`
      filter: HOLDING the key feeds this at the OS repeat rate. Three presses
      during one in-flight undo left one of three edits reachable. And it was
@@ -459,8 +418,7 @@ function syncDeck() {
     setHTML($("#blocks-hint .held-thumb"), blockIcon(armed.label));
   }
   const idle = $("#deck-idle");
-  const building = !$("#build-status").hidden;
-  if (idle) idle.hidden = building || armedSculpt || armedGrass || armedSpawn || armedRiver || !!armed;
+  if (idle) idle.hidden = armedSculpt || armedGrass || armedSpawn || armedRiver || !!armed;
 }
 
 // The camera-mode marker rides the same idiom as the tool marker.
@@ -545,6 +503,25 @@ function siteRadius() {
   return rec.radius(rec.counts.medium ?? 4);
 }
 
+/* ── woods ──
+   The trees and shrubs the seed's own ground grows (src/genesis/world/planting.js): drawn from the seed, kept off the
+   water and off everything already placed, written to params so they save, export and undo with the world. Pressing
+   it again on the same world plants the same woods. */
+function plantWoods() {
+  const before = JSON.parse(JSON.stringify(engine.params.props.scatter || []));
+  const keepClear = engine.props.records().map((r) => ({ x: r.position[0], z: r.position[2], r: 14 }));
+  const scatter = plantWorld({ params: engine.params, sampler: (x, z) => engine.sampleHeight(x, z), keepClear });
+  const apply = (list) => { engine.applyParams({ props: { scatter: list } }); engine.rebuildScatter(); refreshMinimap(); };
+  apply(scatter);
+  undoStack.push({
+    kind: "world",
+    subject: `${scatter.length} trees and shrubs`,
+    undo: () => apply(before),
+    redo: () => apply(scatter),
+  });
+  announce("Planted", `${scatter.length} trees and shrubs · ⌘Z takes them back`, 3200);
+}
+
 async function generateSite(center, opts = {}) {
   const btn = $("#gen-go");
   btn.disabled = true;
@@ -587,8 +564,7 @@ async function generateSite(center, opts = {}) {
        hundred records without this bracket therefore does six hundred full
        walks of a world that is growing under them while they run, which is
        quadratic and is most of the freeze between the click and the town.
-       js/worlds.js has always built inside this bracket; the interactive
-       path never did. `endBulk` is in a finally, so a placement that throws
+       `endBulk` is in a finally, so a placement that throws
        half way through does not leave the world muted. */
     engine.props.beginBulk();
     try {
@@ -2483,11 +2459,6 @@ async function loadWorldState(state) {
     for (const r of state.records) await engine.props.restore(r);
   } finally { engine.props.endBulk(); }
   engine.rebuildScatter();
-  builtWorldId = state.world ?? null;
-  /* A world file carries the rooms but not the argument that produced them —
-     the report is the planner's working, and the planner did not run. Better
-     an empty panel than one explaining the previous world's houses. */
-  interiorWhy.clear();
   lastField = null;
   refreshMinimap();
   select(null);
@@ -2506,7 +2477,6 @@ function currentWorldDoc() {
     params: engine.params,
     propRecords: engine.props.records(),
     field: ensureField(),
-    world: builtWorldId,
     // The landing this session is actually showing. Voided by the "world"
     // handler above when the seed or biome moves out from under it, so by
     // the time it reaches here it is either this world's or null.
@@ -2562,14 +2532,12 @@ function exportWorld() {
       params: engine.params,
       field,
       delta: delta && delta.res === field.res ? delta.data : null,
-      origin: builtWorldId,
       /* The other half of the export: the scene. Records straight off the
          engine, the interior reports the build filed (one per building — the
          same map the I panel reads), the authored spawn, and the coarse
          extent Props measured when each object was built — which is what
          gives the Unity importer's placeholders their mass. */
       records: engine.props.records(),
-      interiors: [...interiorWhy.values()],
       spawn: customSpawn,
       boundsFor: (uid) => {
         const it = engine.props.get(uid);
@@ -2722,7 +2690,6 @@ async function openWorldFile(file) {
     params: JSON.parse(JSON.stringify(engine.params)),
     records: engine.props.records().map((r) => ({ ...r })),
     sculpt: engine.sculptStrokes(),
-    world: builtWorldId,
   };
   /* Flipped the instant the world on screen stops being the one `before`
      describes. Everything above that point — reading the file, parsing it,
@@ -2745,7 +2712,6 @@ async function openWorldFile(file) {
       params: paramsFromWorldFile(doc),
       records: propsFromWorldFile(doc),
       sculpt: paramsFromWorldFile(doc).terrain?.sculpt || [],
-      world: doc.origin || null,
     };
     dismantling = true;
     await loadWorldState(after);
@@ -2811,14 +2777,14 @@ async function openWorldFile(file) {
    opened — the params, the ground, the placements, the strokes — without
    asking anybody to press ⌘Z forty times and hope they counted.
 
-   WHAT "THE WAY IT OPENED" IS, exactly: `baseDoc`, the document the world on
-   screen came from — the file the library handed over, js/default-world.js
-   for somebody who typed /editor, or the last world Opened. It is never
-   mutated (paramsFromWorldFile and propsFromWorldFile both deep-clone on the
-   way out), so the state is rebuilt from it at click time rather than
-   snapshotted at boot, and cannot have drifted in between.
+   WHAT "THE WAY IT OPENED" IS, exactly: the seed's own world it opened on
+   (makeParams of that seed, nothing placed), or `baseDoc`, the last world
+   Opened. The document is never mutated (paramsFromWorldFile and
+   propsFromWorldFile both deep-clone on the way out), so the state is rebuilt
+   at click time rather than snapshotted at boot, and cannot have drifted in
+   between.
 
-   That includes the params, so a rolled seed and a dragged terrain slider go
+   That includes the params, so a travelled-to seed and a dragged terrain slider go
    back too. This is deliberate: "back to how it opened" is one promise a
    person can hold in their head, where "back to how it opened unless you
    touched the sliders" is three.
@@ -2834,12 +2800,12 @@ async function openWorldFile(file) {
    ON THE UNDO STACK, like Open. Reset is the largest single thing a person
    can do to a world, so it is the last thing that should be irreversible. */
 function initialWorldState() {
+  if (!baseDoc) return { params: makeParams({ seed: landingSeed }), records: [], sculpt: [], ground: null };
   const params = paramsFromWorldFile(baseDoc);
   return {
     params,
     records: propsFromWorldFile(baseDoc),
     sculpt: params.terrain?.sculpt || [],
-    world: baseDoc.origin || null,
     ground: null,
   };
 }
@@ -2935,7 +2901,6 @@ async function resetWorld() {
     params: JSON.parse(JSON.stringify(engine.params)),
     records: engine.props.records().map((r) => ({ ...r })),
     sculpt: engine.sculptStrokes(),
-    world: builtWorldId,
     spawn: customSpawn ? { ...customSpawn } : null,
   };
   if (worldIsUntouched()) { toast("Nothing to reset — this world is as it opened", 2200); return; }
@@ -2981,11 +2946,11 @@ async function resetWorld() {
 
   undoStack.push({
     kind: "world",
-    subject: `${landingDoc.origin || engine.params.biome} · back to how it opened`,
+    subject: `${engine.params.seed} · back to how it opened`,
     undo: () => restore(before),
     redo: () => restore({ ...after, spawn: null }),
   });
-  announce("Reset", `${landingDoc.origin || engine.params.biome} · ${lost} cleared`, 3200);
+  announce("Reset", `${engine.params.seed} · ${lost} cleared`, 3200);
   console.info("[studio] reset to the landing world:", engine.params.seed, engine.params.biome);
 }
 
@@ -3049,162 +3014,6 @@ $("#btn-grass").addEventListener("click", () => {
 });
 
 /* ══════════════════════════════════════════════════════════════════
-   WORLDS — five grammars, one engine.
-
-   The rail draws a card per world out of the data in js/worlds.js, and the
-   biggest thing on each card is a PLAN OF THE WORLD ITSELF: the grammar run
-   headless on a fixed preview seed and drawn in the world's own palette, with
-   its real water, its real ways and its real settlement footprints
-   Five cards that all showed the same generic aerial
-   terrain would be an active lie about what the rail contains, and a
-   description in prose is something a person has to take on trust.
-
-   The plans are drawn LAZILY, one per frame, the first time the rail opens. A
-   plan is real generation — a landform, a flood fill, six thousand height
-   samples — and five of them on the click that opens the panel is a second
-   and a half of frozen interface.
-
-   Pressing a card runs the build (terrain, landform, sites, ways, strays,
-   planting, light) and then flies the camera into it (js/cinematic.js).
-
-   ONE UNDO TAKES THE WHOLE THING BACK. That is not a courtesy — it is what
-   makes a button that replaces your world safe to press, and it is why the
-   build collects every record and every sculpt stroke as it goes.
-   ══════════════════════════════════════════════════════════════════ */
-let building = false;
-
-function buildStatus(stage, detail = "", progress = -1) {
-  const box = $("#build-status");
-  box.hidden = !stage;
-  if (stage) {
-    $("#build-stage").textContent = stage;
-    $("#build-detail").textContent = detail;
-    if (progress >= 0) $("#build-fill").style.width = `${Math.round(progress * 100)}%`;
-  }
-  syncDeck();
-}
-
-/* The Worlds rail's cards stood here — a plan drawn per grammar, a swatch of
-   its dressing and a Generate key. The rail is gone; generateWorld below is
-   not, and neither is js/worlds.js. The command
-   palette carries an entry per grammar ("Build a world"), which is the path
-   that survives until the World-Gallery replaces the rail. */
-
-async function generateWorld(id, seed = null) {
-  if (building) return;
-  building = true;
-  /* The class the `finally` below has always removed and nothing ever added.
-     It marks the whole of a build — exactly the span in which this function
-     returns early if pressed again — so it is the honest public answer to
-     "is the editor busy". tools/smoke.mjs waits on it. */
-  document.body.classList.add("building");
-  // A generated world is a different world, not an edit of this one. Letting
-  // go before the build means the file the author named keeps the world they
-  // named it for. Undo puts that world back; it does not re-link the file.
-  releaseFile("Built a new world");
-  disarmAll();
-  setRail(null, false);
-
-  // Everything needed to put the world back exactly as it was.
-  const before = {
-    params: JSON.parse(JSON.stringify(engine.params)),
-    records: engine.props.records().map((r) => ({ ...r })),
-    sculpt: engine.sculptStrokes(),
-  };
-
-  try {
-    const built = await buildWorld({
-      engine, id, seed,
-      /* A gallery plate names its seed, so the same button that screens a
-         fresh world can rebuild an exact one — the undo snapshot, the arrival
-         flight and every refresh below are identical either way, which is why
-         this takes a seed rather than growing a second build path. */
-      hooks: { stage: (stage, detail, progress) => buildStatus(stage, detail, progress) },
-    });
-    lastField = null;
-    refreshMinimap();
-    select(null);
-    refreshRegister();
-    syncPanel();
-    syncWeatherPills();
-    showSeed();
-    /* The world chose where a player should land — its lead site — and that
-       has to be the AUTHORED spawn, not a decoration. Without these two lines
-       the ring is drawn on the square and Play still drops you wherever the
-       habitability score happened to like, which on a coastal seed is a beach
-       two kilometres away. */
-    customSpawn = { x: built.spawn.x, z: built.spawn.z };
-    spawnTag = worldTag();
-    builtWorldId = id;
-    // Read off the engine rather than out of `built`: the build is what put
-    // it there (buildWorld → applyParams(paramsFor(world, found.seed))), and
-    // this is the value that names this exact world to a later rebuild.
-    const builtSeed = engine.params.seed;
-    interiorWhy.clear();
-    for (const rep of built.interiors || []) {
-      // One entry per building. A two-storey house reports twice; the ground
-      // floor is the one you walk into, so it wins.
-      if (!interiorWhy.has(rep.uid) || rep.at === "ground") interiorWhy.set(rep.uid, rep);
-    }
-    // Not drawn in the world (js/worlds.js says why), but the chart is
-    // exactly where a spawn ring belongs: small, unlit, and already a map.
-    minimap.setRings(deriveSpawn([], engine.params, { override: customSpawn }).rings
-      .map((r) => ({ x: customSpawn.x, z: customSpawn.z, r: r.r })));
-
-    undoStack.push({
-      kind: "world",
-      subject: `${built.world.label} · ${built.placed.length} pieces`,
-      undo: async () => {
-        for (const r of engine.props.records()) engine.props.remove(r.uid);
-        engine.applyParams(before.params);
-        engine.sculptRestore(before.sculpt);
-        for (const r of before.records) await engine.props.restore(r);
-        engine.rebuildScatter();
-        lastField = null; refreshMinimap(); select(null); refreshRegister(); syncPanel();
-      },
-      /* REDO REBUILDS THIS WORLD, NOT ANOTHER ONE FROM THE SAME GRAMMAR.
-         It read `generateWorld(id)`, and the seed argument defaults to null —
-         which is the signal screenFor takes to mint a fresh one and screen it
-         (js/worlds.js: `const mint = seed ? () => seed : () => randomSeed(…)`).
-         So ⌘Z then ⌘⇧Z handed back a DIFFERENT Farshore: another seed,
-         another headland, another town. The world that had been on screen a
-         moment earlier was unrecoverable, because its seed was not written
-         down anywhere the stack could reach — the exact opposite of what
-         "one undo takes the whole thing back" promises.
-
-         The build already settled the seed onto the engine, and generateWorld
-         already accepts one for the gallery's rebuild-an-exact-world path, so
-         naming it here is all this needs. */
-      redo: () => generateWorld(id, builtSeed),
-    });
-
-    buildStatus("");
-    /* PINS OFF. The marker cloud exists so that nothing YOU placed is ever
-       more than one press away — it is a finding aid for authored objects.
-       Two and a half thousand of them over a generated city is not a finding
-       aid, it is a wall of plastic between the author and the thing they just
-       made. The switch in the Object register turns them back on. */
-    if (engine.pinsEnabled) setPins(false);
-    announce(built.world.label,
-      `${built.placed.length} pieces · ${built.sites.length} places · ${built.scatter} plants`, 4200);
-    console.info("[studio] built", id, "in", built.ms, "ms:", built);
-
-    engine.frameWorld(true);
-    toast(`${built.world.label} — drag to look around, or open Blocks and keep building`, 5000);
-  } catch (err) {
-    buildStatus("");
-    toast(`Could not build that world: ${err.message}`, 5000);
-    console.error(err);
-  } finally {
-    // Whatever happened in there, the world is visible again on the way out.
-    document.body.classList.remove("building");
-    engine.setPaused(false);
-    building = false;
-    refreshTools();
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════
    ICONS
    Every glyph in the chrome is drawn on one grid in icons.js and injected
    here. Markup carries the NAME of the icon, never the drawing, so the set
@@ -3222,7 +3031,7 @@ async function generateWorld(id, seed = null) {
     if (slot) setHTML(slot, UI[name] || EMPTY);
   };
   const MAP = {
-    "#seed-roll": "roll", "#btn-undo": "undo", "#btn-redo": "redo", "#btn-reset": "back",
+    "#btn-undo": "undo", "#btn-redo": "redo", "#btn-reset": "back",
     "#btn-cmd": "command",
     "#btn-save": "export", "#btn-open": "open", "#btn-keep": "keep",
     "#dock-close": "close",
@@ -3255,9 +3064,6 @@ async function generateWorld(id, seed = null) {
     '[data-act="style"]': "style", '[data-act="ignite"]': "fire", '[data-act="delete"]': "trash",
     "#panel-close": "close", "#dock-import": "plus",
     ".dock-search-wrap .ds-icon": "search", "#cmdk-field": "search",
-    // The gate. "explore" is a door with a path leading through it, which is
-    // exactly what the button under the entry film does.
-    "#gate-enter": "explore", "#gate-roll": "roll",
   };
   for (const [sel, name] of Object.entries(MAP)) put(sel, name);
 }
@@ -3357,7 +3163,7 @@ const palette = new CommandPalette({
     const add = (group, name, icon, run, hint = "", keywords = "") =>
       out.push({ group, name, icon, run, hint, keywords });
 
-    add("World", "Roll a new seed", "roll", () => engine.rollSeed(), "world", "random new generate");
+    add("World", "Plant woods", "grass", plantWoods, "world", "trees forest plant vegetation scatter woods");
     add("World", "Travel to a seed…", "search", () => {
       const input = prompt("Travel to seed:", engine.params.seed);
       if (input) engine.setSeed(input);
@@ -3438,12 +3244,6 @@ const palette = new CommandPalette({
 
     add("Actions", "Undo", "undo", () => undoStack.undo(), "⌘Z", "revert");
     add("Actions", "Redo", "redo", () => undoStack.redo(), "⌘⇧Z", "");
-    for (const id of WORLD_IDS) {
-      const w = WORLDS[id];
-      add("Build a world", w.label, "worlds", () => generateWorld(id),
-        w.reads.split(" ").slice(0, 2).join(" ").toLowerCase(),
-        `world generate ${w.biome} ${w.theme} ${w.reads} ${w.line}`);
-    }
     add("Tools", "Stage — hide the interface", "focus", () => setStage(!document.body.classList.contains("stage")),
       "\\", "clean screenshot present hide chrome");
     add("Tools", document.body.classList.contains("simple") ? "Advanced mode" : "Simple mode",
@@ -3565,41 +3365,8 @@ function coachStart() {
   $("#tool-seg").addEventListener("click", () => coachAdvance(1), { capture: true });
 }
 
-/* ── what the landing carries ──
-   The default world is ground and nothing else, so on a plain visit this
-   seats nothing and returns. It is here because default-world.js is authored
-   by pasting a SAVED FILE in, and a saved file may have a town on it —
-   applying its terrain and dropping its placements would put the editor on a
-   world its own file does not describe, silently. Same bulk restore the Open
-   button runs, so a furnished default lands the way an opened world does.
-
-   It reads `landingDoc` rather than DEFAULT_WORLD because a visitor arriving
-   from the library brought a document of their own, and a world handed over
-   with houses on it must arrive with its houses. The five shelf worlds carry
-   none today; the day one does, this is already the path it lands on.
-
-   Its spawn and settlements are not read back: those are derived from the
-   params the engine already holds, and the file carries them for the readers
-   downstream of a save rather than for this one. */
-async function seatLanding() {
-  const records = propsFromWorldFile(landingDoc);
-  for (const note of [generatorNote(landingDoc), omissionNote(landingDoc)]) {
-    if (note) console.warn("[studio] landing world:", note);
-  }
-  builtWorldId = landingDoc.origin || null;
-  if (!records.length) return;
-  engine.props.beginBulk();
-  try {
-    for (const r of records) await engine.props.restore(r);
-  } finally { engine.props.endBulk(); }
-  refreshMinimap();
-  refreshRegister();
-  console.info("[studio] landing world seated", records.length, "placements");
-}
-/* The world as it opened IS the baseline, and the baseline is taken once the
-   seating has finished — before it, a furnished landing world would read as
-   an empty one somebody had emptied. */
-seatLanding().then(markPristine);
+/* The world as it opened IS the baseline: the seed's own world, nothing placed on it. */
+markPristine();
 
 /* ── begin ──
    No entry film and no gate: the page opens as the editor, on the default

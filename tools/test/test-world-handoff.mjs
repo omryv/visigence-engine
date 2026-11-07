@@ -1,15 +1,15 @@
 /**
  * PLAY HERE: A LEVEL CUT FROM THE WORLD THE WORLD EDITOR SHOWS.
  *
- * World mode is the world engine's editor (world.html). Its world is not only a seed: a named world (Farshore,
- * Lonepalm) carries its own grammar, its own intent and the author's sculpt strokes. "Play here" hands that world to
+ * World mode is the world engine's editor (world.html). Its world is a seed's own world and what the author did to
+ * it: the terrain sliders moved, statements of its own, sculpt strokes. "Play here" hands that world to
  * Play as the project's `worldParams` (its terrain and water), and the level's ground is cut from it
  * (world/kernelGround.js worldParamsFor + worldSampler). This holds:
  *
  *   1. a project without worldParams stands on the seed's own world, exactly as before (the plain-seed fixtures in
  *      test-kernel-ground hold the heights; here, the world is makeParams({ seed }) and nothing is carried);
- *   2. a project carrying a named world's params stands on THAT world: its parameter hash is the named world's, and
- *      the world drawn around the level is the named world's sampler with its own statements and the mission's;
+ *   2. a project carrying a built-on world's params stands on THAT world: its parameter hash is that world's, and
+ *      the world drawn around the level is that world's sampler with its own statements and the mission's;
  *   3. the world's own statements survive the mission's: the solve meets both, and the mission is charged only its
  *      share of the cost;
  *   4. a sculpt stroke in the world is in the level's ground;
@@ -30,7 +30,6 @@ import { CATALOG } from '../../src/world/catalog.js';
 import { makeParams } from '../../src/kernel/presets.js';
 import { createHeightSampler } from '../../src/kernel/terrain/heightfield.js';
 import { terrainParameterHash, hex } from '../../src/kernel/terrain/fingerprint.js';
-import { fullParams, WORLDS } from '../../src/genesis/world/worlds.js';
 import { encodeWorldLink, decodeWorldLink, worldFromLocation, WORLD_LINK_VERSION } from '../../src/world/worldLink.js';
 
 const ok = msg => console.log(`  ok   ${msg}`);
@@ -45,39 +44,41 @@ assert.equal(plain.ground.world.params, undefined, 'nothing is carried for the s
 assert.equal(plain.ground.world.parameterHash, hex(terrainParameterHash(makeParams({ seed: SEED }))));
 ok(`without worldParams a level stands on the seed's own world (${plain.ground.world.parameterHash}), as before`);
 
-// ── 2. a named world ──────────────────────────────────────────────────────────
-const farshore = fullParams(WORLDS.farshore, SEED);
-const project = { ...quickMission('arcade', SEED, 'shooter'), worldParams: carry(farshore) };
+// ── 2. a world built on in the editor ─────────────────────────────────────────
+// The seed's own world with its terrain sliders moved and a statement of its own, as the editor holds it.
+const seedOwn = makeParams({ seed: SEED });
+const built = { ...seedOwn, terrain: { ...seedOwn.terrain, height: 520, seaLevel: 0.3, intent: [{ type: 'summit', x: 1400, z: -1200, h: 300 }] } };
+const project = { ...quickMission('arcade', SEED, 'shooter'), worldParams: carry(built) };
 const level = compileShooterProject(project, pack), G = level.ground;
-assert.equal(G.kind, 'world', `the mission stands on Farshore (${G.reason ?? ''})`);
-const merged = worldParamsFor(SEED, carry(farshore));
-assert.equal(G.world.parameterHash, hex(terrainParameterHash(merged)), 'the level\'s world is Farshore\'s params');
+assert.equal(G.kind, 'world', `the mission stands on the built world (${G.reason ?? ''})`);
+const merged = worldParamsFor(SEED, carry(built));
+assert.equal(G.world.parameterHash, hex(terrainParameterHash(merged)), 'the level\'s world is the built world\'s params');
 assert.notEqual(G.world.parameterHash, plain.ground.world.parameterHash, 'and not the plain seed\'s');
-// The world the level is drawn in (worldAround) is Farshore's ground with its own statements and the mission's
-// together, to the last bit. (Not "Farshore untouched far from the site": the solve's correction is a field over the
+// The world the level is drawn in (worldAround) is the built world's ground with its own statements and the mission's
+// together, to the last bit. (Not "the world untouched far from the site": the solve's correction is a field over the
 // whole lattice and reaches kilometres, measured 5.4 m at level scale 1.3 km out, so no such claim is made.)
 const f = G.frame, around = worldAround(G);
 const bent = createHeightSampler({ ...merged, terrain: { ...merged.terrain, intent: [...merged.terrain.intent, ...G.intent.records] } });
 const at = (S, x, z) => (S(f.originX + x * SITE_SCALE, f.originZ + z * SITE_SCALE) - f.h) / SITE_SCALE;
 let worst = 0;
 for (const [x, z] of [[0, 0], [20, -15], [-38, 38], [100, 0], [-160, 40]]) worst = Math.max(worst, Math.abs(around.height(x, z) - at(bent, x, z)));
-assert(worst < 1e-9, `the world past the rim is Farshore with both sets of statements (worst ${worst})`);
-ok(`with Farshore's params the level stands on Farshore (${G.world.parameterHash}): its ground is Farshore's own statements and the mission's, exactly`);
+assert(worst < 1e-9, `the world past the rim is the built world with both sets of statements (worst ${worst})`);
+ok(`with the built world's params the level stands on it (${G.world.parameterHash}): its ground is that world's own statements and the mission's, exactly`);
 
 // ── 3. the world's own statements survive ─────────────────────────────────────
-assert(Array.isArray(merged.terrain.intent) && merged.terrain.intent.length > 0, 'Farshore states its own ground');
+assert(Array.isArray(merged.terrain.intent) && merged.terrain.intent.length > 0, 'the built world states its own ground');
 const own = createHeightSampler(merged).conditioning;
 assert(G.conditioning, 'the mission bent the ground');
 assert.equal(G.conditioning.worldNats, own.nats, 'the world\'s own cost is reported apart');
 assert(G.conditioning.nats >= 0 && G.conditioning.nats <= 150, `the mission is charged its share (${G.conditioning.nats.toFixed(1)} nats; the world's own ${own.nats.toFixed(1)})`);
-ok(`Farshore's own ${merged.terrain.intent.length} statement(s) are kept in the solve; the mission is charged ${G.conditioning.nats.toFixed(1)} nats, the world's ${own.nats.toFixed(1)} apart`);
+ok(`the world's own ${merged.terrain.intent.length} statement(s) are kept in the solve; the mission is charged ${G.conditioning.nats.toFixed(1)} nats, the world's ${own.nats.toFixed(1)} apart`);
 
 // ── 4. sculpt ─────────────────────────────────────────────────────────────────
 {
-  // A raise inside the level's site, as the world editor's brush records it (a broad 24 m dome over Farshore's one
-  // qualifying site disqualifies the site outright, which is the site rules working; this one keeps it).
+  // A raise inside the level's site, as the world editor's brush records it (a broad 24 m dome over a site can
+  // disqualify it outright, which is the site rules working; this one keeps it).
   const strokes = [{ x: G.frame.originX, z: G.frame.originZ, r: 80, a: 4, m: 0 }];
-  const sculpted = { ...carry(farshore), terrain: { ...farshore.terrain, sculpt: strokes } };
+  const sculpted = { ...carry(built), terrain: { ...built.terrain, sculpt: strokes } };
   const L2 = compileShooterProject({ ...quickMission('arcade', SEED, 'shooter'), worldParams: sculpted }, pack).ground;
   assert.equal(L2.kind, 'world', L2.reason);
   assert.equal(L2.site.x, G.site.x); assert.equal(L2.site.z, G.site.z);
@@ -100,19 +101,19 @@ ok(`Farshore's own ${merged.terrain.intent.length} statement(s) are kept in the 
 }
 // ── 6. the link ───────────────────────────────────────────────────────────────
 {
-  const value = encodeWorldLink({ seed: SEED, name: 'Farshore', worldParams: carry(farshore) });
+  const value = encodeWorldLink({ seed: SEED, name: 'Harbour', worldParams: carry(built) });
   assert(/^[A-Za-z0-9_-]+$/.test(value), 'base64url: safe in a fragment as it stands');
   const back = decodeWorldLink(value);
-  assert.equal(back.seed, SEED); assert.equal(back.name, 'Farshore');
-  assert.deepEqual(back.worldParams, normalizeWorldParams(carry(farshore)), 'the world arrives exactly');
+  assert.equal(back.seed, SEED); assert.equal(back.name, 'Harbour');
+  assert.deepEqual(back.worldParams, normalizeWorldParams(carry(built)), 'the world arrives exactly');
   const viaLink = compileShooterProject({ ...quickMission('arcade', back.seed, 'shooter'), worldParams: back.worldParams }, pack).ground;
   assert.equal(viaLink.heightHash, G.heightHash, 'and the level cut from it is the same level');
   assert.deepEqual(worldFromLocation({ hash: '#world=' + value }).world, back);
   assert.deepEqual(worldFromLocation({ hash: '' }), { world: null, error: null });
   assert.match(worldFromLocation({ hash: '#world=@@@' }).error, /cannot be read/);
-  const future = btoa(JSON.stringify({ v: WORLD_LINK_VERSION + 1, seed: SEED, params: carry(farshore) }));
+  const future = btoa(JSON.stringify({ v: WORLD_LINK_VERSION + 1, seed: SEED, params: carry(built) }));
   assert.match(worldFromLocation({ hash: '#world=' + future }).error, /format/);
-  assert.throws(() => encodeWorldLink({ seed: '', worldParams: carry(farshore) }), /seed/);
-  ok(`the link carries the world exactly (${value.length} characters for Farshore) and refuses, by name, what it cannot read`);
+  assert.throws(() => encodeWorldLink({ seed: '', worldParams: carry(built) }), /seed/);
+  ok(`the link carries the world exactly (${value.length} characters for this world) and refuses, by name, what it cannot read`);
 }
 console.log('World handoff: OK');
