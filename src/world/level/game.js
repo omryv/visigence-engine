@@ -13,7 +13,7 @@
 import { createEdits } from './edits.js';
 
 /** Fields that belong to one level. Everything else a flat project carries belongs to the game. */
-export const LEVEL_KEYS = ['seed', 'worldParams', 'lighting', 'blueprint', 'enemyCount', 'behavior', 'cover', 'objectives', 'missionProfile', 'edits'];
+export const LEVEL_KEYS = ['seed', 'worldParams', 'worldSite', 'lighting', 'blueprint', 'enemyCount', 'behavior', 'cover', 'objectives', 'missionProfile', 'edits'];
 export const MAX_LEVELS = 8;
 export const LEVEL_NAME_MAX = 40;
 export const PUBLISH_DEFAULTS = Object.freeze({ adBreaks: false, rewardedContinue: false, showCredits: true });

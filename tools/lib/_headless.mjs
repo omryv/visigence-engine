@@ -50,6 +50,8 @@ export async function serveRepo(port, { fallbackRoot = null, root = ROOT } = {})
   const server = http.createServer((req, res) => {
     const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
     let file = path.resolve(root, rel);
+    // A directory serves its index.html, as the deployed site does (`/` is the studio page, index.html).
+    if (fs.existsSync(file) && fs.statSync(file).isDirectory() && fs.existsSync(path.join(file, 'index.html'))) file = path.join(file, 'index.html');
     if (fallbackRoot && (!fs.existsSync(file) || fs.statSync(file).isDirectory())) {
       const alt = path.resolve(fallbackRoot, rel);
       if (alt.startsWith(path.resolve(fallbackRoot)) && fs.existsSync(alt) && !fs.statSync(alt).isDirectory()) file = alt;

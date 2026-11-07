@@ -10,7 +10,7 @@ import { SITE_KINDS, makePlan } from "../../src/genesis/world/worldplan.js";
 import { DEFAULT_SEED, normalizeSeed } from "../../src/kernel/seed.js";
 import { composeSite } from "../../src/genesis/world/compose.js";
 import { plantWorld } from "../../src/genesis/world/planting.js";
-import { encodeWorldLink } from "../../src/world/worldLink.js";
+import { mountGame } from "./game.js";
 import { groundBuildings } from "../../src/genesis/world/footing.js";
 import { isPinnable, PIN_LEGIBLE_MAX } from "../../src/genesis/world/pinnable.js";
 import { assertGlb } from "../../src/genesis/world/glb-compat.js";
@@ -161,20 +161,18 @@ $("#seed-chip").addEventListener("click", () => {
   if (input) engine.setSeed(input);
 });
 
-/* ── the rest of the tool ──
-   Play here hands THIS world to Play (src/world/worldLink.js): the seed, and the terrain and water a level's ground is
-   cut from, in the link's fragment, because this page stores nothing. Play opens in a new tab so the world being made
-   stays here; the other modes carry the seed. */
-function worldLink() {
-  return encodeWorldLink({
-    seed: engine.params.seed,
-    worldParams: { terrain: engine.params.terrain, water: engine.params.water },
-  });
-}
-$("#play-here").addEventListener("click", () => {
-  try { window.open(`/?mode=play#world=${worldLink()}`, "_blank"); }
-  catch (e) { announce("Play here", `This world cannot be handed to Play: ${e.message}`); }
+/* ── the game ──
+   The Game panel sets the mission up and Play plays it, here, over the viewport, on this world as it stands
+   (editor/world/game.js); the world stands still meanwhile. Its site is the best one the level ground finds, or the
+   spawn marker. */
+const game = mountGame({
+  engine, panel: $("#game-rows"),
+  spawn: () => (customSpawn && spawnTag === worldTag() ? customSpawn : null),
+  placeSpawn: () => { if (!armedSpawn) $("#btn-spawn").click(); },
+  announce,
 });
+window.studio.game = game;
+$("#play-here").addEventListener("click", () => game.play());
 for (const a of document.querySelectorAll("[data-mode-link]")) {
   a.addEventListener("click", () => {
     const u = new URL(a.getAttribute("href"), location.href);
@@ -320,6 +318,7 @@ const phone = () => matchMedia("(max-width: 860px)").matches;
 const RAILS = {
   blocks: $("#blocks-dock"),
   world: $("#world-panel"),
+  game: $("#game-panel"),
   objects: $("#objects-panel"),
 };
 const railOpen = (name) => !RAILS[name].classList.contains("collapsed");
@@ -331,6 +330,7 @@ function setRail(name, open) {
   }
   if (open && name === "objects") { objects.refresh(); objects.setSelection(selection); }
   if (open && name === "blocks") renderCards();
+  if (open && name === "game") game.render();
   refreshTools();
 }
 const setPanel = (open) => setRail("world", open);
@@ -384,6 +384,8 @@ function refreshTools() {
   $("#river-opts").hidden = !armedRiver;
   $("#panel-toggle").classList.toggle("open", panelOpen());
   $("#panel-toggle").setAttribute("aria-pressed", String(panelOpen()));
+  $("#game-toggle").classList.toggle("open", railOpen("game"));
+  $("#game-toggle").setAttribute("aria-pressed", String(railOpen("game")));
   $("#tool-objects").classList.toggle("open", objectsOpen());
   $("#tool-objects").setAttribute("aria-pressed", String(objectsOpen()));
   // The coach stands down while a rail is up: guidance may never cover the
@@ -432,6 +434,8 @@ function syncModeMarker() {
 
 $("#panel-toggle").addEventListener("click", () => setPanel(!panelOpen()));
 $("#panel-close").addEventListener("click", () => setPanel(false));
+$("#game-toggle").addEventListener("click", () => setRail("game", !railOpen("game")));
+$("#game-close").addEventListener("click", () => setRail("game", false));
 $("#tool-blocks").addEventListener("click", () => setDock(!dockOpen()));
 $("#dock-close").addEventListener("click", () => setDock(false));
 $("#tool-objects").addEventListener("click", () => setObjects(!objectsOpen()));
@@ -1500,6 +1504,7 @@ canvas.addEventListener("pointerup", async (e) => {
     const rings = deriveSpawn([], engine.params, { override: customSpawn }).rings;
     minimap.setRings(rings.map((r) => ({ x: point.x, z: point.z, r: r.r })));
     armedSpawn = false;
+    game.render();   // the Game panel names where the mission stands
     refreshTools();
     const wet = engine.sampleHeight(point.x, point.z) < 0;
     toast(wet ? "Spawn set — in water, you'll swim" : "Spawn set — Play drops you here");
@@ -3037,7 +3042,7 @@ $("#btn-grass").addEventListener("click", () => {
     "#dock-close": "close",
     "#tool-select": "select", "#tool-blocks": "blocks", "#tool-sculpt": "sculpt",
     "#tool-river": "river",
-    "#btn-grass": "grass", "#btn-spawn": "spawn", "#panel-toggle": "world",
+    "#btn-grass": "grass", "#btn-spawn": "spawn", "#panel-toggle": "world", "#game-toggle": "play",
     "#tool-objects": "objects",
     // the object manager: its header switches, its navigation strip and the
     // verbs on a selected set
@@ -3062,7 +3067,7 @@ $("#btn-grass").addEventListener("click", () => {
     '[data-act="focus"]': "focus", '[data-act="rotate"]': "rotate", '[data-act="dup"]': "copy",
     '[data-act="snap"]': "ground", '[data-act="shrink"]': "smaller", '[data-act="grow"]': "bigger",
     '[data-act="style"]': "style", '[data-act="ignite"]': "fire", '[data-act="delete"]': "trash",
-    "#panel-close": "close", "#dock-import": "plus",
+    "#panel-close": "close", "#game-close": "close", "#dock-import": "plus",
     ".dock-search-wrap .ds-icon": "search", "#cmdk-field": "search",
   };
   for (const [sel, name] of Object.entries(MAP)) put(sel, name);

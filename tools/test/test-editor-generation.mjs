@@ -31,7 +31,7 @@ function harness(standalone=false) {
   stop(){} setRendering(active){counters.rendering=active;} resize(){} frame(){counters.frames++;} dispose(){} start(){}
  }
  const context=vm.createContext({
-  ...blueprint,...projectAPI,...projectSchema,...genres,CATALOG,generationKey,assetURL,structuredClone,console,performance,MISSION_THEMES,MISSION_WORLDS,missionWorld,THEME_PALETTE,visionFromURL:()=>null,arriveWithVision:()=>{},mountPlayerFront:()=>null,worldArt:()=>null,installModelCards:()=>{},
+  ...blueprint,...projectAPI,...projectSchema,...genres,CATALOG,generationKey,assetURL,structuredClone,console,performance,MISSION_THEMES,MISSION_WORLDS,missionWorld,THEME_PALETTE,visionFromURL:()=>null,arriveWithVision:()=>{},missionFromEditor:()=>null,mountPlayerFront:()=>null,worldArt:()=>null,installModelCards:()=>{},
   escapeHtml:String,BlueprintBoard:class{render(){}fit(){}},
   document:{body:{classList:{add(){},remove(){}},dataset:{build:standalone?'standalone':''}},querySelector:element,querySelectorAll:s=>s==='.compile'?[element('#compile-top'),element('#compile-bottom')]:[],addEventListener(){}},
   window:{addEventListener(){}},ResizeObserver:class{observe(){}},localStorage:{getItem(){return null;},setItem(){}},

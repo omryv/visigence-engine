@@ -71,11 +71,11 @@
     <b>VISIGENCE</b><i>WORLD</i>
   </span>
 
-  <!-- The tool's modes. World is this page; Play, Remix and Build are the studio (index.html). The studio is opened
-       in a new tab: this page stores nothing, so leaving it would lose the world being made. -->
+  <!-- The tool's modes. World is this page, and the game is made and played here too (the Game panel; Play). Remix and
+       Build are still the studio (index.html), opened in a new tab: this page stores nothing, so leaving it would lose
+       the world being made. -->
   <nav id="modes" aria-label="Mode">
     <a class="on" aria-current="page" href="/world.html">World</a>
-    <a href="/?mode=play" target="_blank" rel="opener" data-mode-link>Play</a>
     <a href="/?mode=remix" target="_blank" rel="opener" data-mode-link>Remix</a>
     <a href="/?mode=build" target="_blank" rel="opener" data-mode-link>Build</a>
   </nav>
@@ -106,9 +106,9 @@
 </header>
 
 
-<!-- Play here: a mission on THIS world, its params handed over in the link (src/world/worldLink.js). -->
-<button id="play-here" class="mod bar" type="button" title="Play a mission on this world (opens in a new tab; this world stays here)">
-  <span>Play here</span><small>A mission on this world</small>
+<!-- Play: the Game panel's mission, on THIS world, right here (editor/world/game.js). -->
+<button id="play-here" class="mod bar" type="button" title="Play the mission on this world, here; the world waits">
+  <span>Play</span><small>The mission, on this world</small>
 </button>
 
 <div id="actions">
@@ -202,6 +202,9 @@
     </button>
     <button id="panel-toggle" class="tool" type="button" data-tip="World · terrain, biome, light" aria-pressed="false">
       <span data-icon></span><b>World</b>
+    </button>
+    <button id="game-toggle" class="tool" type="button" data-tip="Game · the mission, and Play" aria-pressed="false">
+      <span data-icon></span><b>Game</b>
     </button>
   </div>
 
@@ -403,6 +406,21 @@
     <div id="veg-rows" class="adv"></div>
     <p class="opt-hint adv">Card-based grass: draw distance fades on foot, wind waves every card.
       Paint patches with the Grass tool — its <b>SIZE</b> dial sets the brush radius.</p>
+  </div>
+</aside>
+
+<!-- ── GAME ──
+     The mission this world is played as: its genre, its look, how hard, how many enemies, and where on the world it
+     stands. Play runs it here, over the viewport (editor/world/game.js). -->
+<aside id="game-panel" class="rail mod collapsed" aria-label="Game">
+  <header class="rail-head">
+    <h2>Game</h2>
+    <span class="rail-sub rd-key">MISSION · PLAY</span>
+    <button id="game-close" class="icon-btn" type="button" aria-label="Close panel"><span data-icon></span></button>
+  </header>
+  <div class="rail-scroll">
+    <div class="panel-title"><span>Mission</span></div>
+    <div id="game-rows"></div>
   </div>
 </aside>
 

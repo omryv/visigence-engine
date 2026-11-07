@@ -31,6 +31,7 @@ import { makeParams } from '../../src/kernel/presets.js';
 import { createHeightSampler } from '../../src/kernel/terrain/heightfield.js';
 import { terrainParameterHash, hex } from '../../src/kernel/terrain/fingerprint.js';
 import { encodeWorldLink, decodeWorldLink, worldFromLocation, WORLD_LINK_VERSION } from '../../src/world/worldLink.js';
+import { editorMissionURL, missionFromEditor } from '../../src/world/editorMission.js';
 
 const ok = msg => console.log(`  ok   ${msg}`);
 const SEED = 'K7QN-3F2A-9XBD';
@@ -115,5 +116,41 @@ ok(`the world's own ${merged.terrain.intent.length} statement(s) are kept in the
   assert.match(worldFromLocation({ hash: '#world=' + future }).error, /format/);
   assert.throws(() => encodeWorldLink({ seed: '', worldParams: carry(built) }), /seed/);
   ok(`the link carries the world exactly (${value.length} characters for this world) and refuses, by name, what it cannot read`);
+}
+// ── 7. a site the author chose ────────────────────────────────────────────────
+{
+  // The world editor's spawn marker as the mission's site: measured by the scan's own rules, and the only candidate.
+  const at = { x: G.site.x + 160, z: G.site.z - 80 };
+  const chosen = compileShooterProject({ ...project, worldSite: at }, pack).ground;
+  assert.equal(chosen.kind, 'world', chosen.reason);
+  assert.deepEqual([chosen.site.x, chosen.site.z], [at.x, at.z], 'the mission stands where the author put it');
+  assert.equal(chosen.site.placed, true);
+  assert.notEqual(chosen.heightHash, G.heightHash, 'another place is another ground');
+  // A site in the sea is refused by name, not swapped for another place.
+  const wet = compileShooterProject({ ...project, worldSite: { x: 1900, z: 1900 } }, pack).ground;
+  assert.notEqual(wet.kind, 'world');
+  assert.match(String(wet.reason ?? ''), /edge|water|steep/, `the refusal says why (${wet.reason})`);
+  assert.deepEqual(resolveProject({ ...project, worldSite: { x: 12.345, z: -7 } }).worldSite, { x: 12.3, z: -7 });
+  assert.throws(() => resolveProject({ ...project, worldSite: { x: 'here' } }), /worldSite/);
+  ok(`a chosen site is where the mission stands (${chosen.site.x}, ${chosen.site.z}); one the rules refuse is refused by name ("${wet.reason}")`);
+}
+// ── 8. the editor's Play link ─────────────────────────────────────────────────
+{
+  const settings = { genre: 'arena', look: 'snow', difficulty: 'hard', enemies: 9, site: { x: G.site.x + 160, z: G.site.z - 80 } };
+  const url = editorMissionURL({ seed: SEED, worldParams: carry(built), settings });
+  const [path, hash] = url.split('#');
+  const got = missionFromEditor({ search: path.slice(path.indexOf('?')), hash: '#' + hash });
+  assert(!got.error, got.error);
+  assert.equal(got.project.genre, 'arena'); assert.equal(got.project.difficulty, 'hard'); assert.equal(got.project.enemyCount, 9);
+  assert.equal(got.project.seed, SEED);
+  assert.deepEqual(got.project.worldParams, normalizeWorldParams(carry(built)));
+  assert.deepEqual(got.project.worldSite, settings.site);
+  const lvl = compileShooterProject(got.project, pack).ground;
+  assert.equal(lvl.kind, 'world', lvl.reason);
+  assert.deepEqual([lvl.site.x, lvl.site.z], [settings.site.x, settings.site.z]);
+  assert.equal(missionFromEditor({ search: '?mode=play', hash: '' }), null, 'not an editor link');
+  assert.match(missionFromEditor({ search: '?embed=world&genre=jousting', hash: '#world=' + encodeWorldLink({ seed: SEED, worldParams: carry(built) }) }).error, /genre/);
+  assert.match(missionFromEditor({ search: '?embed=world', hash: '' }).error, /no world/);
+  ok(`the editor's Play link carries the settings and the world (${url.length} characters), and the level stands where it says`);
 }
 console.log('World handoff: OK');

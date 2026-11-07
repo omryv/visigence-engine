@@ -33,6 +33,8 @@ export class HeroAnimator {
     const n = this.resolve(name);
     if (this.current === n) return this.actions[n];
     const next = this.actions[n], prev = this.actions[this.current];
+    // A figure without the clip (an imported one with no animations, or none at all) holds its pose.
+    if (!next) return null;
     next.reset(); next.timeScale = 1; next.play();
     if (prev) next.crossFadeFrom(prev, fade, true);
     this.current = n;
@@ -63,7 +65,7 @@ export class HeroAnimator {
         const action = this.set(name);
         const base = CLIP_SPEED[this.current];
         // Ground speed over the clip's own stride: 4.2 m/s runs the run at 1.75x; a sprint is clamped at 2x.
-        action.timeScale = base ? Math.max(0.6, Math.min(this.current === 'Walk' ? 2.2 : 2, speed / base)) : 1;
+        if (action) action.timeScale = base ? Math.max(0.6, Math.min(this.current === 'Walk' ? 2.2 : 2, speed / base)) : 1;
       }
     }
     this.mixer.update(Math.max(0, dt));

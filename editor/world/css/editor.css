@@ -1670,3 +1670,23 @@ body.stage #vignette { opacity: 0.55; }
 #play-here:hover { filter: brightness(1.07); }
 body.stage #play-here { display: none; }
 @media (max-width: 720px) { #modes a:not(.on) { padding: 4px 5px; } #play-here { top: 58px; } #play-here small { display: none; } }
+
+/* ══════════════════════════════════════════════════════════════════
+   THE GAME — the Game panel's rows, and the layer Play opens.
+   The layer is the game runtime (index.html) in a frame over the whole
+   viewport; the world stands still and its chrome steps back while it runs
+   (editor/world/game.js).
+   ══════════════════════════════════════════════════════════════════ */
+.game-row .game-select, .game-row .game-number { flex: 1; min-width: 0; height: 32px; padding: 0 10px; }
+.game-row .game-number { flex: 0 0 72px; }
+.game-site { margin-top: var(--s3); }
+.game-play { margin-top: var(--s4); width: 100%; }
+#game-layer {
+  position: fixed; inset: 0; z-index: 1000;
+  background: #050607;
+}
+#game-layer iframe { display: block; width: 100%; height: 100%; border: 0; }
+body.in-game #viewport, body.in-game #vignette { visibility: hidden; }
+body.in-game :is(#readout, #actions, #deck, #chart, .rail, #selection-chip, #coach, #cue-layer, #play-here, #toast) {
+  visibility: hidden;
+}

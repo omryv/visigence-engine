@@ -241,3 +241,6 @@ body:is([data-mode=play],[data-build=standalone]) .preview-panel.expanded :is(.g
 .carried-world strong{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;color:#f2f2ef}
 .carried-world button{margin-left:auto;border:1px solid #ffffff2e;background:none;color:#cfd3d8;font-size:11px;padding:5px 9px;border-radius:4px;cursor:pointer}
 .carried-world button:hover{color:#fff;border-color:#ffffff66}
+/* The game inside the world editor (editor/world/game.js): "Back to the world" is the one way out, so it shows on the
+   pause screen and after the result, where a standalone game hides its exit. */
+body[data-embed=world] #overlay-exit,body[data-embed=world] .play-overlay:has(#mission-result:not([hidden])) #overlay-exit{display:inline-flex;align-items:center;justify-content:center}

@@ -195,6 +195,32 @@ export function rankSites(height, plate, span) {
   return { sites: sites.map(({ order, score, ...site }) => ({ ...site, score: round(score) })), candidates, dry };
 }
 
+/**
+ * A site the author chose (the world editor's spawn marker), measured by the same rules as a scanned one: on the plate
+ * with the site's whole square inside the edge falloff, dry and gentle enough to stand on. Returns the site in
+ * rankSites' shape, or why it cannot be one.
+ *
+ * @param {(x: number, z: number) => number} height  the world's UNCONDITIONED sampler
+ * @param {{size: number}} plate
+ * @param {number} span                               the site's edge, plate metres
+ * @param {{x: number, z: number}} at                 its centre, plate metres
+ * @returns {{site: object} | {reason: string}}
+ */
+export function measureSite(height, plate, span, at) {
+  const lim = EDGE_START * plate.size / 2 - span / 2;
+  if (!(Math.abs(at.x) <= lim && Math.abs(at.z) <= lim)) {
+    return { reason: `the site at (${Math.round(at.x)}, ${Math.round(at.z)}) is too near the edge of the world: a ${span} m site's centre must be within ${Math.round(lim)} m of the middle` };
+  }
+  const kf = Math.round(span / 2 / SITE_FINE), round = v => Math.round(v * 100) / 100;
+  const m = measure((i, j) => height(at.x + i * SITE_FINE, at.z + j * SITE_FINE), kf, SITE_FINE);
+  if (!m.ok) {
+    return { reason: !m.dry
+      ? `the site at (${Math.round(at.x)}, ${Math.round(at.z)}) reaches the water: every point of its ${span} m must stand ${SITE_DRY} m above the sea`
+      : `the site at (${Math.round(at.x)}, ${Math.round(at.z)}) is too steep: a grade of ${round(m.slope)}, where ${SITE_SLOPE} is the most` };
+  }
+  return { site: { x: at.x, z: at.z, lo: round(m.lo), hi: round(m.hi), relief: round(m.relief), hollow: round(m.hollow), slope: round(m.slope), score: round(m.score), placed: true } };
+}
+
 /** The best site of the scan, or null: rankSites' first. */
 export function findSite(height, plate, span) {
   return rankSites(height, plate, span).sites[0] ?? null;
@@ -232,6 +258,7 @@ export function groundInputs(project, blueprint, placements, rules) {
   const places = placements.filter(p => p.stepId && p.interaction).map(p => ({ step: p.stepId, x: p.x, z: p.z }));
   return {
     seed: project.seed, size: rules.size, cell: rules.terrain.grid, worldParams: project.worldParams ?? null,
+    worldSite: project.worldSite ?? null,
     steps: groundSteps(blueprint.mission, { places, square: { x: 0, z: rules.paths.square.z } }),
     spawn: { x: DEFAULT_START.x, z: DEFAULT_START.z }, maxSlope: rules.terrain.traversal.maxSlope,
   };
@@ -252,11 +279,14 @@ const median = values => {
  * @param {object[]} o.steps               groundSteps' output
  * @param {{x: number, z: number}} o.spawn the player's start, level metres
  * @param {number} o.maxSlope              the body's steepest stand (the village's traversal)
+ * @param {object|null} [o.worldParams]    the world's terrain and water, when it is not the seed's plain world
+ * @param {{x: number, z: number}|null} [o.worldSite]  where on the world the mission stands (plate metres), when
+ *                                         the author chose; null to scan for the best site
  * @returns {{ok: true, version: number, res: number, size: number, cell: number, heights: number[], min: number, max: number,
  *   heightHash: string, world: object, site: object, frame: object, intent: object, conditioning: object}
  *   | {ok: false, version: number, reason: string, world: object}}
  */
-export function kernelGround({ seed, size, cell, steps, spawn, maxSlope, worldParams = null }) {
+export function kernelGround({ seed, size, cell, steps, spawn, maxSlope, worldParams = null, worldSite = null }) {
   const params = worldParamsFor(seed, worldParams);
   const plain = worldSampler(params);
   const world = { seed: params.seed, size: params.terrain.size, parameterHash: hex(terrainParameterHash(params)),
@@ -264,7 +294,14 @@ export function kernelGround({ seed, size, cell, steps, spawn, maxSlope, worldPa
   // A world that states its own ground (a named world's intent) keeps every statement; the mission's are added.
   const own = Array.isArray(params.terrain.intent) ? params.terrain.intent : [];
   const span = size * SITE_SCALE;
-  const ranked = rankSites(plain, params.terrain, span);
+  /* A chosen site is measured, not scanned for: it is the only candidate, and a site the rules refuse is refused by
+     name rather than swapped silently for another place on the world. */
+  let ranked;
+  if (worldSite) {
+    const chosen = measureSite(plain, params.terrain, span, worldSite);
+    if (!chosen.site) return { ok: false, version: KERNEL_GROUND_VERSION, world, reason: chosen.reason };
+    ranked = { sites: [chosen.site], candidates: 1, dry: 1 };
+  } else ranked = rankSites(plain, params.terrain, span);
   if (!ranked.sites.length) {
     return { ok: false, version: KERNEL_GROUND_VERSION, world,
       reason: `no ${span} m site on this world stands ${SITE_DRY} m clear of the sea at a grade under ${SITE_SLOPE}` };
@@ -289,7 +326,9 @@ export function kernelGround({ seed, size, cell, steps, spawn, maxSlope, worldPa
   }
   if (!site) {
     return { ok: false, version: KERNEL_GROUND_VERSION, world, tried,
-      reason: `the mission's ground costs more than ${SITE_NATS} nats, or misses, at each of this world's ${tried.length} best sites` };
+      reason: worldSite
+        ? `the mission's ground costs more than ${SITE_NATS} nats, or misses, at the site chosen at (${Math.round(worldSite.x)}, ${Math.round(worldSite.z)})`
+        : `the mission's ground costs more than ${SITE_NATS} nats, or misses, at each of this world's ${tried.length} best sites` };
   }
   const toPlate = (x, z) => [site.x + x * SITE_SCALE, site.z + z * SITE_SCALE];
   const floor = frame.h;

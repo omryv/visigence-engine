@@ -62,6 +62,7 @@ export const PROJECT_FIELDS = {
   player: { type: 'string', max: 64 },
   seed: { type: 'seed' },
   worldParams: { type: 'object', nullable: true },
+  worldSite: { type: 'object', nullable: true },
   enemyCount: { type: 'number' },
   objectives: { type: 'number' },
   frameRate: { type: 'number' },

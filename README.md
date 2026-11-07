@@ -15,24 +15,31 @@ this repository.
 
 | Mode | What it does | Where |
 |---|---|---|
-| **World** (`/world`) | The world engine's editor. It opens on one seed's own world (`DEFAULT_SEED`, `src/kernel/seed.js`; `?seed=` names another), with its sky, sea, weather and time of day, and nothing else: no sample worlds. On it you place towns and props, plant the woods the seed grows, sculpt, carve rivers, paint grass; orbit, walk and fly; save the world file, its certificate and the exports. **Play here** plays a mission on this world. | `world.html`, `editor/world/`, `src/genesis/` |
-| **Play** (`/`) | A ready mission in one of five genres (shooter, exploration, action adventure, arena, collect-a-thon). It stands on a 640 m site of the world, played at 1:8: the seed's own world, or the world World handed over. | `index.html`, `editor/playerFront.js`, `src/game/`, [docs/GENRES.md](docs/GENRES.md) |
+| **World** (`/world`) | The world engine's editor. It opens on one seed's own world (`DEFAULT_SEED`, `src/kernel/seed.js`; `?seed=` names another), with its sky, sea, weather and time of day, and nothing else: no sample worlds. On it you place towns and props, plant the woods the seed grows, sculpt, carve rivers, paint grass; orbit, walk and fly; save the world file, its certificate and the exports. The **Game** panel sets the mission up (genre, look, difficulty, enemies, and where on the world it stands: the best site, or the spawn marker) and **Play** plays it right there, on this world. | `world.html`, `editor/world/`, `src/genesis/` |
+| *Play* (`/`) | The launcher: a ready mission in one of five genres (shooter, exploration, action adventure, arena, collect-a-thon) on a seed's own world. Being folded into World (see "What is not in yet"). The game runtime itself (`index.html` in its standalone mode) is what World's Play runs and what an exported game is. | `index.html`, `editor/playerFront.js`, `src/game/`, [docs/GENRES.md](docs/GENRES.md) |
 | **Remix** | The mission as a node graph: pools, steps, rules. | `editor/studio.js`, [docs/STUDIO.md](docs/STUDIO.md) |
 | **Build** | The 3D level editor: games of several levels, live checks, playtests, export with portal hooks. | `editor/build/`, [docs/EDITOR.md](docs/EDITOR.md) |
 | *See yourself* | A photograph becomes a figure on this device and a prop in a level (inside Play's prop importer, for now). | `src/atlas/`, below |
 
-**Play here.** The world editor stores nothing on the visitor's machine (no local storage, no cookies), so it hands
-its world to Play in the link's fragment (`/?mode=play#world=…`, `src/world/worldLink.js`): the seed and the world's
-terrain and water params, about 700 characters for a world with a town on it. Play opens in a new tab so the world
-being made stays open. The mission's ground is then cut from that world (`src/world/kernelGround.js`
+**Play, inside the world editor.** Play opens the game over the editor's viewport, in the same page; the world stands
+still under it and its chrome steps back, and "Back to the world" takes the game down and lets the world run again
+(`editor/world/game.js`). The game is the game runtime, `index.html` in the standalone mode an exported game uses,
+handed the mission in its address (`src/world/editorMission.js`): the Game panel's settings in the query, the world in
+the fragment (`src/world/worldLink.js`: the seed and the world's terrain and water params, under a kilobyte for a
+world with a town on it). The editor stores nothing on the visitor's machine, and the game it runs keeps that promise:
+inside the editor its storage is memory. The mission's ground is cut from that world (`src/world/kernelGround.js`
 `worldParamsFor`): its terrain settings, its own intent statements together with the mission's, and the author's
-sculpt strokes. The level
-carries the world it was cut from (`ground.world.params`), so the world drawn past its rim is the same world.
+sculpt strokes; at the best 640 m site the scan finds, or at the spawn marker when the panel says so (measured by the
+same rules, and refused by name when it is wet, too steep or too near the edge). The level carries the world it was
+cut from (`ground.world.params`), so the world drawn past its rim is the same world.
 
 ## What is not in yet
 
 Said plainly, because this replaces four repositories and not everything has arrived:
 
+- **Remix and Build inside the world editor.** The mission graph (Remix) and the level editor (Build) are still the
+  studio page (`index.html`), opened from World's top bar in a new tab; the Play launcher is still that page's front.
+  Folding them into the one editor, and the studio page retiring to the game runtime it also is, is the next step.
 - **2D** (`omryv/2dgen`): its core (`src/play2d/core/`: the grid, the catalog, the solver, the generator) is here,
   because the world engine's 2D overworld projection uses it; the 2D builder's editor, runtime, templates and iOS
   shell are not, so there is no 2D mode yet.
@@ -86,7 +93,7 @@ There is no CI, on purpose. `sh check.sh` is the gate; run it before you push.
 sh check.sh                              # = node tools/test/run.mjs: the import and three checks, then every offline suite
 node tools/test/run.mjs genesis          # only the suites whose name contains "genesis"
 node tools/test/check-wgsl.mjs --town    # every program a built-on world draws, compiled as WGSL
-node tools/test/e2e-world.mjs            # World plants woods and places a town, Play here plays a mission on it
+node tools/test/e2e-world.mjs            # World: woods, a hamlet, the Game panel, Play in the page at the spawn
 node tools/test/e2e-genres.mjs           # one mission per genre in headless Chromium
 node tools/test/e2e-see-yourself.mjs     # the photograph to a figure, through the studio's own dialog
 ```

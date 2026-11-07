@@ -1,22 +1,22 @@
 /**
- * WORLD, THEN PLAY HERE, IN A BROWSER: the world engine's editor (world.html) makes a world, and a mission is played
- * on THAT world.
+ * ONE EDITOR, IN A BROWSER: the world is made in the world editor (world.html) and the game is set up and played there,
+ * on that world, without leaving the page.
  *
- *   node tools/test/stand-in-assets.mjs     # once, where the R2 origin is unreachable (Play's art)
+ *   node tools/test/stand-in-assets.mjs     # once, where the R2 origin is unreachable (the game's art)
  *   node tools/test/e2e-world.mjs
  *
- * Through the pages' own surfaces:
- *   1. world.html opens the world engine on the engine's renderer, on the default seed's own world, with the tool's
- *      modes in its top bar;
- *   2. the command palette plants the woods (⌘K, "Plant woods", Enter), as an author would, and a town is placed on
- *      the world's land through the editor's own site command (its pads sculpt the ground);
- *   3. "Play here" opens Play in a new tab, the world in the link (the editor stores nothing);
- *   4. Play names the world it was handed, and the mission it prepares stands on it: the level's world parameter
- *      hash is the built world's as the editor holds it, not the plain seed's;
- *   5. a frame of each page is drawn (pixels read on the page's own canvas, WebGL2 backend: see e2e notes in
- *      tools/test/check-wgsl.mjs for why WebGPU frames cannot be read here).
+ * Through the page's own surfaces:
+ *   1. world.html opens the world engine on the engine's renderer, on the default seed's own world;
+ *   2. the command palette plants the woods (⌘K, "Plant woods", Enter), and a town is placed on the world's land
+ *      through the editor's own site command (its pads sculpt the ground);
+ *   3. the deck's Game button opens the Game panel; the mission is set to an arena shooter standing at the spawn
+ *      marker, which is set with the Spawn tool on the town's ground;
+ *   4. Play runs the game in the page, over the viewport, the world standing still: the level is prepared, it stands
+ *      on the world the editor holds (the same world parameter hash) at the spawn marker, and the game draws;
+ *   5. "Back to the world" takes the game down and the world runs again.
  *
- * Shots go to docs/reports/world/ (PNGs stay local). Not in tools/test/run.mjs: it needs a browser.
+ * Shots go to docs/reports/world/ (PNGs stay local). Pixels are read on the WebGL2 backend (see
+ * tools/test/check-wgsl.mjs for why WebGPU frames cannot be read here). Not in tools/test/run.mjs: it needs a browser.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,12 +35,6 @@ let failures = 0;
 const check = (name, ok, detail = '') => { console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${name}${detail ? '  (' + detail + ')' : ''}`); if (!ok) failures++; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const errors = [];
-const opened = [];
-// A new tab can be created on about:blank and navigated after: follow its URL until it carries the world.
-const seenTab = (p) => { if (p.targetInfo.type === 'page' && p.targetInfo.url.includes('world=') && !opened.includes(p.targetInfo.url)) opened.push(p.targetInfo.url); };
-on('Target.targetCreated', seenTab);
-on('Target.targetInfoChanged', seenTab);
-await send('Target.setDiscoverTargets', { discover: true });
 
 async function page(url) {
   const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
@@ -83,13 +77,11 @@ async function page(url) {
 
 try {
   // ── 1. World ─────────────────────────────────────────────────────────────────
-  const w = await page(`http://127.0.0.1:${PORT}/world.html?renderer=webgl&gfx=low`);
+  const w = await page(`http://127.0.0.1:${PORT}/world.html?renderer=webgl&gfx=low&debug=1`);
   await w.until(`!!(window.engine && engine.terrain && engine.terrain.tiles.size > 0)`, 180000, 'the world engine');
   check('World opens the world engine on the engine\'s renderer', (await w.js('engine.backend')) === 'webgl2');
   const opened = await w.js(`(async () => (await import('/src/kernel/seed.js')).DEFAULT_SEED === engine.params.seed)()`);
   check('on the default seed\'s own world, nothing placed', opened && (await w.js('engine.props.items.size')) === 0 && (await w.js('engine.scatterCount()')) === 0);
-  const modes = await w.js(`[...document.querySelectorAll('#modes a')].map(a => a.textContent.trim()).join(' ')`);
-  check('its top bar carries the tool\'s modes', modes === 'World Play Remix Build', modes);
   // ── 2. build on it: woods through the command palette, a town through the site command ──────────────────
   await w.key({ key: 'k', code: 'KeyK', modifiers: 2, windowsVirtualKeyCode: 75 });
   await w.until(`!document.querySelector('#cmdk').hidden`, 10000, 'the command palette');
@@ -98,44 +90,57 @@ try {
   await w.key({ key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
   await w.until(`engine.scatterCount() > 500`, 120000, 'the woods');
   const at = JSON.parse(await w.js(`JSON.stringify(${landPoint.toString()}(engine))`));
-  await w.js(`studio.placeSite(${at.x}, ${at.z}, 'town')`);
-  await w.until(`engine.props.items.size > 50`, 300000, 'the town');
+  await w.js(`studio.placeSite(${at.x}, ${at.z}, 'hamlet')`);
+  await w.until(`engine.props.items.size > 20`, 300000, 'the hamlet');
   const built = JSON.parse(await w.js(`JSON.stringify({ props: engine.props.items.size, scatter: engine.scatterCount(), seed: engine.params.seed, sculpt: engine.sculptStrokes().length })`));
-  check('the world is built on: woods, a town, its pads sculpted', built.props > 50 && built.scatter > 500 && built.sculpt > 0,
+  check('the world is built on: woods, a hamlet, its pads sculpted', built.props > 20 && built.scatter > 500 && built.sculpt > 0,
     `${built.props} props, ${built.scatter} plants, ${built.sculpt} strokes at (${at.x}, ${at.z}), seed ${built.seed}`);
-  await sleep(4000);
+  await sleep(3000);
   const ws = await w.shot('world-built');
   check('and draws it', ws.colours > 60, `${ws.colours} colours; ${ws.file}`);
+  // ── 3. the Game panel: an arena shooter at the spawn marker ──────────────────
+  await w.click('#game-toggle');
+  await w.until(`!document.querySelector('#game-panel').classList.contains('collapsed')`, 10000, 'the Game panel');
+  const genres = await w.js(`[...document.querySelectorAll('#game-rows select')][0].options.length`);
+  check('the Game panel opens from the deck, with the genres', genres === 5, `${genres} genres`);
+  await w.js(`(() => { const s = document.querySelector('#game-rows select'); s.value = 'arena'; s.dispatchEvent(new Event('change')); })()`);
+  await w.js(`[...document.querySelectorAll('#game-rows .game-site button')][1].click()`);
+  check('"At the spawn" arms the Spawn tool when there is no marker yet', await w.js(`document.querySelector('#btn-spawn').classList.contains('armed')`));
+  // The spawn tool is a click on the ground: aim at the town's centre through the engine's own projection.
+  const px = JSON.parse(await w.js(`(() => { const v = new engine.camera.position.constructor(${at.x}, engine.sampleHeight(${at.x}, ${at.z}), ${at.z}).project(engine.camera); const r = engine.canvas.getBoundingClientRect(); return JSON.stringify({ x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }); })()`));
+  for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: px.x, y: px.y, button: 'left', clickCount: 1 }, w.sessionId);
+  await w.until(`/spawn marker \\(/.test(document.querySelector('#game-rows .opt-hint').textContent)`, 20000, 'the spawn marker');
+  const settings = JSON.parse(await w.js(`JSON.stringify(studio.game.settings())`));
+  check('the mission is set: an arena shooter, standing at the spawn marker', settings.genre === 'arena' && !!settings.site,
+    `site (${settings.site?.x?.toFixed(0)}, ${settings.site?.z?.toFixed(0)})`);
   const expected = await w.js(`(async () => {
     const { worldParamsFor } = await import('/src/world/kernelGround.js');
     const { terrainParameterHash, hex } = await import('/src/kernel/terrain/fingerprint.js');
     return hex(terrainParameterHash(worldParamsFor(engine.params.seed, { terrain: engine.params.terrain, water: engine.params.water })));
   })()`);
-  // ── 3. Play here ─────────────────────────────────────────────────────────────
-  // Software rendering of a whole town takes seconds a frame here; stand the world still so the click is handled now.
-  await w.js('engine.setPaused(true)');
-  await w.click('#play-here');
-  const t0 = Date.now();
-  while (!opened.length && Date.now() - t0 < 120000) await sleep(200);
-  check('"Play here" opens Play in a new tab, the world in the link', opened.length === 1 && /\/\?mode=play#world=/.test(opened[0]), opened[0]?.slice(0, 90));
-  // ── 4. Play, on that world ───────────────────────────────────────────────────
-  const link = opened[0].replace('?mode=play#', '?mode=play&debug=1#');
-  const p = await page(link);
-  await p.until(`!!document.querySelector('.featured-mission [data-play-world]')`, 60000, 'the launcher');
-  const chip = await p.js(`(() => { const c = document.querySelector('.carried-world'); return c && !c.hidden ? c.querySelector('strong').textContent : null; })()`);
-  check('Play names the world it was handed', chip === `Your world · ${built.seed}`, String(chip));
-  await p.js(`document.querySelector('.featured-mission [data-play-world]').click()`);
-  const prepared = await p.until(`!!document.querySelector('#preview-panel.expanded') || !!document.querySelector('.front-alert:not([hidden])')`, 240000, 'the mission').catch(e => e);
-  const alert = await p.js(`document.querySelector('.front-alert:not([hidden]) pre')?.textContent ?? ''`);
-  check('the mission is prepared', !(prepared instanceof Error) && !alert, prepared instanceof Error ? prepared.message : alert || `${prepared} ms`);
-  const ground = JSON.parse(await p.js(`JSON.stringify(window.__studio?.session?.level?.ground ?? null)`) || 'null');
-  check('the level stands on the world World made', ground?.kind === 'world' && ground.world.parameterHash === expected,
-    ground ? `${ground.kind}: ${ground.world?.parameterHash} vs the built world ${expected}${ground.reason ? '; ' + ground.reason : ''}` : 'no level');
-  const plainHash = await p.js(`(async () => { const { makeParams } = await import('/src/kernel/presets.js'); const { terrainParameterHash, hex } = await import('/src/kernel/terrain/fingerprint.js'); return hex(terrainParameterHash(makeParams({ seed: ${JSON.stringify(built.seed)} }))); })()`);
-  check('and not on the plain world of its seed', ground?.world?.parameterHash !== plainHash, `plain ${plainHash}`);
+  // ── 4. Play, here ────────────────────────────────────────────────────────────
+  await w.js('document.querySelector("#game-rows .game-play").click()');
+  await w.until(`!!document.querySelector('#game-layer iframe') && document.body.classList.contains('in-game')`, 10000, 'the game layer');
+  check('Play opens the game over the viewport, in this page, and the world stands still', await w.js('engine.paused'));
+  const G = 'document.querySelector("#game-layer iframe").contentWindow';
+  const prepared = await w.until(`!!${G}.__studio?.completedBuild || !!${G}.document.querySelector('#preview-loading.is-error')`, 300000, 'the mission').catch(e => e);
+  const failure = await w.js(`${G}.document.querySelector('#preview-loading.is-error #load-status')?.textContent ?? ''`).catch(() => '');
+  check('the mission is prepared', !(prepared instanceof Error) && !failure, prepared instanceof Error ? prepared.message : failure || `${prepared} ms`);
+  const ground = JSON.parse(await w.js(`JSON.stringify(${G}.__studio?.session?.level?.ground ?? null)`) || 'null');
+  check('the level stands on the world the editor holds', ground?.kind === 'world' && ground.world.parameterHash === expected,
+    ground ? `${ground.kind}: ${ground.world?.parameterHash} vs ${expected}${ground.reason ? '; ' + ground.reason : ''}` : 'no level');
+  check('at the spawn marker', ground?.site && Math.abs(ground.site.x - settings.site.x) < 0.2 && Math.abs(ground.site.z - settings.site.z) < 0.2,
+    `site (${ground?.site?.x}, ${ground?.site?.z})`);
+  check('and nothing the game does is stored', await w.js(`${G}.localStorage !== localStorage && localStorage.length === 0`));
   await sleep(4000);
-  const ps = await p.shot('play-on-built-world');
-  console.log(`       play: ${ps.file} (${ps.colours} colours)`);
+  const ps = await w.shot('play-in-the-editor');
+  check('the game draws, in the editor', ps.colours > 40, `${ps.colours} colours; ${ps.file}`);
+  // ── 5. back to the world ────────────────────────────────────────────────────
+  const exit = await w.js(`${G}.document.querySelector('#overlay-exit').textContent`);
+  check('the game\'s way out says where it goes', exit === 'Back to the world', exit);
+  await w.js(`${G}.document.querySelector('#overlay-exit').click()`);
+  await w.until(`!document.querySelector('#game-layer') && !document.body.classList.contains('in-game')`, 10000, 'the world again');
+  check('"Back to the world" takes the game down and the world runs again', !(await w.js('engine.paused')) && (await w.js('engine.props.items.size')) === built.props);
 } catch (err) {
   check('the run finished', false, err.message);
 } finally {

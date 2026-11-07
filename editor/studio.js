@@ -12,6 +12,7 @@ import { parseProjectText, packageProject } from '../src/world/projectSchema.js'
 import { GENRES, genreOf } from '../src/genres/registry.js';
 import { installModelCards } from './modelCards.js';
 import { visionFromURL, arriveWithVision } from './visionArrival.js';
+import { missionFromEditor } from '../src/world/editorMission.js';
 
 const $ = selector => document.querySelector(selector);
 const paths = {
@@ -35,6 +36,19 @@ function icons(root = document) {
   for (const el of root.querySelectorAll('[data-icon]')) el.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[el.dataset.icon] ?? ''}</svg>`;
 }
 icons();
+/* THE GAME INSIDE THE WORLD EDITOR. The editor (world.html) plays its mission by opening this document over its
+   viewport with the mission in the address (src/world/editorMission.js). Then it is a standalone game, as an exported
+   one is: no launcher, no studio, the mission built and played at once; "Back to the world" hands control back to
+   the editor. And it stores nothing, because the editor promises that: storage is this page's memory while it runs. */
+const fromEditor = typeof location !== 'undefined' ? missionFromEditor(location) : null;
+if (fromEditor) {
+  document.body.dataset.build = 'standalone'; document.body.dataset.embed = 'world';
+  const mem = new Map(), memory = { getItem: k => mem.has(k) ? mem.get(k) : null, setItem: (k, v) => { mem.set(k, String(v)); }, removeItem: k => { mem.delete(k); }, clear: () => mem.clear(), key: i => [...mem.keys()][i] ?? null, get length() { return mem.size; } };
+  Object.defineProperty(window, 'localStorage', { value: memory, configurable: true });
+  Object.defineProperty(window, 'sessionStorage', { value: memory, configurable: true });
+}
+const embedded = !!fromEditor;
+const leaveForWorld = () => window.parent?.postMessage({ type: 'visigence:leave-game' }, location.origin);
 const standalone = document.body.dataset.build === 'standalone';
 const environmentName=p=>THEMES[p.theme];
 const weaponOptions = () => CATALOG[project.theme].weapons.map(w=>[w.id,w.label]);
@@ -51,7 +65,8 @@ let run = null, runToken = 0, runFailed = null;
  * `graphLink` while the node graph edits a Build level (its edits and undo go to the level editor's store).
  */
 let buildMode = null, buildFrom = 'remix', buildEnd = null, graphLink = null, linkedFrom = null;
-try { const saved = standalone ? $('#compiled-project').textContent : (localStorage.getItem(STORAGE) ?? localStorage.getItem('vsight.shooter.project.v1')); if (saved) { const doc = parseProjectText(saved).project; project = resolveProject(doc); if (standalone && isGame(doc)) run = createRun(resolveGame(doc), portalHooks()); } } catch { /* Invalid/old saved projects use supported defaults. */ }
+if (fromEditor?.project) project = fromEditor.project;
+else try { const saved = standalone ? $('#compiled-project').textContent : (localStorage.getItem(STORAGE) ?? localStorage.getItem('vsight.shooter.project.v1')); if (saved) { const doc = parseProjectText(saved).project; project = resolveProject(doc); if (standalone && isGame(doc)) run = createRun(resolveGame(doc), portalHooks()); } } catch { /* Invalid/old saved projects use supported defaults. */ }
 
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 4200); }
 function log(message) { logs.push(message); logs = logs.slice(-8); updateDetails(); }
@@ -317,7 +332,7 @@ function openPlay() {
   playControls(genreOf(project));
   expanded = true; lastOverlay = ''; session.stop(); session.setRendering(true);
   $('#preview-panel').style.setProperty('--cyan', MISSION_THEMES[project.theme].accent);
-  $('#preview-panel h2').textContent=project.name; $('#overlay-exit').textContent = document.body.dataset.mode === 'remix' ? 'Back to studio' : 'Back to worlds';
+  $('#preview-panel h2').textContent=project.name; $('#overlay-exit').textContent = embedded ? 'Back to the world' : document.body.dataset.mode === 'remix' ? 'Back to studio' : 'Back to worlds';
   const identity=project.presentation??{};$('#mission-author').innerHTML=(identity.logo?`<img src="${assetURL(identity.logo.model)}" alt="Studio logo">`:'')+(identity.studioName?`BY ${escapeHtml(identity.studioName)}`:'');
   $('#play-overlay').style.setProperty('--mission-cover',identity.artwork?`url("${assetURL(identity.artwork.model)}")`:'none');
   $('#preview-panel').classList.add('expanded'); $('#play-overlay').hidden = false;
@@ -446,7 +461,8 @@ $('#touch-weapon').addEventListener('click',()=>{if(session?.game?.weapons){cons
 $('#touch-grenade').addEventListener('click',()=>{if(session)session.actions.grenade=true;});
 $('#touch-reload').addEventListener('click', () => { if (session) session.actions.reload = true; });
 $('#game-pause').addEventListener('click', () => { if (session?.playing) { session.stop(); session.audio?.playOneShot('uiEsc'); } });
-$('#overlay-exit').addEventListener('click', () => $('#close-preview').click());
+$('#overlay-exit').addEventListener('click', () => embedded ? leaveForWorld() : $('#close-preview').click());
+if (embedded) $('#overlay-exit').textContent = 'Back to the world';
 window.addEventListener('pagehide', () => session?.dispose(), { once: true });
 try {$('#look-sensitivity').value=localStorage.getItem('visigames.lookSensitivity')??'1';}catch{}
 $('#look-sensitivity-value').textContent=Number($('#look-sensitivity').value).toFixed(1)+'×';
@@ -456,7 +472,8 @@ if (standalone) $('#preview-panel h2').textContent = `${THEMES[project.theme]} /
 installModelCards();
 playerFront=mountPlayerFront({getProject:()=>project,change,play:()=>queueBuild(true),remix:()=>{render();requestAnimationFrame(fitGraph);},build:()=>enterBuild(),toast,download:downloadGame});
 render(); save();
-if (standalone) queueBuild(true);
+if (fromEditor?.error) errorDisplay(new Error(`The world editor's mission cannot be read: ${fromEditor.error}`));
+else if (standalone) queueBuild(true);
 // Arriving from the landing page with a vision: build it and open the canvas on it (docs/VISION.md).
 const vision = standalone ? null : visionFromURL();
 if (vision) arriveWithVision(vision, { change, toast, fitGraph, enterCanvas: () => {
