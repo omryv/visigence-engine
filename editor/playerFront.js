@@ -72,10 +72,10 @@ export function mountPlayerFront({ getProject, change, play, remix, build, toast
   function swap(update){update();$('.featured-card')?.classList.add('swap-in');}
   // Build opens the level editor on the mission in hand (editor/build/); it owns its own view.
   function nav(value){for(const b of root.querySelectorAll('.front-nav [data-mode]')){const on=b.dataset.mode===value;b.classList.toggle('mode-active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');}}
-  /* World is the world engine's own page (world.html). Opened from World ("Play here"), this page returns to that tab,
-     where the world is still being edited: the editor stores nothing, so a new page would not have it. Otherwise it
-     opens World on this seed. */
-  function openWorld(){if(carried&&window.opener&&!window.opener.closed){try{window.opener.focus();return;}catch{}}location.href=`/world.html?seed=${encodeURIComponent(seed)}`;}
+  /* World is the one editor, the page at /. Opened from it in another tab, this page returns to that tab, where the
+     world is still being edited (the editor stores nothing, so a new page would not have it); otherwise it opens the
+     editor on this seed. */
+  function openWorld(){if(carried&&window.opener&&!window.opener.closed){try{window.opener.focus();return;}catch{}}location.href=`/?seed=${encodeURIComponent(seed)}`;}
   function mode(value){if(value==='world'){openWorld();return;}const prev=document.body.dataset.mode;
     if(value==='build'){if(prev==='world'){document.body.dataset.mode='play';nav('play');onMode?.('play','world');}change(mission(currentTheme));build();return;}
     document.body.dataset.mode=value;nav(value);document.querySelector('#remix-return').hidden=value==='play'||value==='world';if(value==='remix'){change(mission(currentTheme));remix();}if(prev!==value)onMode?.(value,prev);window.scrollTo(0,0);}

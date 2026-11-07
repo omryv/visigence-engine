@@ -6,8 +6,8 @@
  *   node tools/test/e2e-genres.mjs --only exploration
  *   node tools/test/e2e-genres.mjs --real      # no stand-ins: the local art cache must exist
  *
- * Headless Chromium over the DevTools protocol (tools/lib/_headless.mjs), the studio page at
- * index.html with `?debug=1`, which exposes `window.__studio` (editor/studio.js). Every step
+ * Headless Chromium over the DevTools protocol (tools/lib/_headless.mjs), the game runtime page at
+ * game.html with `?debug=1`, which exposes `window.__studio` (editor/studio.js). Every step
  * goes through the page's own surface: the launcher's genre picker and world tiles, the
  * play overlay's button, the session's key set and pointer, real mouse events on the canvas
  * for clicks. The session's game state is READ through the handle to assert on;
@@ -60,7 +60,7 @@ async function openStudio(query) {
   await send('Runtime.enable', {}, sessionId);
   await send('Page.enable', {}, sessionId);
   await send('Emulation.setDeviceMetricsOverride', { width: WIDTH, height: HEIGHT, deviceScaleFactor: 1, mobile: false }, sessionId);
-  await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/index.html?mode=play&${query}` }, sessionId);
+  await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/game.html?mode=play&${query}` }, sessionId);
   const evaluate = async (expression) => {
     const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, sessionId);
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);

@@ -11,19 +11,28 @@ This repository replaces four: `omryv/Visigenesis` (the kernel and its world eng
 builder; its core is here, its mode is not yet: see below). Those are archived. Nothing here imports anything outside
 this repository.
 
-## The modes
+## The editor
 
-| Mode | What it does | Where |
+One page, at `/` (`index.html`): the world and its game are made there and the game is played there. Its top bar
+switches between three views of the same project, and **Play** plays the mission over whichever is open, on the world
+as it stands.
+
+| View | What it does | Where |
 |---|---|---|
-| **World** (`/world`) | The world engine's editor. It opens on one seed's own world (`DEFAULT_SEED`, `src/kernel/seed.js`; `?seed=` names another), with its sky, sea, weather and time of day, and nothing else: no sample worlds. On it you place towns and props, plant the woods the seed grows, sculpt, carve rivers, paint grass; orbit, walk and fly; save the world file, its certificate and the exports. The **Game** panel sets the mission up (genre, look, difficulty, enemies, and where on the world it stands: the best site, or the spawn marker) and **Play** plays it right there, on this world. | `world.html`, `editor/world/`, `src/genesis/` |
-| *Play* (`/`) | The launcher: a ready mission in one of five genres (shooter, exploration, action adventure, arena, collect-a-thon) on a seed's own world. Being folded into World (see "What is not in yet"). The game runtime itself (`index.html` in its standalone mode) is what World's Play runs and what an exported game is. | `index.html`, `editor/playerFront.js`, `src/game/`, [docs/GENRES.md](docs/GENRES.md) |
-| **Remix** | The mission as a node graph: pools, steps, rules. | `editor/studio.js`, [docs/STUDIO.md](docs/STUDIO.md) |
-| **Build** | The 3D level editor: games of several levels, live checks, playtests, export with portal hooks. | `editor/build/`, [docs/EDITOR.md](docs/EDITOR.md) |
-| *See yourself* | A photograph becomes a figure on this device and a prop in a level (inside Play's prop importer, for now). | `src/atlas/`, below |
+| **World** | The world engine's editor. It opens on one seed's own world (`DEFAULT_SEED`, `src/kernel/seed.js`; `?seed=` names another), with its sky, sea, weather and time of day, and nothing else: no sample worlds, and nothing random anywhere in the tool. On it you place towns and props, plant the woods the seed grows, sculpt, carve rivers, paint grass; orbit, walk and fly; save the world file, its certificate and the exports. The **Game** panel sets the mission up: genre (shooter, exploration, action adventure, arena, collect-a-thon), look, difficulty, enemies, and where on the world it stands (the best site, or the spawn marker). | `index.html`, `editor/world/`, `src/genesis/` |
+| **Mission** | The mission as a node graph: pools, steps, rules. Its Generate & play plays the edited mission in the editor. | `editor/studio.js`, [docs/STUDIO.md](docs/STUDIO.md) |
+| **Level** | The 3D level editor: games of several levels, live checks, playtests, export with portal hooks. | `editor/build/`, [docs/EDITOR.md](docs/EDITOR.md) |
+| *See yourself* | A photograph becomes a figure on this device and a prop in a level (in the mission's prop importer). | `src/atlas/`, below |
 
-**Play, inside the world editor.** Play opens the game over the editor's viewport, in the same page; the world stands
-still under it and its chrome steps back, and "Back to the world" takes the game down and lets the world run again
-(`editor/world/game.js`). The game is the game runtime, `index.html` in the standalone mode an exported game uses,
+**One mission.** The editor keeps one mission in memory (`editor/world/game.js`). Until Mission or Level edits it, the
+Game panel's settings make it; once either has, every edit comes back to the editor and the edited mission (a project,
+or a game of levels) is what Play plays and what the views open. Changing the genre or the look starts a new mission
+from the settings; difficulty and enemies change the edited one in place. Mission and Level are the game engine's own
+editors, run inside the page in a frame under the top bar, by the game runtime document (`game.html`).
+
+**Play, inside the editor.** Play opens the game over the editor's viewport, in the same page; the world stands still
+under it and its chrome steps back, and "Back to the world" takes the game down and returns to the view Play was
+pressed in (`editor/world/game.js`). The game is the game runtime, `game.html` in the standalone mode an exported game uses,
 handed the mission in its address (`src/world/editorMission.js`): the Game panel's settings in the query, the world in
 the fragment (`src/world/worldLink.js`: the seed and the world's terrain and water params, under a kilobyte for a
 world with a town on it). The editor stores nothing on the visitor's machine, and the game it runs keeps that promise:
@@ -37,9 +46,9 @@ cut from (`ground.world.params`), so the world drawn past its rim is the same wo
 
 Said plainly, because this replaces four repositories and not everything has arrived:
 
-- **Remix and Build inside the world editor.** The mission graph (Remix) and the level editor (Build) are still the
-  studio page (`index.html`), opened from World's top bar in a new tab; the Play launcher is still that page's front.
-  Folding them into the one editor, and the studio page retiring to the game runtime it also is, is the next step.
+- **The old studio front.** The launcher that was the site's front page (ready missions by world card, challenge links)
+  still lives in `game.html`, which the editor's old addresses (`/?mode=…`, a shared `?mission=`) now go to; it is
+  not linked from the editor.
 - **2D** (`omryv/2dgen`): its core (`src/play2d/core/`: the grid, the catalog, the solver, the generator) is here,
   because the world engine's 2D overworld projection uses it; the 2D builder's editor, runtime, templates and iOS
   shell are not, so there is no 2D mode yet.
@@ -67,20 +76,20 @@ three.js is vendored (`vendor/three/`) and every import is a relative file. The 
 draws is generated.
 
 **Deploying.** Import this repository into Vercel with the repository root as the Root Directory. `vercel.json` skips
-installation, builds with `node tools/build/build-preview.mjs` and serves `dist/`: Play at `/`, World at `/world`.
+installation, builds with `node tools/build/build-preview.mjs` and serves `dist/`: the editor at `/` (the old `/world` redirects there), the game runtime at `/game`.
 
 ## Layout
 
 | Path | What it is |
 |---|---|
-| `index.html`, `world.html` | The tool's pages: the studio (Play, Remix, Build) and World |
+| `index.html`, `game.html` | The editor (World, Mission, Level, Play); the game runtime it plays in and runs Mission and Level in, which is also the page an exported game is |
 | `src/kernel/` | The Genesis Kernel: seed, terrain, intent, erosion, flood, reach, claims. Pure: no three, no DOM, no clock, no randomness of its own, imports nothing outside itself |
 | `src/genesis/` | The world engine: `Engine.js` (one public API, on-demand rendering), terrain LOD, sea, rivers, sky, the air (`render/atmosphere.js`), props, grass, scatter, fire, weather, controllers; `render/nodes.js` is the TSL its shaders share |
 | `src/genesis/world/` | World composition: towns (site plans), woods, footings, interiors, the world file, its certificate, the exporters |
 | `src/` (the rest) | The game engine: game, simulation, rendering (`render/`, the one `WebGPURenderer` set up in `core/Renderer.js`), levels and their ground (`world/`), genres |
 | `src/atlas/` | The single-image reconstruction (from atlas-core), with its browser half in `src/atlas/web/` |
 | `src/play2d/core/` | The 2D builder's core (from 2dgen) |
-| `editor/`, `editor/world/` | The studio's page code; the world editor's page code and CSS |
+| `editor/`, `editor/world/` | The game runtime's page code (the mission graph, the level editor in `editor/build/`); the editor's page code and CSS (`editor/world/game.js` is the Game panel, the views and Play) |
 | `bin/`, `schema/` | The `genesis` CLI, its MCP server and verifier; the JSON schemas a world, its ground and its intent are held to |
 | `packs/`, `specs/`, `vendor/three/` | The Arcade content pack; level build specs; three.js r185, vendored, patches in `vendor/three/PATCHES.md` |
 | `tools/` | Checks, tests (`tools/test/`, with `kernel/`, `genesis/` and `atlas/`), builds, the kernel's vector writers and Python port, the Blender kit |

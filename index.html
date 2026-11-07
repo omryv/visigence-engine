@@ -1,167 +1,566 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101113">
-  <link rel="icon" type="image/svg+xml" data-asset-href="/assets/studio/visigames-mark.svg">
-  <meta name="description" content="Visigence Engine — every seed is a world. See it whole, play a mission on it, and build your own levels.">
-  <title>Visigence Engine</title>
-  <link rel="stylesheet" href="/editor/studio.css?v=20260925-vision">
-  <script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
-  <link rel="stylesheet" href="/editor/player.css">
-  <link rel="stylesheet" href="/editor/build/build.css">
-  <script type="module">
-    import { assetURL } from './src/config/assetDelivery.js';
-    for (const element of document.querySelectorAll('[data-asset-src]')) element.src = assetURL(element.dataset.assetSrc);
-    for (const element of document.querySelectorAll('[data-asset-href]')) element.href = assetURL(element.dataset.assetHref);
-  </script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Visigence Engine</title>
+<meta name="description" content="One editor for a world and its game: terrain grown from a seed, tools that shape and build on it, a mission set up on it and played right there. Nothing to download.">
+<!-- The studio's old addresses (/?mode=…, a shared mission, a launcher link) belong to the game runtime now, game.html:
+     send them there before anything loads. The editor itself reads only ?seed=, ?gfx= and ?renderer=. -->
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    if (["mode", "mission", "template", "game", "new", "genre", "world", "vision"].some(function (k) { return q.has(k); }))
+      location.replace("/game.html" + location.search + location.hash);
+  })();
+</script>
+
+<!-- ══ TRUSTED TYPES ══
+     The origin's own policy (vercel.json) is already strict — default-src
+     'none', no inline script, no inline style, no plugins, no framing except
+     the portfolio. This adds the one directive a header cannot usefully carry
+     for a whole site at once: on THIS page, a string may not become markup.
+
+     Every DOM XSS sink in the document — innerHTML, outerHTML,
+     insertAdjacentHTML, document.write, script.src, the Worker constructor —
+     stops accepting strings and accepts only values minted by the single
+     named policy in engine/trusted.js, whose only public door escapes what it
+     is given. The editor takes filenames from dropped GLBs and puts them on
+     screen in four places; this is what makes that structurally safe rather
+     than safe-because-somebody-remembered.
+
+     It is declared here rather than in the header because it is enforced
+     per-document and the policy name is a property of this application's
+     code, not of the CDN in front of it. Browsers without Trusted Types
+     ignore it and still get the escaping, which is done in JavaScript. -->
+<meta http-equiv="Content-Security-Policy"
+      content="require-trusted-types-for 'script'; trusted-types worldfoundry">
+
+<link rel="icon" href="./favicon.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="stylesheet" href="./editor/world/css/editor.css">
+<link rel="stylesheet" href="./editor/world/css/cursor.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "/vendor/three/build/three.webgpu.min.js",
+    "three/webgpu": "/vendor/three/build/three.webgpu.min.js",
+    "three/tsl": "/vendor/three/build/three.tsl.min.js",
+    "three/addons/": "/vendor/three/examples/jsm/"
+  }
+}
+</script>
 </head>
-<body data-mode="play">
-<div id="player-front"></div>
-<button id="remix-return" hidden>← Play now <span>REMIX / ADVANCED</span></button>
-<div class="studio">
-  <aside class="navigation">
-    <a class="brand" href="/" aria-label="Visigames home"><img class="brand-mark" data-asset-src="/assets/studio/visigames-mark.svg" width="26" height="30" alt=""><span>Visigames<small>BY VISIGENCE</small></span></a>
-    <div class="section-label">ASSET LIBRARY</div>
-    <nav aria-label="Asset categories">
-      <button class="nav-item selected" data-category="themes"><span data-icon="theme"></span>Themes</button>
-      <button class="nav-item" data-category="environments"><span data-icon="mountain"></span>Environments</button>
-      <button class="nav-item" data-category="enemies"><span data-icon="enemy"></span>Enemies</button>
-      <button class="nav-item" data-category="objectives"><span data-icon="target"></span>Objectives</button>
-      <button class="nav-item" data-category="doors"><span data-icon="folder"></span>Doors</button>
-      <button class="nav-item" data-category="props"><span data-icon="cube"></span>Props</button>
-      <button class="nav-item" data-category="weapons"><span data-icon="crosshair"></span>Weapons</button>
-    </nav>
-    <div class="nav-bottom"><button class="subtle" id="front-export">Download playable game</button>
-      <button class="subtle" id="import-project"><span data-icon="folder"></span>Open project</button>
-      <button class="subtle" id="export-project"><span data-icon="download"></span>Export project</button>
-      <input id="project-file" type="file" accept="application/json,.json" hidden>
-      <div class="brand-footer">Visigames<small>by Visigence</small></div>
-    </div>
-  </aside>
-  <header class="toolbar">
-    <span class="project-icon" data-icon="folder"></span>
-    <input id="project-name" aria-label="Project name" value="Untitled Shooter Project" maxlength="64">
-    <span class="saved" id="save-status"><i></i>Saved locally</span>
-    <div class="toolbar-actions">
-      <button class="subtle" id="back-to-build" hidden>Back to level editor</button>
-      <button class="subtle" id="open-build">Build level</button>
-      <button class="subtle" id="new-project">New project</button>
-      <button class="icon-button" id="undo" aria-label="Undo" disabled><span data-icon="undo"></span></button>
-      <button class="icon-button" id="redo" aria-label="Redo" disabled><span data-icon="redo"></span></button>
-      <select id="zoom" aria-label="Graph zoom"><option value="1">100%</option><option value="0.85">85%</option><option value="1.15">115%</option></select>
-      <button class="primary compile" id="compile-top"><span data-icon="bolt"></span>Generate & play<span data-icon="arrow"></span></button>
-    </div>
-  </header>
-  <main class="workspace">
-    <section class="library panel" aria-label="Available assets">
-      <div class="panel-heading"><h1 id="library-title">Themes</h1><span id="asset-count">01</span></div>
-      <div id="library-items"></div>
-      <p class="library-note">Your choices.<br>Your game.</p>
-    </section>
-    <section class="graph panel" aria-label="Shooter configuration graph">
-      <div class="graph-heading"><span>GAME BLUEPRINT</span><select id="add-node-type" aria-label="Node type"><option value="generator">World generator</option><option value="output">Playable output</option><option value="objective:activate">Activate controls</option><option value="objective:override">Override doors</option><option value="objective:waves">Survive waves</option><option value="objective:boss">Boss encounter</option><option value="objective:eliminate">Eliminate hostiles</option><option value="objective:barricade">Clear barricades</option><option value="objective:reach">Reach checkpoint</option><option value="objective:extract">Extract</option><option value="world">World pool</option><option value="weapons">Weapon pool</option><option value="enemies">Enemy pool</option><option value="doors">Door pool</option><option value="props">Prop pool</option></select><button id="add-node">+ Add</button><button id="graph-focus">Focus graph</button></div>
-      <div class="graph-viewport" id="graph-viewport"><div class="graph-stage" id="graph-stage"></div></div>
-      <div class="graph-footer"><span id="graph-status" class="graph-status"></span><span id="graph-help"></span><button class="subtle" id="reset-view">Fit view</button></div>
-    </section>
-    <aside class="right-column">
-      <section class="preview-panel panel" id="preview-panel" data-active-tab="preview">
-        <div class="panel-heading"><h2><i class="live-dot"></i>Game output</h2><button id="game-pause" aria-label="Pause mission" hidden><span data-icon="pause"></span></button><button id="game-sound" aria-pressed="true">Sound</button><button id="expand-preview" class="icon-button" aria-label="Expand preview"><span data-icon="expand"></span></button><button id="close-preview" class="icon-button" aria-label="Close play mode"><span data-icon="close"></span></button></div>
-        <div class="preview-viewport" id="preview-viewport">
-          <canvas id="game-canvas" tabindex="0" aria-label="Shooter game viewport"></canvas>
-          <div class="preview-loading" id="preview-loading"><span class="loader" hidden></span><strong>Connect your game, then generate</strong><span id="load-status">Choose assets and connect mission steps.</span></div>
-          <div class="world-caption"><span id="preview-location">MEADOW VILLAGE</span><small id="preview-sector">ARCADE / SECTOR 01</small></div>
-          <div id="combat-feedback" aria-live="polite"></div><span id="hit-marker" aria-hidden="true">×</span><div class="preview-crosshair" id="crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-          <div class="game-hud" id="game-hud" hidden><div class="damage-ring" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-            <div class="mission-hud"><span id="mission-label">ACTIVATE THE CONTROL STATIONS</span><b id="mission-progress">0 / 3</b></div>
-            <div class="health-hud"><span>VITALS</span><div><i id="health-bar"></i></div><b id="health-value">100</b><span id="lives-value" hidden></span></div>
-            <div class="ammo-hud"><span id="weapon-name">ARC BLASTER</span><strong id="ammo-value">30 <small>/ 120</small></strong></div>
-            <div id="interaction-prompt"></div>
-          </div>
-          <div class="inventory-bar" id="inventory-bar" hidden></div><div class="play-overlay" id="play-overlay" hidden><span id="play-eyebrow">YOUR MISSION IS READY</span><h2 id="play-title">Enter the district.</h2><p id="play-description">Activate the control stations. Survive the sentinels. Get back to extraction.</p><div id="mission-author" class="mission-studio"></div><div id="mission-result" hidden></div><button class="primary" id="start-mission"><span data-icon="play"></span>Start mission</button><button class="secondary-button" id="run-continue" hidden><span data-icon="play"></span>Continue · watch an ad</button><button id="overlay-exit">Back to worlds</button><div id="result-actions" hidden><button id="result-share">Beat this</button><button id="result-image">Save card</button><button id="result-home">Choose a world</button></div><label class="aim-settings">Look sensitivity <input id="look-sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1" aria-label="Look sensitivity"><output id="look-sensitivity-value">1.0×</output></label><p class="control-guide">WASD move · Mouse aim · Click fire<br>E hold to interact · R reload · Esc pause</p></div>
-          <div class="touch-controls" id="touch-controls" hidden><div id="move-pad" aria-label="Movement joystick"><span></span></div><div id="aim-pad" aria-label="Aim joystick: fires while held" hidden><span></span></div><div class="touch-actions"><button id="touch-weapon">WEAPON</button><button id="touch-grenade">GRENADE</button><button id="touch-reload">RELOAD</button><button id="touch-use">USE</button><button id="touch-aim" aria-label="Hold to aim down sights">AIM</button><button id="touch-jump">JUMP</button><button id="touch-fire">FIRE</button></div></div>
-        </div>
-        <div class="preview-tabs" role="tablist" aria-label="Preview information"><button role="tab" aria-selected="true" data-tab="preview">Preview</button><button role="tab" aria-selected="false" data-tab="performance">Performance</button><button role="tab" aria-selected="false" data-tab="logs">Logs</button><button id="play-preview" aria-label="Play game"><span data-icon="play"></span>Play</button></div>
-        <div class="preview-details" id="preview-details">Connect your blueprint, then click Generate & play.</div>
-      </section>
-      <section class="configuration panel">
-        <div class="panel-heading"><h2><span data-icon="settings"></span>Configuration</h2><span class="section-label" id="selected-label">THEME</span></div>
-        <div id="inspector"></div>
-        <div class="compile-footer"><button class="primary compile" id="compile-bottom"><span data-icon="bolt"></span>Generate & play<span data-icon="arrow"></span></button><span id="build-caption">From your choices to a playable shooter.</span></div>
-      </section>
-    </aside>
-  </main>
-  <footer class="statusbar"><span><i class="live-dot"></i><span id="engine-status">Blueprint ready · click Generate & play</span></span><span>VISIGAMES ENGINE <b>0.2</b></span></footer>
+<!-- `simple` is the shipping default. Advanced adds the instruments; it never
+     takes anything away, and it is one switch on the top bar. -->
+<body class="mode-orbit simple">
+
+<!-- ══ the world, edge to edge ══
+     THE VIEWPORT IS THE HERO AND THE CHROME IS ITS FRAME. Every surface below
+     is pinned to an EDGE — top bar, bottom deck, one right-hand rail, one
+     bottom-left instrument — and the middle of the screen belongs to the
+     world. The rail is the change that made that true: the block library, the
+     world settings and the object register used to be a 940-px slab across
+     the centre of the frame, so opening any of them buried the thing you were
+     aiming at. -->
+<canvas id="viewport"></canvas>
+<div id="vignette" aria-hidden="true"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     THE TOP EDGE — identity and telemetry on the left, actions on the
+     right, and nothing between them.
+     ══════════════════════════════════════════════════════════════════ -->
+<header id="readout" class="mod bar">
+  <!-- The mark is ENGRAVED, not printed: type cut into the chassis, not an
+       illustrated object in a machined room. -->
+  <span id="mark" aria-label="Visigence Engine">
+    <b>VISIGENCE</b><i>ENGINE</i>
+  </span>
+
+  <!-- The editor's views, all in this page: the world; the mission's graph; its levels (editor/world/game.js). The
+       game is set up in the Game panel and played with Play, over whichever view is open. -->
+  <nav id="modes" aria-label="View">
+    <button type="button" class="on" aria-pressed="true" data-view="world">World</button>
+    <button type="button" aria-pressed="false" data-view="remix">Mission</button>
+    <button type="button" aria-pressed="false" data-view="build">Level</button>
+  </nav>
+
+  <div class="rd-rule" aria-hidden="true"></div>
+
+  <div id="seed-chip" title="Click the seed to travel">
+    <span class="rd-key">SEED</span>
+    <span id="seed-text" class="mono">····-····-····</span>
+  </div>
+
+  <div class="rd-rule adv" aria-hidden="true"></div>
+
+  <div id="telemetry" class="adv" aria-hidden="true">
+    <div class="tl"><span class="rd-key">ELEV</span><span id="tl-elev" class="mono">—</span></div>
+    <div class="tl"><span class="rd-key">ALT</span><span id="tl-alt" class="mono">—</span></div>
+    <div class="tl"><span class="rd-key">BLK</span><span id="tl-blocks" class="mono">0</span></div>
+  </div>
+
+  <div class="rd-rule" aria-hidden="true"></div>
+
+  <!-- The sandbox lamp: no storage API is touched anywhere on this page —
+       the world lives in memory and in whatever file the user saves. -->
+  <div id="sandbox" title="Session-only: no local storage, no cookies, nothing written to this machine. Everything is erased when the tab closes.">
+    <i aria-hidden="true"></i><span class="rd-key">SANDBOXED</span>
+  </div>
+
+</header>
+
+
+<!-- Play: the Game panel's mission, on THIS world, right here (editor/world/game.js). -->
+<button id="play-here" class="mod bar" type="button" title="Play the mission on this world, here; the world waits">
+  <span>Play</span><small>The mission, on this world</small>
+</button>
+
+<div id="actions">
+  <!-- Undo, Redo, and the one that undoes all of it. Reset belongs beside
+       them rather than beside Save because it is a history operation, not a
+       file one: it puts this world back the way it opened, and it goes on the
+       undo stack itself so a mis-click costs one ⌘Z. -->
+  <div id="history-btns" class="mod bar">
+    <button id="btn-undo" type="button" title="Undo (⌘Z)" aria-label="Undo" disabled><span data-icon></span></button>
+    <button id="btn-redo" type="button" title="Redo (⌘⇧Z)" aria-label="Redo" disabled><span data-icon></span></button>
+    <button id="btn-reset" type="button" title="Reset — put this world back the way it opened" aria-label="Reset world" disabled><span data-icon></span></button>
+  </div>
+
+  <!-- ONE SWITCH, and it is the whole difference between the two products
+       this tool has to be. Simple is a world in a click; Advanced is every
+       instrument. It adds, it never removes. -->
+  <button id="btn-advanced" class="mod bar switch" type="button" aria-pressed="false"
+          title="Advanced — sculpting, terrain instruments, the object register and GLB import">
+    <i class="sw-track" aria-hidden="true"><i class="sw-bead"></i></i>
+    <b>Advanced</b>
+  </button>
+
+  <!-- The world as a file. This is the one thing the tool makes that outlives
+       the tab, and it is deliberately in the top bar beside Undo rather than
+       buried in Advanced: a session whose output cannot leave is a session
+       that was spent. Nothing is written to this machine by the tool — Save
+       hands a Blob to the browser's own save dialog, Open reads a file the
+       user picked. No storage API is touched. See js/worldfile.js. -->
+  <div id="file-btns" class="mod bar">
+    <button id="btn-save" type="button" title="Save this world to a file (⌘S)" aria-label="Save world">
+      <span data-icon></span><b>Save</b>
+    </button>
+    <button id="btn-open" type="button" title="Open a world file (⌘O)" aria-label="Open world">
+      <span data-icon></span>
+    </button>
+    <!-- Pick a file once and every change is written to it. Removed outright
+         by js/durable.js's capability probe on Safari and Firefox, which have
+         no showSaveFilePicker — there the tray is Save and Open, exactly as
+         it was. Nothing is stored on this origin either way. -->
+    <button id="btn-keep" type="button" aria-pressed="false"
+            title="Keep this world in a file — pick one once, and every change is written to it"
+            aria-label="Keep this world in a file">
+      <span data-icon></span><b>Keep</b>
+    </button>
+  </div>
+
+  <!-- NO LONGER ADVANCED-ONLY, and that is a consequence of the Worlds rail
+       going rather than a preference. `body.simple .adv { display: none }` is
+       the shipping default, so with the rail gone and this hidden there was
+       no VISIBLE control anywhere that builds a world — and on a phone, where
+       ⌘K does not exist, no way to build one at all. The palette carries the
+       "Build a world" entries, so it is the affordance that has to survive
+       until the World-Gallery replaces the rail. -->
+  <button id="btn-cmd" class="mod bar" type="button" title="Build a world, and everything else (⌘K)">
+    <span data-icon></span><b class="mono">K</b>
+  </button>
 </div>
-<section id="build" class="bld" aria-label="Level editor" hidden>
-  <header class="bld-top">
-    <button type="button" class="bld-back" data-bld="exit"><span data-bld-icon="chevronLeft"></span>Studio</button>
-    <button type="button" class="bld-btn bld-btn--ghost bld-games" data-bld="start" aria-label="Games and templates"><span data-bld-icon="games"></span><span class="bld-hide-md">Games</span></button>
-    <h1 class="bld-start-title" id="bld-start-title">Your games</h1>
-    <div class="bld-title">
-      <label class="sr-only" for="bld-name">Game title</label><input id="bld-name" maxlength="64" autocomplete="off" spellcheck="false">
-      <span id="bld-genre" class="bld-chip"></span>
-      <span id="bld-saved" class="bld-tally" role="status" aria-live="polite"></span>
-    </div>
-    <div class="bld-group" role="group" aria-label="History">
-      <button type="button" class="bld-icon" id="bld-undo" data-bld="undo" aria-label="Undo" disabled><span data-bld-icon="undo"></span></button>
-      <button type="button" class="bld-icon" id="bld-redo" data-bld="redo" aria-label="Redo" disabled><span data-bld-icon="redo"></span></button>
-    </div>
-    <div class="bld-spacer"></div>
-    <button type="button" class="bld-issues" id="bld-issues" data-bld="checks" aria-live="polite"></button>
-    <button type="button" class="bld-btn bld-btn--secondary bld-hide-sm" id="bld-export" data-bld="export"><span data-bld-icon="download"></span>Export</button>
-    <div class="bld-split">
-      <button type="button" class="bld-btn bld-btn--primary" id="bld-play" data-bld="play"><span data-bld-icon="play"></span><span class="bld-play-label">Play level</span></button>
-      <button type="button" class="bld-btn bld-btn--primary bld-split__more" id="bld-play-more" data-bld="play-menu" aria-label="More ways to play" aria-haspopup="menu" aria-expanded="false"><span data-bld-icon="chevronDown"></span></button>
-      <div class="bld-menu" id="bld-play-menu" role="menu" hidden>
-        <button type="button" role="menuitem" data-bld="play"><span data-bld-icon="play"></span>Play this level<kbd>F5</kbd></button>
-        <button type="button" role="menuitem" data-bld="play-here"><span data-bld-icon="playFrom"></span>Play from the cursor<kbd>P</kbd></button>
-        <button type="button" role="menuitem" data-bld="play-game"><span data-bld-icon="restart"></span>Play the whole game</button>
+
+<!-- ══ toast ══ top edge, under the readout: a notice belongs where the
+     instruments are, not across the ground you are working on. -->
+<div id="toast" class="mod" hidden></div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     THE DECK — the console, and the only furniture that is always here.
+     The middle section MORPHS into whatever the armed tool needs, so
+     options appear where attention already is.
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="deck" class="mod">
+  <div id="tool-seg" role="toolbar" aria-label="Editor tools">
+    <span id="seg-marker" aria-hidden="true"></span>
+    <button id="tool-select" class="tool active" type="button" data-tip="Select · click a block, drag its arrows">
+      <span data-icon></span><b>Select</b>
+    </button>
+    <button id="tool-blocks" class="tool" type="button" data-tip="Blocks · walls, floors, props">
+      <span data-icon></span><b>Blocks</b>
+    </button>
+    <button id="tool-objects" class="tool adv" type="button" data-tip="Objects · everything you placed (M)" aria-pressed="false">
+      <span data-icon></span><b>Objects</b><i id="obj-badge" class="mono">0</i>
+    </button>
+    <button id="tool-sculpt" class="tool adv" type="button" data-tip="Sculpt · drag to reshape the ground">
+      <span data-icon></span><b>Sculpt</b>
+    </button>
+    <button id="tool-river" class="tool adv" type="button" data-tip="River · click a headwater, the water finds the sea">
+      <span data-icon></span><b>River</b>
+    </button>
+    <button id="btn-grass" class="tool adv" type="button" data-tip="Grass · drag to paint, Shift-drag to erase">
+      <span data-icon></span><b>Grass</b>
+    </button>
+    <button id="btn-spawn" class="tool adv" type="button" data-tip="Spawn · where Play drops the player">
+      <span data-icon></span><b>Spawn</b>
+    </button>
+    <button id="panel-toggle" class="tool" type="button" data-tip="World · terrain, biome, light" aria-pressed="false">
+      <span data-icon></span><b>World</b>
+    </button>
+    <button id="game-toggle" class="tool" type="button" data-tip="Game · the mission, and Play" aria-pressed="false">
+      <span data-icon></span><b>Game</b>
+    </button>
+  </div>
+
+  <div class="deck-rule" aria-hidden="true"></div>
+
+  <!-- the morphing middle: whatever the armed tool needs, nothing when idle -->
+  <div id="deck-context">
+    <p id="deck-idle" class="deck-hint">Drag to orbit · <kbd>⌘K</kbd> for anything</p>
+
+    <div id="sculpt-opts" hidden>
+      <div id="sculpt-modes" role="group" aria-label="Brush mode">
+        <button type="button" data-mode="raise" class="active" title="Raise"><span data-icon></span></button>
+        <button type="button" data-mode="lower" title="Lower"><span data-icon></span></button>
+        <button type="button" data-mode="smooth" title="Smooth"><span data-icon></span></button>
+        <button type="button" data-mode="flatten" title="Flatten"><span data-icon></span></button>
       </div>
+      <label class="dial"><span class="rd-key">SIZE</span>
+        <input id="brush-radius" type="range" min="10" max="400" step="5" value="70" aria-label="Brush size">
+        <span class="t-val mono" id="brush-radius-val">70m</span>
+      </label>
+      <label class="dial"><span class="rd-key">FORCE</span>
+        <input id="brush-strength" type="range" min="0.5" max="30" step="0.5" value="8" aria-label="Brush force">
+        <span class="t-val mono" id="brush-strength-val">8.0m</span>
+      </label>
+      <p class="deck-hint">Alt inverts · ⌘Z undoes the stroke</p>
     </div>
+
+    <div id="grass-opts" hidden>
+      <label class="dial"><span class="rd-key">SIZE</span>
+        <input id="grass-radius" type="range" min="4" max="24" step="1" value="9" aria-label="Grass brush size">
+        <span class="t-val mono" id="grass-radius-val">9m</span>
+      </label>
+    </div>
+
+    <!-- The river tool: the course solves itself from wherever the pointer
+         stands, so the middle carries the knobs and the VERDICT — where this
+         water would end up — which is the one reading the hover exists for. -->
+    <div id="river-opts" hidden>
+      <label class="dial"><span class="rd-key">WIDTH</span>
+        <input id="river-width" type="range" min="6" max="60" step="2" value="16" aria-label="River width">
+        <span class="t-val mono" id="river-width-val">16m</span>
+      </label>
+      <label class="dial"><span class="rd-key">DEPTH</span>
+        <input id="river-depth" type="range" min="1" max="14" step="0.5" value="4" aria-label="River depth">
+        <span class="t-val mono" id="river-depth-val">4.0m</span>
+      </label>
+      <label class="dial"><span class="rd-key">WANDER</span>
+        <input id="river-meander" type="range" min="0" max="2" step="0.1" value="1" aria-label="River meander">
+        <span class="t-val mono" id="river-meander-val">1.0</span>
+      </label>
+      <p class="deck-hint" id="river-verdict">Aim at high ground · click to carve</p>
+    </div>
+    <p id="spawn-hint" class="deck-hint" hidden>Click the ground to set where <b>Play</b> drops the player</p>
+    <!-- Holding a block is a STATE, and it lives here rather than in the
+         sheet that started it: the sheet closes on arming so the world is
+         visible to aim at. -->
+    <div id="blocks-hint" hidden>
+      <span class="held-thumb" data-icon aria-hidden="true"></span>
+      <p class="deck-hint"><b id="held-name">a block</b> <i>· click the ground</i></p>
+      <button id="held-change" class="key" type="button" title="Pick a different block">Change</button>
+      <kbd>Esc</kbd>
+    </div>
+  </div>
+
+  <div class="deck-rule" aria-hidden="true"></div>
+
+  <nav id="explore-pills" aria-label="Camera mode">
+    <span id="pill-marker" aria-hidden="true"></span>
+    <button data-mode="orbit" class="pill active" type="button" title="Orbit"><span data-icon></span><b>Orbit</b></button>
+    <button data-mode="walk" class="pill" type="button" title="Walk"><span data-icon></span><b>Walk</b></button>
+    <button data-mode="fly" class="pill" type="button" title="Fly"><span data-icon></span><b>Fly</b></button>
+  </nav>
+</div>
+
+<!-- ══ chart ══ the minimap as an instrument recessed into a plate. Square,
+     because the WORLD is a square plate and a round screen would crop the
+     four corners of the map you click to travel to. -->
+<div id="chart" class="mod">
+  <canvas id="minimap" width="220" height="220" title="Click to travel"></canvas>
+  <svg id="chart-ring" viewBox="0 0 100 100" aria-hidden="true">
+    <g class="ticks"></g>
+    <text class="card n" x="50" y="7.6">N</text>
+    <text class="card e" x="95.2" y="51.9">E</text>
+    <text class="card s" x="50" y="96.4">S</text>
+    <text class="card w" x="4.8" y="51.9">W</text>
+  </svg>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     THE RAIL — one column on the right edge, four contents.
+
+     Worlds, Blocks, World settings and the Object register are the same
+     module at the same coordinates in the same chassis: they differ in what
+     is inside them and in nothing else. One is open at a time, so the frame
+     never loses more than one edge, and the middle of the viewport is never
+     covered by any of them.
+     ══════════════════════════════════════════════════════════════════ -->
+
+<!-- ── BLOCKS ── the asset console ── -->
+<section id="blocks-dock" class="rail mod collapsed" aria-label="Block library">
+  <header class="rail-head" id="dock-handle" role="button" tabindex="0">
+    <h2>Blocks</h2>
+    <span class="rail-sub rd-key" id="dock-count">—</span>
+    <button id="dock-close" class="icon-btn" type="button" aria-label="Close"><span data-icon></span></button>
   </header>
-  <nav id="bld-rail" class="bld-rail" aria-label="Tools"></nav>
-  <aside id="bld-left" class="bld-panel bld-left" aria-label="Outliner and palette">
-    <div class="bld-tabs" role="tablist" aria-label="Left panel">
-      <button type="button" role="tab" id="bld-tab-outliner" aria-controls="bld-outliner" aria-selected="true" data-bld-tab="outliner">Outliner</button>
-      <button type="button" role="tab" id="bld-tab-palette" aria-controls="bld-palette" aria-selected="false" data-bld-tab="palette" tabindex="-1">Palette</button>
+  <div id="dock-tools">
+    <div class="dock-search-wrap field">
+      <span class="ds-icon" data-icon aria-hidden="true"></span>
+      <input id="dock-search" type="search" placeholder="Search the catalogue…" aria-label="Search blocks">
     </div>
-    <section id="bld-outliner" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-outliner"></section>
-    <section id="bld-palette" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-palette" hidden></section>
-  </aside>
-  <main id="bld-stage" class="bld-stage" aria-label="Level">
-    <div id="bld-view" class="bld-view">
-      <div class="bld-viewbar" role="toolbar" aria-label="View">
-        <div class="bld-seg" role="radiogroup" aria-label="Camera" id="bld-camera"></div>
-        <button type="button" class="bld-icon bld-icon--float" data-bld="focus" aria-label="Frame the selection (F)"><span data-bld-icon="focus"></span></button>
-        <button type="button" class="bld-toggle" data-bld="snap" aria-pressed="true"><span data-bld-icon="magnet"></span>Snap</button>
-        <button type="button" class="bld-toggle" data-bld="grid" aria-pressed="true"><span data-bld-icon="grid"></span>Grid</button>
-        <button type="button" class="bld-toggle" data-bld="reach" aria-pressed="false"><span data-bld-icon="issue"></span>Reach</button>
-      </div>
-      <div class="bld-marks" id="bld-marks" aria-hidden="true"></div>
-      <div class="bld-empty" id="bld-empty" hidden></div>
-      <div class="bld-pending" id="bld-pending" role="status" aria-live="polite" hidden></div>
-      <div class="bld-previewcap" id="bld-previewcap" hidden></div>
-    </div>
-    <div id="bld-levels" class="bld-levels" aria-label="Levels"></div>
-  </main>
-  <aside id="bld-right" class="bld-panel bld-right" aria-label="Inspector and checks">
-    <div class="bld-tabs" role="tablist" aria-label="Right panel">
-      <button type="button" role="tab" id="bld-tab-inspector" aria-controls="bld-inspector" aria-selected="true" data-bld-tab="inspector">Inspector</button>
-      <button type="button" role="tab" id="bld-tab-checks" aria-controls="bld-checks" aria-selected="false" data-bld-tab="checks" tabindex="-1">Checks</button>
-      <button type="button" role="tab" id="bld-tab-level" aria-controls="bld-level" aria-selected="false" data-bld-tab="level" tabindex="-1">Level</button>
-    </div>
-    <section id="bld-inspector" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-inspector"></section>
-    <section id="bld-checks" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-checks" hidden></section>
-    <section id="bld-level" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-level" hidden></section>
-  </aside>
-  <section id="bld-start" class="bld-start" aria-labelledby="bld-start-title"></section>
-  <footer id="bld-status" class="bld-status"></footer>
-  <nav id="bld-mobile" class="bld-mobilebar" aria-label="Editor panels"></nav>
-  <div id="bld-dialogs"></div>
+    <div id="dock-cats" role="tablist" aria-label="Categories"></div>
+  </div>
+  <div id="dock-cards"></div>
+  <footer id="dock-foot" class="adv">
+    <button id="dock-import" class="key" type="button"><span data-icon></span>Import GLB</button>
+    <input id="dock-file" type="file" accept=".glb,.gltf" hidden>
+    <!-- The world file's picker. `.json` is accepted alongside the compound
+         extension because a browser that saved `farshore-4f2a.world.json` will
+         happily hand it back with either filter, and a picker that greys out
+         the file it just wrote is a picker that looks broken. -->
+    <input id="world-file" type="file" accept=".world.json,.json,application/json" hidden>
+    <span class="opt-hint">or drop a .glb anywhere</span>
+  </footer>
 </section>
-<div class="toast" id="toast" role="status" hidden></div>
-<script type="module" src="/editor/studio.js"></script>
+
+<!-- ── WORLD SETTINGS ── -->
+<aside id="world-panel" class="rail mod collapsed" aria-label="World settings">
+  <header class="rail-head">
+    <h2>World</h2>
+    <span class="rail-sub rd-key">TERRAIN · LIGHT</span>
+    <button id="panel-close" class="icon-btn" type="button" aria-label="Close panel"><span data-icon></span></button>
+  </header>
+  <div class="rail-scroll">
+    <div class="panel-title"><span>Biome</span></div>
+    <div id="biome-rows"></div>
+
+    <div class="panel-title"><span>Light</span></div>
+    <div class="tod-wrap">
+      <input id="tod-slider" type="range" min="0" max="24" step="0.05" value="10.5" aria-label="Time of day">
+      <div class="tod-readout mono" id="tod-readout">10:30</div>
+    </div>
+    <div class="t-row">
+      <label for="haze-slider">Haze</label>
+      <input id="haze-slider" type="range" min="0" max="1" step="0.01" value="0.35">
+      <span class="t-val mono" id="haze-val">35%</span>
+    </div>
+
+    <div class="panel-title"><span>Weather</span></div>
+    <div id="weather-pills" class="opt-row" role="group" aria-label="Weather">
+      <button type="button" data-weather="clear" class="chz active"><span data-icon></span>Clear</button>
+      <button type="button" data-weather="rain" class="chz"><span data-icon></span>Rain</button>
+      <button type="button" data-weather="snow" class="chz"><span data-icon></span>Snow</button>
+    </div>
+    <p class="opt-hint">Rain soaks every surface; snow settles on ground and roofs.</p>
+
+    <div class="panel-title"><span>Structure</span></div>
+    <div id="structure-cards"></div>
+    <p class="opt-hint">Themes re-dress every placed block — palette, textures, weathering.</p>
+
+    <!-- ── everything below is an instrument, and instruments are Advanced ── -->
+    <!-- A site is aimed at ground: it reads the slope and the waterline of the
+         plate it lands on, and both of those are the plate's. -->
+    <div class="panel-title adv"><span>Sites</span></div>
+    <div id="site-cards" class="adv"></div>
+    <p class="opt-hint adv" id="gen-hint"></p>
+    <button id="gen-go" type="button" class="plate world-go adv">Place this site</button>
+    <p class="opt-hint adv">A recipe you aim at ground you chose — it reads the slope and the water
+      it lands on. One undo removes the whole site.</p>
+
+    <div class="panel-title adv"><span>Terrain</span></div>
+    <div id="terrain-rows" class="adv"></div>
+
+    <!-- ── SHAPE ──
+         The ten sliders above drive one fixed recipe. This is the other way
+         to say what the ground is: an ordered list of noise layers, each
+         blended into what the ones before it built (engine/terrain/
+         noise-stack.js). Empty means the recipe, which is what every world
+         made before this existed says by saying nothing. -->
+    <div class="panel-title adv"><span>Shape</span></div>
+    <div id="stack-rows" class="adv"></div>
+    <div id="stack-add" class="adv opt-row"></div>
+    <p class="opt-hint adv" id="stack-hint"></p>
+
+    <!-- ── CLIMATE ──
+         Which biomes this world's ground may be. Where each one falls
+         follows two slow temperature/moisture fields rather than a
+         coordinate, so the border lands somewhere different on every seed
+         (engine/terrain/climate.js). -->
+    <div class="panel-title adv"><span>Climate</span></div>
+    <div id="climate-chips" class="adv opt-row" role="group" aria-label="Climate biomes"></div>
+    <p class="opt-hint adv" id="climate-hint"></p>
+
+    <div class="panel-title adv"><span>Vegetation</span></div>
+    <div class="t-row adv">
+      <label for="grass-density">Patch density</label>
+      <input id="grass-density" type="range" min="40" max="240" step="10" value="110" title="Tufts per painted patch">
+      <span class="t-val mono" id="grass-density-val">110</span>
+    </div>
+    <div id="veg-rows" class="adv"></div>
+    <p class="opt-hint adv">Card-based grass: draw distance fades on foot, wind waves every card.
+      Paint patches with the Grass tool — its <b>SIZE</b> dial sets the brush radius.</p>
+  </div>
+</aside>
+
+<!-- ── GAME ──
+     The mission this world is played as: its genre, its look, how hard, how many enemies, and where on the world it
+     stands. Play runs it here, over the viewport (editor/world/game.js). -->
+<aside id="game-panel" class="rail mod collapsed" aria-label="Game">
+  <header class="rail-head">
+    <h2>Game</h2>
+    <span class="rail-sub rd-key">MISSION · PLAY</span>
+    <button id="game-close" class="icon-btn" type="button" aria-label="Close panel"><span data-icon></span></button>
+  </header>
+  <div class="rail-scroll">
+    <div class="panel-title"><span>Mission</span></div>
+    <div id="game-rows"></div>
+  </div>
+</aside>
+
+<!-- ── OBJECT REGISTER ──
+     Everything placed, as a list you can search, filter, sort, star, hide,
+     lock and — the part that matters — travel to. Rows are drawn by
+     js/objects.js; the markup here is the console it draws into. -->
+<aside id="objects-panel" class="rail mod collapsed" aria-label="Object manager">
+  <header class="rail-head">
+    <h2>Objects</h2>
+    <span id="obj-count" class="rail-sub mono" title="Objects placed">0</span>
+    <button id="obj-pins" class="icon-btn" type="button" aria-pressed="true"
+            title="Marker pins in the world — they fade out as you zoom in"><span data-icon></span></button>
+    <button id="obj-sound" class="icon-btn" type="button" aria-pressed="true"
+            title="Placement sound"><span data-icon></span></button>
+    <button id="obj-close" class="icon-btn" type="button" aria-label="Close panel"><span data-icon></span></button>
+  </header>
+
+  <div id="obj-tools">
+    <div class="dock-search-wrap field">
+      <span class="ds-icon" data-icon aria-hidden="true"></span>
+      <input id="obj-search" type="search" placeholder="Search placed objects…" aria-label="Search placed objects">
+    </div>
+    <label class="obj-sort-wrap"><span class="rd-key">SORT</span>
+      <select id="obj-sort" aria-label="Sort objects">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="name">Name</option>
+        <option value="type">Type</option>
+        <option value="distance">Nearest the view</option>
+      </select>
+    </label>
+    <div id="obj-cats" role="tablist" aria-label="Categories"></div>
+    <div id="obj-flags" role="group" aria-label="Filters">
+      <button type="button" data-flag="recent">Recent</button>
+      <button type="button" data-flag="favorites">Favourites</button>
+      <button type="button" data-flag="hidden">Hidden</button>
+      <button type="button" data-flag="locked">Locked</button>
+    </div>
+  </div>
+
+  <!-- Navigation is a strip of keys, not a menu: these are the moves an
+       author makes dozens of times an hour. -->
+  <div id="obj-nav" role="toolbar" aria-label="Navigate objects">
+    <button type="button" data-nav="prev" title="Previous object ([)"><span data-icon></span></button>
+    <button type="button" data-nav="next" title="Next object (])"><span data-icon></span></button>
+    <button type="button" data-nav="focus" title="Focus the selection (F)"><span data-icon></span></button>
+    <button type="button" data-nav="orbit" title="Orbit around it (O)"><span data-icon></span></button>
+    <button type="button" data-nav="all" title="Frame every object (⇧A)"><span data-icon></span></button>
+    <button type="button" data-nav="newest" title="Jump to the newest placement (G)"><span data-icon></span></button>
+    <button type="button" data-nav="back" title="Back to the previous view (V)"><span data-icon></span></button>
+  </div>
+
+  <div id="obj-list" role="listbox" aria-label="Placed objects" tabindex="0"></div>
+
+  <footer id="obj-batch" hidden>
+    <span id="obj-batch-label" class="mono">0 selected</span>
+    <div class="ob-acts">
+      <button type="button" data-batch="focus" title="Frame the whole selection (⇧F)"><span data-icon></span></button>
+      <button type="button" data-batch="dup" title="Duplicate"><span data-icon></span></button>
+      <button type="button" data-batch="vary" title="Randomize variation — rotation, size, proportion"><span data-icon></span></button>
+      <button type="button" data-batch="hide" title="Hide the selection"><span data-icon></span></button>
+      <button type="button" data-batch="lock" title="Lock the selection"><span data-icon></span></button>
+      <button type="button" data-batch="del" class="danger" title="Delete"><span data-icon></span></button>
+    </div>
+  </footer>
+</aside>
+
+<!-- ══ screen-space cues ══
+     Floating placement labels, and the edge-of-screen chevrons that point at
+     objects which are not in the frame. pointer-events are off on the layer
+     and back on for a chevron, which is clickable: an indicator you can
+     press is a way back, not just a notice. -->
+<div id="cue-layer" aria-hidden="true"></div>
+
+<!-- ══ selection bar ══ -->
+<div id="selection-chip" class="mod" hidden>
+  <span id="sel-label"></span>
+  <span id="sel-meta" class="mono"></span>
+  <div class="sel-acts">
+    <button data-act="focus" type="button" title="Frame the camera on it (F)"><span data-icon></span></button>
+    <button data-act="rotate" type="button" title="Rotate 15° (R)"><span data-icon></span></button>
+    <button data-act="dup" type="button" title="Place a copy beside it (D)"><span data-icon></span></button>
+    <button data-act="snap" type="button" title="Drop onto the ground (Q)"><span data-icon></span></button>
+    <button data-act="shrink" type="button" title="Smaller (−)"><span data-icon></span></button>
+    <button data-act="grow" type="button" title="Bigger (+)"><span data-icon></span></button>
+    <button data-act="style" type="button" title="Texture · paint · stretch"><span data-icon></span></button>
+    <button data-act="ignite" type="button" title="Set it alight — the fire chars it"><span data-icon></span></button>
+    <button data-act="delete" type="button" class="danger" title="Delete (Del)"><span data-icon></span></button>
+  </div>
+
+  <div id="style-pop" class="mod pop" hidden>
+    <div class="sp-title">Texture</div>
+    <div id="sp-styles"></div>
+    <div class="sp-title">Paint</div>
+    <div id="sp-swatches"></div>
+    <div class="sp-title">Stretch</div>
+    <div class="sp-axes">
+      <div class="sp-axis" data-axis="0"><b>X</b><button type="button" data-d="-1" aria-label="Squash X">−</button><span class="sp-val mono">×1.00</span><button type="button" data-d="1" aria-label="Stretch X">＋</button></div>
+      <div class="sp-axis" data-axis="1"><b>Y</b><button type="button" data-d="-1" aria-label="Squash Y">−</button><span class="sp-val mono">×1.00</span><button type="button" data-d="1" aria-label="Stretch Y">＋</button></div>
+      <div class="sp-axis" data-axis="2"><b>Z</b><button type="button" data-d="-1" aria-label="Squash Z">−</button><span class="sp-val mono">×1.00</span><button type="button" data-d="1" aria-label="Stretch Z">＋</button></div>
+    </div>
+    <button id="sp-reset" class="key" type="button">Reset style</button>
+  </div>
+</div>
+
+<!-- ══ command palette ══ everything, by name -->
+<div id="cmdk" hidden>
+  <div id="cmdk-card" class="mod overlay" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div id="cmdk-field">
+      <span data-icon aria-hidden="true"></span>
+      <input id="cmdk-input" type="text" placeholder="Search worlds, blocks, biomes, commands…"
+             autocomplete="off" spellcheck="false" aria-label="Command">
+      <kbd>ESC</kbd>
+    </div>
+    <div id="cmdk-list" role="listbox"></div>
+    <footer id="cmdk-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> run</span>
+      <span class="cmdk-brand">VISIGENESIS</span>
+    </footer>
+  </div>
+</div>
+
+<!-- ══ coach ══
+     First-run guidance: three lines, one at a time, never a wall. Same
+     chassis as everything else — the painted paper slip and the mascot that
+     used to carry this were the only illustrated objects in a machined room,
+     and one material language means one material. pointer-events: none, so
+     guidance can never block the world it is explaining. -->
+<div id="coach" class="mod" hidden><p id="coach-text"></p></div>
+
+<script type="module" src="./editor/world/studio.js"></script>
 </body>
 </html>

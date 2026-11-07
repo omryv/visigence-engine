@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101113">
+  <link rel="icon" type="image/svg+xml" data-asset-href="/assets/studio/visigames-mark.svg">
+  <meta name="description" content="Visigence Engine — every seed is a world. See it whole, play a mission on it, and build your own levels.">
+  <title>Visigence Engine</title>
+  <link rel="stylesheet" href="/editor/studio.css?v=20260925-vision">
+  <script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+  <link rel="stylesheet" href="/editor/player.css">
+  <link rel="stylesheet" href="/editor/build/build.css">
+  <script type="module">
+    import { assetURL } from './src/config/assetDelivery.js';
+    for (const element of document.querySelectorAll('[data-asset-src]')) element.src = assetURL(element.dataset.assetSrc);
+    for (const element of document.querySelectorAll('[data-asset-href]')) element.href = assetURL(element.dataset.assetHref);
+  </script>
+</head>
+<body data-mode="play">
+<div id="player-front"></div>
+<button id="remix-return" hidden>← Play now <span>REMIX / ADVANCED</span></button>
+<div class="studio">
+  <aside class="navigation">
+    <a class="brand" href="/" aria-label="Visigames home"><img class="brand-mark" data-asset-src="/assets/studio/visigames-mark.svg" width="26" height="30" alt=""><span>Visigames<small>BY VISIGENCE</small></span></a>
+    <div class="section-label">ASSET LIBRARY</div>
+    <nav aria-label="Asset categories">
+      <button class="nav-item selected" data-category="themes"><span data-icon="theme"></span>Themes</button>
+      <button class="nav-item" data-category="environments"><span data-icon="mountain"></span>Environments</button>
+      <button class="nav-item" data-category="enemies"><span data-icon="enemy"></span>Enemies</button>
+      <button class="nav-item" data-category="objectives"><span data-icon="target"></span>Objectives</button>
+      <button class="nav-item" data-category="doors"><span data-icon="folder"></span>Doors</button>
+      <button class="nav-item" data-category="props"><span data-icon="cube"></span>Props</button>
+      <button class="nav-item" data-category="weapons"><span data-icon="crosshair"></span>Weapons</button>
+    </nav>
+    <div class="nav-bottom"><button class="subtle" id="front-export">Download playable game</button>
+      <button class="subtle" id="import-project"><span data-icon="folder"></span>Open project</button>
+      <button class="subtle" id="export-project"><span data-icon="download"></span>Export project</button>
+      <input id="project-file" type="file" accept="application/json,.json" hidden>
+      <div class="brand-footer">Visigames<small>by Visigence</small></div>
+    </div>
+  </aside>
+  <header class="toolbar">
+    <span class="project-icon" data-icon="folder"></span>
+    <input id="project-name" aria-label="Project name" value="Untitled Shooter Project" maxlength="64">
+    <span class="saved" id="save-status"><i></i>Saved locally</span>
+    <div class="toolbar-actions">
+      <button class="subtle" id="back-to-build" hidden>Back to level editor</button>
+      <button class="subtle" id="open-build">Build level</button>
+      <button class="subtle" id="new-project">New project</button>
+      <button class="icon-button" id="undo" aria-label="Undo" disabled><span data-icon="undo"></span></button>
+      <button class="icon-button" id="redo" aria-label="Redo" disabled><span data-icon="redo"></span></button>
+      <select id="zoom" aria-label="Graph zoom"><option value="1">100%</option><option value="0.85">85%</option><option value="1.15">115%</option></select>
+      <button class="primary compile" id="compile-top"><span data-icon="bolt"></span>Generate & play<span data-icon="arrow"></span></button>
+    </div>
+  </header>
+  <main class="workspace">
+    <section class="library panel" aria-label="Available assets">
+      <div class="panel-heading"><h1 id="library-title">Themes</h1><span id="asset-count">01</span></div>
+      <div id="library-items"></div>
+      <p class="library-note">Your choices.<br>Your game.</p>
+    </section>
+    <section class="graph panel" aria-label="Shooter configuration graph">
+      <div class="graph-heading"><span>GAME BLUEPRINT</span><select id="add-node-type" aria-label="Node type"><option value="generator">World generator</option><option value="output">Playable output</option><option value="objective:activate">Activate controls</option><option value="objective:override">Override doors</option><option value="objective:waves">Survive waves</option><option value="objective:boss">Boss encounter</option><option value="objective:eliminate">Eliminate hostiles</option><option value="objective:barricade">Clear barricades</option><option value="objective:reach">Reach checkpoint</option><option value="objective:extract">Extract</option><option value="world">World pool</option><option value="weapons">Weapon pool</option><option value="enemies">Enemy pool</option><option value="doors">Door pool</option><option value="props">Prop pool</option></select><button id="add-node">+ Add</button><button id="graph-focus">Focus graph</button></div>
+      <div class="graph-viewport" id="graph-viewport"><div class="graph-stage" id="graph-stage"></div></div>
+      <div class="graph-footer"><span id="graph-status" class="graph-status"></span><span id="graph-help"></span><button class="subtle" id="reset-view">Fit view</button></div>
+    </section>
+    <aside class="right-column">
+      <section class="preview-panel panel" id="preview-panel" data-active-tab="preview">
+        <div class="panel-heading"><h2><i class="live-dot"></i>Game output</h2><button id="game-pause" aria-label="Pause mission" hidden><span data-icon="pause"></span></button><button id="game-sound" aria-pressed="true">Sound</button><button id="expand-preview" class="icon-button" aria-label="Expand preview"><span data-icon="expand"></span></button><button id="close-preview" class="icon-button" aria-label="Close play mode"><span data-icon="close"></span></button></div>
+        <div class="preview-viewport" id="preview-viewport">
+          <canvas id="game-canvas" tabindex="0" aria-label="Shooter game viewport"></canvas>
+          <div class="preview-loading" id="preview-loading"><span class="loader" hidden></span><strong>Connect your game, then generate</strong><span id="load-status">Choose assets and connect mission steps.</span></div>
+          <div class="world-caption"><span id="preview-location">MEADOW VILLAGE</span><small id="preview-sector">ARCADE / SECTOR 01</small></div>
+          <div id="combat-feedback" aria-live="polite"></div><span id="hit-marker" aria-hidden="true">×</span><div class="preview-crosshair" id="crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="game-hud" id="game-hud" hidden><div class="damage-ring" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="mission-hud"><span id="mission-label">ACTIVATE THE CONTROL STATIONS</span><b id="mission-progress">0 / 3</b></div>
+            <div class="health-hud"><span>VITALS</span><div><i id="health-bar"></i></div><b id="health-value">100</b><span id="lives-value" hidden></span></div>
+            <div class="ammo-hud"><span id="weapon-name">ARC BLASTER</span><strong id="ammo-value">30 <small>/ 120</small></strong></div>
+            <div id="interaction-prompt"></div>
+          </div>
+          <div class="inventory-bar" id="inventory-bar" hidden></div><div class="play-overlay" id="play-overlay" hidden><span id="play-eyebrow">YOUR MISSION IS READY</span><h2 id="play-title">Enter the district.</h2><p id="play-description">Activate the control stations. Survive the sentinels. Get back to extraction.</p><div id="mission-author" class="mission-studio"></div><div id="mission-result" hidden></div><button class="primary" id="start-mission"><span data-icon="play"></span>Start mission</button><button class="secondary-button" id="run-continue" hidden><span data-icon="play"></span>Continue · watch an ad</button><button id="overlay-exit">Back to worlds</button><div id="result-actions" hidden><button id="result-share">Beat this</button><button id="result-image">Save card</button><button id="result-home">Choose a world</button></div><label class="aim-settings">Look sensitivity <input id="look-sensitivity" type="range" min="0.5" max="1.8" step="0.1" value="1" aria-label="Look sensitivity"><output id="look-sensitivity-value">1.0×</output></label><p class="control-guide">WASD move · Mouse aim · Click fire<br>E hold to interact · R reload · Esc pause</p></div>
+          <div class="touch-controls" id="touch-controls" hidden><div id="move-pad" aria-label="Movement joystick"><span></span></div><div id="aim-pad" aria-label="Aim joystick: fires while held" hidden><span></span></div><div class="touch-actions"><button id="touch-weapon">WEAPON</button><button id="touch-grenade">GRENADE</button><button id="touch-reload">RELOAD</button><button id="touch-use">USE</button><button id="touch-aim" aria-label="Hold to aim down sights">AIM</button><button id="touch-jump">JUMP</button><button id="touch-fire">FIRE</button></div></div>
+        </div>
+        <div class="preview-tabs" role="tablist" aria-label="Preview information"><button role="tab" aria-selected="true" data-tab="preview">Preview</button><button role="tab" aria-selected="false" data-tab="performance">Performance</button><button role="tab" aria-selected="false" data-tab="logs">Logs</button><button id="play-preview" aria-label="Play game"><span data-icon="play"></span>Play</button></div>
+        <div class="preview-details" id="preview-details">Connect your blueprint, then click Generate & play.</div>
+      </section>
+      <section class="configuration panel">
+        <div class="panel-heading"><h2><span data-icon="settings"></span>Configuration</h2><span class="section-label" id="selected-label">THEME</span></div>
+        <div id="inspector"></div>
+        <div class="compile-footer"><button class="primary compile" id="compile-bottom"><span data-icon="bolt"></span>Generate & play<span data-icon="arrow"></span></button><span id="build-caption">From your choices to a playable shooter.</span></div>
+      </section>
+    </aside>
+  </main>
+  <footer class="statusbar"><span><i class="live-dot"></i><span id="engine-status">Blueprint ready · click Generate & play</span></span><span>VISIGAMES ENGINE <b>0.2</b></span></footer>
+</div>
+<section id="build" class="bld" aria-label="Level editor" hidden>
+  <header class="bld-top">
+    <button type="button" class="bld-back" data-bld="exit"><span data-bld-icon="chevronLeft"></span>Studio</button>
+    <button type="button" class="bld-btn bld-btn--ghost bld-games" data-bld="start" aria-label="Games and templates"><span data-bld-icon="games"></span><span class="bld-hide-md">Games</span></button>
+    <h1 class="bld-start-title" id="bld-start-title">Your games</h1>
+    <div class="bld-title">
+      <label class="sr-only" for="bld-name">Game title</label><input id="bld-name" maxlength="64" autocomplete="off" spellcheck="false">
+      <span id="bld-genre" class="bld-chip"></span>
+      <span id="bld-saved" class="bld-tally" role="status" aria-live="polite"></span>
+    </div>
+    <div class="bld-group" role="group" aria-label="History">
+      <button type="button" class="bld-icon" id="bld-undo" data-bld="undo" aria-label="Undo" disabled><span data-bld-icon="undo"></span></button>
+      <button type="button" class="bld-icon" id="bld-redo" data-bld="redo" aria-label="Redo" disabled><span data-bld-icon="redo"></span></button>
+    </div>
+    <div class="bld-spacer"></div>
+    <button type="button" class="bld-issues" id="bld-issues" data-bld="checks" aria-live="polite"></button>
+    <button type="button" class="bld-btn bld-btn--secondary bld-hide-sm" id="bld-export" data-bld="export"><span data-bld-icon="download"></span>Export</button>
+    <div class="bld-split">
+      <button type="button" class="bld-btn bld-btn--primary" id="bld-play" data-bld="play"><span data-bld-icon="play"></span><span class="bld-play-label">Play level</span></button>
+      <button type="button" class="bld-btn bld-btn--primary bld-split__more" id="bld-play-more" data-bld="play-menu" aria-label="More ways to play" aria-haspopup="menu" aria-expanded="false"><span data-bld-icon="chevronDown"></span></button>
+      <div class="bld-menu" id="bld-play-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-bld="play"><span data-bld-icon="play"></span>Play this level<kbd>F5</kbd></button>
+        <button type="button" role="menuitem" data-bld="play-here"><span data-bld-icon="playFrom"></span>Play from the cursor<kbd>P</kbd></button>
+        <button type="button" role="menuitem" data-bld="play-game"><span data-bld-icon="restart"></span>Play the whole game</button>
+      </div>
+    </div>
+  </header>
+  <nav id="bld-rail" class="bld-rail" aria-label="Tools"></nav>
+  <aside id="bld-left" class="bld-panel bld-left" aria-label="Outliner and palette">
+    <div class="bld-tabs" role="tablist" aria-label="Left panel">
+      <button type="button" role="tab" id="bld-tab-outliner" aria-controls="bld-outliner" aria-selected="true" data-bld-tab="outliner">Outliner</button>
+      <button type="button" role="tab" id="bld-tab-palette" aria-controls="bld-palette" aria-selected="false" data-bld-tab="palette" tabindex="-1">Palette</button>
+    </div>
+    <section id="bld-outliner" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-outliner"></section>
+    <section id="bld-palette" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-palette" hidden></section>
+  </aside>
+  <main id="bld-stage" class="bld-stage" aria-label="Level">
+    <div id="bld-view" class="bld-view">
+      <div class="bld-viewbar" role="toolbar" aria-label="View">
+        <div class="bld-seg" role="radiogroup" aria-label="Camera" id="bld-camera"></div>
+        <button type="button" class="bld-icon bld-icon--float" data-bld="focus" aria-label="Frame the selection (F)"><span data-bld-icon="focus"></span></button>
+        <button type="button" class="bld-toggle" data-bld="snap" aria-pressed="true"><span data-bld-icon="magnet"></span>Snap</button>
+        <button type="button" class="bld-toggle" data-bld="grid" aria-pressed="true"><span data-bld-icon="grid"></span>Grid</button>
+        <button type="button" class="bld-toggle" data-bld="reach" aria-pressed="false"><span data-bld-icon="issue"></span>Reach</button>
+      </div>
+      <div class="bld-marks" id="bld-marks" aria-hidden="true"></div>
+      <div class="bld-empty" id="bld-empty" hidden></div>
+      <div class="bld-pending" id="bld-pending" role="status" aria-live="polite" hidden></div>
+      <div class="bld-previewcap" id="bld-previewcap" hidden></div>
+    </div>
+    <div id="bld-levels" class="bld-levels" aria-label="Levels"></div>
+  </main>
+  <aside id="bld-right" class="bld-panel bld-right" aria-label="Inspector and checks">
+    <div class="bld-tabs" role="tablist" aria-label="Right panel">
+      <button type="button" role="tab" id="bld-tab-inspector" aria-controls="bld-inspector" aria-selected="true" data-bld-tab="inspector">Inspector</button>
+      <button type="button" role="tab" id="bld-tab-checks" aria-controls="bld-checks" aria-selected="false" data-bld-tab="checks" tabindex="-1">Checks</button>
+      <button type="button" role="tab" id="bld-tab-level" aria-controls="bld-level" aria-selected="false" data-bld-tab="level" tabindex="-1">Level</button>
+    </div>
+    <section id="bld-inspector" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-inspector"></section>
+    <section id="bld-checks" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-checks" hidden></section>
+    <section id="bld-level" class="bld-pane" role="tabpanel" aria-labelledby="bld-tab-level" hidden></section>
+  </aside>
+  <section id="bld-start" class="bld-start" aria-labelledby="bld-start-title"></section>
+  <footer id="bld-status" class="bld-status"></footer>
+  <nav id="bld-mobile" class="bld-mobilebar" aria-label="Editor panels"></nav>
+  <div id="bld-dialogs"></div>
+</section>
+<div class="toast" id="toast" role="status" hidden></div>
+<script type="module" src="/editor/studio.js"></script>
+</body>
+</html>

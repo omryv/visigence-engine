@@ -170,14 +170,21 @@ const game = mountGame({
   spawn: () => (customSpawn && spawnTag === worldTag() ? customSpawn : null),
   placeSpawn: () => { if (!armedSpawn) $("#btn-spawn").click(); },
   announce,
+  // The top bar names the view that is open: the world, the mission's graph, its levels (Play covers them all).
+  onView: (view) => {
+    for (const b of document.querySelectorAll("#modes [data-view]")) {
+      const on = b.dataset.view === view;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", String(on));
+    }
+  },
 });
 window.studio.game = game;
 $("#play-here").addEventListener("click", () => game.play());
-for (const a of document.querySelectorAll("[data-mode-link]")) {
-  a.addEventListener("click", () => {
-    const u = new URL(a.getAttribute("href"), location.href);
-    u.searchParams.set("seed", engine.params.seed);
-    a.href = u.pathname + u.search;
+for (const b of document.querySelectorAll("#modes [data-view]")) {
+  b.addEventListener("click", () => {
+    if (b.dataset.view === "world") game.leave();
+    else game.openWorkspace(b.dataset.view);
   });
 }
 

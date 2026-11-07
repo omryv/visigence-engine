@@ -12,7 +12,7 @@
  * Chromium's WebGPU adapter here (SwiftShader) loses the device as soon as anything presents to a canvas, so the
  * WebGPU frame cannot be watched; but it compiles shaders correctly, uniformity included. So this:
  *
- *   1. opens world.html on the renderer's WebGL2 backend (which runs here) and lets the world build, optionally built
+ *   1. opens the editor (index.html) on the renderer's WebGL2 backend (which runs here) and lets the world build, optionally built
  *      on through the editor's own commands (woods planted, a town placed), with a fire lit, weather falling and the
  *      clock at night, so that every kind of object the engine draws is in the scene;
  *   2. asks a second renderer, on the WebGPU backend, for the WGSL three generates for every distinct material in
@@ -46,7 +46,7 @@ const js = async (expression) => {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let failures = 0;
 try {
-  await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/world.html?renderer=webgl&gfx=${TIER}` }, sessionId);
+  await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?renderer=webgl&gfx=${TIER}` }, sessionId);
   const t0 = Date.now();
   while (!(await js('!!(window.engine && window.engine.terrain && window.engine.terrain.tiles.size > 0)').catch(() => false))) {
     if (Date.now() - t0 > 180000) throw new Error('the world did not build');

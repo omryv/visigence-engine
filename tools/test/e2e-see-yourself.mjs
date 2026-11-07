@@ -27,7 +27,7 @@ try {
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/WebGPU|Failed to load resource/.test(m.text())) errors.push(m.text()); });
-  await page.goto(`http://127.0.0.1:${PORT}/index.html?mode=play&debug=1`);
+  await page.goto(`http://127.0.0.1:${PORT}/game.html?mode=play&debug=1`);
   await page.waitForFunction(() => window.__studio, null, { timeout: 60000 });
   await page.click('.front-import');
   await page.waitForSelector('dialog.prop-dialog .photo-prop', { timeout: 30000 });

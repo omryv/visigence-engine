@@ -36,19 +36,24 @@ function icons(root = document) {
   for (const el of root.querySelectorAll('[data-icon]')) el.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[el.dataset.icon] ?? ''}</svg>`;
 }
 icons();
-/* THE GAME INSIDE THE WORLD EDITOR. The editor (world.html) plays its mission by opening this document over its
+/* THE GAME INSIDE THE WORLD EDITOR. The editor (index.html, at /) plays its mission by opening this document over its
    viewport with the mission in the address (src/world/editorMission.js). Then it is a standalone game, as an exported
    one is: no launcher, no studio, the mission built and played at once; "Back to the world" hands control back to
    the editor. And it stores nothing, because the editor promises that: storage is this page's memory while it runs. */
 const fromEditor = typeof location !== 'undefined' ? missionFromEditor(location) : null;
+/* …and a workspace of the editor: the mission graph (Remix) or the level editor (Build), on the editor's mission.
+   Every edit goes back to the editor, which keeps the mission; Generate & play asks the editor to play it there. */
+const workspace = fromEditor?.workspace ?? null;
 if (fromEditor) {
-  document.body.dataset.build = 'standalone'; document.body.dataset.embed = 'world';
+  if (workspace) document.body.dataset.workspace = workspace; else document.body.dataset.build = 'standalone';
+  document.body.dataset.embed = 'world';
   const mem = new Map(), memory = { getItem: k => mem.has(k) ? mem.get(k) : null, setItem: (k, v) => { mem.set(k, String(v)); }, removeItem: k => { mem.delete(k); }, clear: () => mem.clear(), key: i => [...mem.keys()][i] ?? null, get length() { return mem.size; } };
   Object.defineProperty(window, 'localStorage', { value: memory, configurable: true });
   Object.defineProperty(window, 'sessionStorage', { value: memory, configurable: true });
 }
 const embedded = !!fromEditor;
-const leaveForWorld = () => window.parent?.postMessage({ type: 'visigence:leave-game' }, location.origin);
+const toEditor = (message) => window.parent?.postMessage(message, location.origin);
+const leaveForWorld = () => toEditor({ type: workspace ? 'visigence:leave-workspace' : 'visigence:leave-game' });
 const standalone = document.body.dataset.build === 'standalone';
 const environmentName=p=>THEMES[p.theme];
 const weaponOptions = () => CATALOG[project.theme].weapons.map(w=>[w.id,w.label]);
@@ -65,12 +70,13 @@ let run = null, runToken = 0, runFailed = null;
  * `graphLink` while the node graph edits a Build level (its edits and undo go to the level editor's store).
  */
 let buildMode = null, buildFrom = 'remix', buildEnd = null, graphLink = null, linkedFrom = null;
-if (fromEditor?.project) project = fromEditor.project;
+if (fromEditor?.project) { project = fromEditor.project; if (!workspace && fromEditor.game) run = createRun(fromEditor.game, portalHooks()); }
 else try { const saved = standalone ? $('#compiled-project').textContent : (localStorage.getItem(STORAGE) ?? localStorage.getItem('vsight.shooter.project.v1')); if (saved) { const doc = parseProjectText(saved).project; project = resolveProject(doc); if (standalone && isGame(doc)) run = createRun(resolveGame(doc), portalHooks()); } } catch { /* Invalid/old saved projects use supported defaults. */ }
 
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 4200); }
 function log(message) { logs.push(message); logs = logs.slice(-8); updateDetails(); }
 function save() {
+  if (workspace === 'remix' && !graphLink) { toEditor({ type: 'visigence:mission', mission: project }); return; }
   if (standalone || graphLink) return;
   try { localStorage.setItem(STORAGE, JSON.stringify(project)); $('#save-status').innerHTML = '<i></i>Saved locally'; }
   catch { $('#save-status').textContent = 'Session only'; }
@@ -399,7 +405,7 @@ $('#inspector').addEventListener('change', e => {
 });
 $('#project-name').addEventListener('change', e => change({ name: e.target.value }));
 $('#project-name').addEventListener('input', e => change({ name: e.target.value }));
-for (const button of document.querySelectorAll('.compile')) button.addEventListener('click', () => queueBuild(true));
+for (const button of document.querySelectorAll('.compile')) button.addEventListener('click', () => workspace === 'remix' ? toEditor({ type: 'visigence:play', mission: project }) : queueBuild(true));
 $('#play-preview').addEventListener('click', openPlay);
 $('#expand-preview').addEventListener('click', openPlay); $('#close-preview').addEventListener('click', () => { if (expanded && session?.playing) { session.stop(); return; } closePlay(); });
 let gameMuted = false;
@@ -461,8 +467,10 @@ $('#touch-weapon').addEventListener('click',()=>{if(session?.game?.weapons){cons
 $('#touch-grenade').addEventListener('click',()=>{if(session)session.actions.grenade=true;});
 $('#touch-reload').addEventListener('click', () => { if (session) session.actions.reload = true; });
 $('#game-pause').addEventListener('click', () => { if (session?.playing) { session.stop(); session.audio?.playOneShot('uiEsc'); } });
-$('#overlay-exit').addEventListener('click', () => embedded ? leaveForWorld() : $('#close-preview').click());
+$('#overlay-exit').addEventListener('click', () => embedded && !workspace ? leaveForWorld() : $('#close-preview').click());
 if (embedded) $('#overlay-exit').textContent = 'Back to the world';
+// In the editor's Level workspace the level editor's way back goes to the editor's world.
+if (workspace === 'build') for (const b of document.querySelectorAll('.bld-back[data-bld="exit"]')) b.lastChild.textContent = 'World';
 window.addEventListener('pagehide', () => session?.dispose(), { once: true });
 try {$('#look-sensitivity').value=localStorage.getItem('visigames.lookSensitivity')??'1';}catch{}
 $('#look-sensitivity-value').textContent=Number($('#look-sensitivity').value).toFixed(1)+'×';
@@ -471,11 +479,13 @@ document.title = standalone ? project.name : 'Visigence Engine';
 if (standalone) $('#preview-panel h2').textContent = `${THEMES[project.theme]} / Mission`;
 installModelCards();
 playerFront=mountPlayerFront({getProject:()=>project,change,play:()=>queueBuild(true),remix:()=>{render();requestAnimationFrame(fitGraph);},build:()=>enterBuild(),toast,download:downloadGame});
-render(); save();
+render(); if (!workspace) save();
 if (fromEditor?.error) errorDisplay(new Error(`The world editor's mission cannot be read: ${fromEditor.error}`));
 else if (standalone) queueBuild(true);
+else if (workspace === 'remix') playerFront.mode('remix');
+else if (workspace === 'build') enterBuild(fromEditor.game ?? resolveGame(project));
 // Arriving from the landing page with a vision: build it and open the canvas on it (docs/VISION.md).
-const vision = standalone ? null : visionFromURL();
+const vision = standalone || workspace ? null : visionFromURL();
 if (vision) arriveWithVision(vision, { change, toast, fitGraph, enterCanvas: () => {
   document.body.dataset.mode = 'remix'; $('#remix-return').hidden = false; window.scrollTo(0, 0);
   node = 'generator'; board.selected = null; category = 'themes';
@@ -483,7 +493,7 @@ if (vision) arriveWithVision(vision, { change, toast, fitGraph, enterCanvas: () 
 // Arriving from the landing hub on a tool: ?mode=build (with &template=, &game= or &new=<genre>) opens the level editor,
 // ?mode=remix the mission graph; ?genre= and ?world= were read by the launcher (docs/STUDIO.md). The link is then taken
 // off the address, so a reload does not, say, copy the template again.
-if (!standalone && typeof location !== 'undefined') {
+if (!standalone && !workspace && typeof location !== 'undefined') {
   const link = new URLSearchParams(location.search), HUB = ['mode', 'template', 'game', 'new', 'genre', 'world'];
   const linked = link.get('mode');
   if (!vision && linked === 'build') enterBuild(null, { template: link.get('template'), game: link.get('game'), blank: link.get('new') });
@@ -617,8 +627,16 @@ async function enterBuild(game = null, route = null) {
   completedBuild = null; session?.stop();
   if (route && buildMode.route(route)) return;
   await buildMode.show(game);
+  // In the editor's Level workspace every step of the level editor goes back to the editor, which keeps the mission.
+  const st = buildMode.store;
+  if (workspace === 'build' && st && !st.toEditor) {
+    let t = null;
+    st.toEditor = true;
+    st.on('*', (kind) => { if (kind === 'history' || kind === 'game' || kind === 'level') { clearTimeout(t); t = setTimeout(() => toEditor({ type: 'visigence:mission', mission: st.game }), 120); } });
+  }
 }
 function exitBuild() {
+  if (workspace === 'build') { const st = buildMode?.store; if (st) toEditor({ type: 'visigence:mission', mission: st.game }); leaveForWorld(); return; }
   buildMode?.hide();
   $('#preview-panel').insertBefore($('#preview-viewport'), $('#preview-panel .preview-tabs'));
   document.body.dataset.mode = buildFrom;
@@ -653,6 +671,7 @@ function leaveGraph() { graphLink = null; project = linkedFrom ?? project; linke
 $('#back-to-build').addEventListener('click', () => { leaveGraph(); enterBuild(); });
 // Remix's mission, as a new game in the level editor.
 $('#open-build').addEventListener('click', async () => {
+  if (workspace === 'remix') { toEditor({ type: 'visigence:workspace', to: 'build', mission: project }); return; }
   const { resolveGame } = await import('../src/world/shooterProject.js');
   const game = resolveGame(project), label = genreOf(game).label;
   // a ready-made mission is named by its genre; kept as a game it is someone's own, as a template's copy is

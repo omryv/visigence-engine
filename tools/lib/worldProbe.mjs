@@ -1,4 +1,4 @@
-/** In-page helpers for the browser checks that drive the world editor (world.html). Each is stringified and run in
+/** In-page helpers for the browser checks that drive the editor (index.html). Each is stringified and run in
  *  the page, so it may use only its argument. */
 
 /* Dry, fairly level ground nearest the middle of the world: where a town can stand. */

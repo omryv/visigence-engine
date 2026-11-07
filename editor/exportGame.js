@@ -29,13 +29,14 @@ export async function zipFiles(files) {
   return new Blob([...body,...directory,end],{type:'application/zip'});
 }
 /**
- * The studio's own page, which becomes the game's index.html: `index.html` at the root (a checkout and the deployed
- * build alike), or whatever page path it was opened at.
+ * The game runtime's own page, which becomes the game's index.html: `game.html` (the root is the world editor), in a
+ * checkout and the deployed build alike, or whatever page path the runtime was opened at.
  */
 function studioPage() {
-  if (typeof location === 'undefined') return 'index.html';
+  if (typeof location === 'undefined') return 'game.html';
   const page = location.pathname.replace(/^\/+|\/+$/g, '');
-  return !page || page.endsWith('index.html') ? 'index.html' : page;
+  if (!page || page === 'index.html') return 'game.html';
+  return page.endsWith('.html') ? page : `${page}.html`;
 }
 /**
  * Where a web portal's SDK plugs in (editor/gameRun.js): written into the exported page before the game's modules, so

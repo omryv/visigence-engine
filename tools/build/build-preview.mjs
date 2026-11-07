@@ -13,9 +13,9 @@ writeAssetManifest(); // Validate the committed inventory; art is served from R2
 // This path is fixed to the repository's generated output; never take it from user input.
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
-// The one tool is the site, exactly as in a checkout: the studio (Play, Remix, Build) at index.html, World (the world
-// engine's editor) at world.html, and the icons they link.
-for (const page of ['index.html', 'world.html', 'favicon.png', 'apple-touch-icon.png'])
+// The one tool is the site, exactly as in a checkout: the editor (the world and the game) at index.html, the game
+// runtime it plays in and exports (game.html), and the icons they link.
+for (const page of ['index.html', 'game.html', 'favicon.png', 'apple-touch-icon.png'])
   cpSync(path.join(root, page), path.join(output, page));
 for (const directory of directories) {
   cpSync(path.join(root, directory), path.join(output, directory), {

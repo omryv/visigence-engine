@@ -4,5 +4,9 @@
   "installCommand": "",
   "buildCommand": "node tools/build/build-preview.mjs",
   "outputDirectory": "dist",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/world", "destination": "/", "permanent": true },
+    { "source": "/world.html", "destination": "/", "permanent": true }
+  ]
 }

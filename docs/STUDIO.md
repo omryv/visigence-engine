@@ -1,6 +1,9 @@
 # The studio: Play, Remix and Build
 
-The studio (the page at the root, beside World mode: see the README) is a visual creation engine for 3D arcade games:
+The studio is the game engine's side of the one editor: its mission graph and level editor are the editor's
+**Mission** and **Level** views, run inside the editor (`index.html`, at `/`) on the editor's own mission, and its game
+runtime is what the editor's **Play** runs and what an exported game is (see the README, "The editor"). Its page is
+`game.html`. It is a visual creation engine for 3D arcade games:
 a first-person shooter, first-person exploration, a third-person action adventure, a top-down arena shooter and a 3D
 collect-a-thon ([GENRES.md](GENRES.md)). The Arcade pack provides its asset pools (its enemies are generated critters
 that fight in melee, and its models are drawn toon-shaded with outlines). A seed, connected pools and mission sequence
@@ -15,8 +18,10 @@ breaks and a rewarded continue.
 
 ## Deep links
 
-A link opens the page on the thing it names, through these query parameters. With none of them (and no shared
-`?mission=`), the page opens on World. The studio reads them once on arrival and removes them from the address bar,
+A link opens `game.html` on the thing it names, through these query parameters (the editor at `/` sends these old
+addresses there). With none of them (and no shared `?mission=`), the page opens its launcher. Inside the editor the
+page is opened with `?embed=world` instead (`src/world/editorMission.js`): `&workspace=remix|build` for the Mission and
+Level views, none for Play. The studio reads them once on arrival and removes them from the address bar,
 so a reload does not repeat them; anything else in the query (`?debug=1`) stays.
 
 | Link | Opens |

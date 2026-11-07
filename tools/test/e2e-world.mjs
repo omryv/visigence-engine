@@ -1,12 +1,12 @@
 /**
- * ONE EDITOR, IN A BROWSER: the world is made in the world editor (world.html) and the game is set up and played there,
+ * ONE EDITOR, IN A BROWSER: the world is made in the editor (index.html, the page at /) and the game is set up and played there,
  * on that world, without leaving the page.
  *
  *   node tools/test/stand-in-assets.mjs     # once, where the R2 origin is unreachable (the game's art)
  *   node tools/test/e2e-world.mjs
  *
  * Through the page's own surfaces:
- *   1. world.html opens the world engine on the engine's renderer, on the default seed's own world;
+ *   1. the editor opens the world engine on the engine's renderer, on the default seed's own world;
  *   2. the command palette plants the woods (⌘K, "Plant woods", Enter), and a town is placed on the world's land
  *      through the editor's own site command (its pads sculpt the ground);
  *   3. the deck's Game button opens the Game panel; the mission is set to an arena shooter standing at the spawn
@@ -77,7 +77,7 @@ async function page(url) {
 
 try {
   // ── 1. World ─────────────────────────────────────────────────────────────────
-  const w = await page(`http://127.0.0.1:${PORT}/world.html?renderer=webgl&gfx=low&debug=1`);
+  const w = await page(`http://127.0.0.1:${PORT}/?renderer=webgl&gfx=low&debug=1`);
   await w.until(`!!(window.engine && engine.terrain && engine.terrain.tiles.size > 0)`, 180000, 'the world engine');
   check('World opens the world engine on the engine\'s renderer', (await w.js('engine.backend')) === 'webgl2');
   const opened = await w.js(`(async () => (await import('/src/kernel/seed.js')).DEFAULT_SEED === engine.params.seed)()`);
@@ -141,6 +141,33 @@ try {
   await w.js(`${G}.document.querySelector('#overlay-exit').click()`);
   await w.until(`!document.querySelector('#game-layer') && !document.body.classList.contains('in-game')`, 10000, 'the world again');
   check('"Back to the world" takes the game down and the world runs again', !(await w.js('engine.paused')) && (await w.js('engine.props.items.size')) === built.props);
+  // ── 6. Mission: the graph, in the editor, on the editor's mission ──────────────
+  await w.click('#modes [data-view="remix"]');
+  const WS = 'document.querySelector("#workspace-layer iframe").contentWindow';
+  await w.until(`!!document.querySelector('#workspace-layer iframe') && ${WS}.document.body.dataset.mode === 'remix' && !!${WS}.__studio`, 120000, 'the Mission workspace');
+  const ws1 = JSON.parse(await w.js(`JSON.stringify({ genre: ${WS}.__studio.project.genre, seed: ${WS}.__studio.project.seed, site: ${WS}.__studio.project.worldSite, on: document.querySelector('#modes .on')?.dataset.view, paused: engine.paused, bar: getComputedStyle(document.querySelector('#readout')).visibility })`));
+  check('Mission opens the mission graph in the page, under the editor\'s top bar, on the editor\'s mission',
+    ws1.genre === 'arena' && ws1.seed === built.seed && ws1.on === 'remix' && ws1.paused && ws1.bar === 'visible', JSON.stringify(ws1));
+  await w.js(`${WS}.__studio.change({ name: 'Harbour defence' })`);
+  await w.until(`studio.game.mission()?.name === 'Harbour defence'`, 10000, 'the edit to reach the editor');
+  check('an edit in the graph is the editor\'s mission', true);
+  await w.js(`${WS}.document.querySelector('#compile-top').click()`);
+  await w.until(`!!document.querySelector('#game-layer iframe') && !!${G}.__studio?.completedBuild`, 300000, 'the edited mission');
+  check('Generate & play in the graph plays the edited mission in the editor', (await w.js(`${G}.__studio.project.name`)) === 'Harbour defence');
+  await w.js(`${G}.document.querySelector('#overlay-exit').click()`);
+  await w.until(`!!document.querySelector('#workspace-layer iframe') && ${WS}.document.body.dataset.mode === 'remix'`, 60000, 'the graph again');
+  check('leaving that game returns to the graph', true);
+  // ── 7. Level: the level editor, in the editor ─────────────────────────────────
+  await w.click('#modes [data-view="build"]');
+  await w.until(`!!document.querySelector('#workspace-layer iframe') && ${WS}.document.body.dataset.mode === 'build' && !!${WS}.__studio?.build?.store`, 180000, 'the Level workspace');
+  const lvl = JSON.parse(await w.js(`JSON.stringify({ name: ${WS}.__studio.build.store.game.name, levels: ${WS}.__studio.build.store.game.levels.length, seed: ${WS}.__studio.build.store.game.levels[0].seed })`));
+  check('Level opens the level editor in the page on the same mission', lvl.name === 'Harbour defence' && lvl.seed === built.seed, JSON.stringify(lvl));
+  await sleep(3000);
+  const ls = await w.shot('level-in-the-editor');
+  console.log(`       level: ${ls.file} (${ls.colours} colours)`);
+  await w.click('#modes [data-view="world"]');
+  await w.until(`!document.querySelector('#workspace-layer') && !engine.paused`, 10000, 'the world');
+  check('World takes the workspace down and the world runs again, the mission kept', (await w.js(`studio.game.mission()?.name`)) === 'Harbour defence');
 } catch (err) {
   check('the run finished', false, err.message);
 } finally {

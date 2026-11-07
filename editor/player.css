@@ -244,3 +244,7 @@ body:is([data-mode=play],[data-build=standalone]) .preview-panel.expanded :is(.g
 /* The game inside the world editor (editor/world/game.js): "Back to the world" is the one way out, so it shows on the
    pause screen and after the result, where a standalone game hides its exit. */
 body[data-embed=world] #overlay-exit,body[data-embed=world] .play-overlay:has(#mission-result:not([hidden])) #overlay-exit{display:inline-flex;align-items:center;justify-content:center}
+/* A workspace of the editor (the mission graph, the level editor): the editor around it owns the project's name, its
+   files and Play, so the studio's own front, file buttons and game-output panel step aside. */
+body[data-workspace] :is(#player-front,#remix-return,.navigation .brand,.nav-bottom,#new-project){display:none!important}
+body[data-workspace=remix] #preview-panel{display:none!important}
