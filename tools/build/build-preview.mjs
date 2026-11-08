@@ -27,4 +27,4 @@ for (const directory of directories) {
     },
   });
 }
-console.log('Visigence Engine built in dist/ (the editor at /; its views' pages /game, /2d and /my-3d-engine; the kernel at src/kernel/, the world engine at src/genesis/, the reconstruction at src/atlas/; art served from R2)');
+console.log('Visigence Engine built in dist/ (the editor at /; the pages of its views at /game, /2d and /my-3d-engine; the kernel at src/kernel/, the world engine at src/genesis/, the reconstruction at src/atlas/; art served from R2)');

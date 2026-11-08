@@ -143,6 +143,7 @@ const VENDORED = [
 const CHECKS = [
   ['check-imports', 'tools/check-imports.mjs'],
   ['check-three', 'tools/three/check.mjs'],
+  ['check-site-build', 'tools/test/check-site-build.mjs'],
 ];
 /**
  * A suite that cannot run here at all (test-kernel-parity without python3) exits 0 and prints a
