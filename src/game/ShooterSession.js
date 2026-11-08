@@ -47,10 +47,26 @@ const accentColors = { cyan: 0x25eff0, violet: 0x9d7cff, amber: 0xffb54a };
 const LEVER_THROW = 0.62;
 
 
-/** Browser host shared by the editor preview and playable output. */
+/**
+ * Browser host shared by the editor preview and playable output.
+ *
+ * HOSTED (`host`): the session plays inside another renderer's world instead of its own, which is how the editor's
+ * World view plays a mission on the world it holds (editor/world/play.js). The host owns the renderer, the frame loop,
+ * the sky, the sun, the ground and the post stack; the session brings the game and everything that is the game's: the
+ * mission's things, the critters, the weapon and the hands, the effects and the sound. Its world things go in
+ * `host.parent` (a group the host puts where the level's origin is on its world), the host calls `frame(now)` once a
+ * frame before it draws, and draws the view model after its own frame with `renderOverlay(renderer)`.
+ *
+ *   host.renderer        the host's renderer (never resized, re-ratioed, looped or disposed here)
+ *   host.parent          the Object3D the session's world things go into
+ *   host.world           the host's scene, read for its environment (the view model is lit by it)
+ *   host.lights          {hemi, sun} the host's lights, which the view model's lights copy
+ *   host.sunDir(out)     writes the direction toward the sun into `out`
+ *   host.level(level)    the compiled level, put on the host's world (src/world/worldPlay.js worldLevel)
+ */
 export class ShooterSession {
-  constructor(canvas, { onStatus = () => {}, onFrame = () => {}, onError = () => {}, onFeedback = () => {}, onLevelEvent = () => {} } = {}) {
-    Object.assign(this, { canvas, onStatus, onFrame, onError, onFeedback, onLevelEvent });
+  constructor(canvas, { onStatus = () => {}, onFrame = () => {}, onError = () => {}, onFeedback = () => {}, onLevelEvent = () => {}, host = null } = {}) {
+    Object.assign(this, { canvas, onStatus, onFrame, onError, onFeedback, onLevelEvent, host });
     this.keys = new Set(); this.actions = {}; this.look = { x: 0, y: 0 };
     this.touchMove = { x: 0, y: 0 }; this.playing = false; this.last = 0;
     this.abort = new AbortController(); this.owned = new Set();
@@ -61,6 +77,14 @@ export class ShooterSession {
     this.performanceProfile=sessionQuality('quality',detectProfile(),qualityOverride(location.search));
     this.framePacer=new FramePacer();
     this.assets = new AssetLoader({ definitions: {}, maxTextureSize: 1024, anisotropy: 4 });
+    if (this.host) {
+      // The host's renderer, drawn by the host's loop: nothing here starts a loop or sizes the canvas.
+      this.renderer = this.host.renderer;
+      this.assets.enableCompressedTextures(this.renderer);
+      if(this.performanceProfile.mobile)await WorldModelBatch.ready();
+      this.renderingActive = true;
+      return;
+    }
     const boot = await createRenderer({ canvas: this.canvas, tier: {...this.performanceProfile,softShadows:false},
       onNeedFreshCanvas: () => {
         const next = this.canvas.cloneNode(); this.canvas.replaceWith(next); this.canvas = next; return next;
@@ -81,7 +105,7 @@ export class ShooterSession {
     this.renderingActive = active;
     this.framePacer?.reset();this.adaptation?.reset();
     this.last = 0;
-    this.renderer?.setAnimationLoop(active ? this.animate : null);
+    if (!this.host) this.renderer?.setAnimationLoop(active ? this.animate : null);
   }
   async build(project, {isCurrent=()=>true}={}) {
     this.stop();
@@ -97,7 +121,10 @@ export class ShooterSession {
     // The level is built from the pack as its world option sees it: the desert oasis swaps in its own houses, trees,
     // flora, landmarks, ground and props (world/pack.js biomePack); the session loads and draws from that pack.
     // A game whose genre fires nothing is exported without weapons (world/gameBundle.js).
-    const level=compileShooterProject(project,resolvePack(this.manifest,CATALOG[project.theme].measurements,null,{weaponless:!genreOf(project).weapons}));project=level.project;
+    let level=compileShooterProject(project,resolvePack(this.manifest,CATALOG[project.theme].measurements,null,{weaponless:!genreOf(project).weapons}));
+    // Hosted, the level is put on the host's world (its ground, water and walls) before anything is built on it.
+    if(this.host)level=this.host.level(level);
+    project=level.project;
     const pack=level.pack;
     const {pools}=level.blueprint;
     /**
@@ -141,13 +168,13 @@ export class ShooterSession {
     this.framePacer.cap=project.frameRate??60;this.framePacer.reset();
     this.renderScale=policy.renderScale;
     this.adaptation=new SessionAdaptation(policy,project.frameRate,scale=>{this.renderScale=scale;this._applyRenderScale();});
-    this.renderer.shadowMap.enabled=policy.shadows;
-    this._applyRenderScale();
+    if(!this.host){this.renderer.shadowMap.enabled=policy.shadows;this._applyRenderScale();}
     // A daylit pastel world wants a faint glow.
     profile.bloomStrength = .12;
     const webgpu = !!this.renderer.backend?.isWebGPUBackend;
     // Decided BEFORE any material exists: an unlit material's MRT declaration is compiled in.
-    setUnlitMrtEnabled(profile.postFX && profile.ssr && webgpu, profile.postFX && profile.ao);
+    // Hosted, there is no post stack of the session's own, so no material declares the targets it would read.
+    if(this.host)setUnlitMrtEnabled(false,false);else setUnlitMrtEnabled(profile.postFX && profile.ssr && webgpu, profile.postFX && profile.ao);
     // Arcade draws its GLBs toon-shaded with outline shells (render/ArcadeToon.js).
     // `?toon=off` shows the same files through the plain PBR path, for comparison and diagnosis.
     const query = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null, toonOff = query?.get('toon') === 'off';
@@ -172,10 +199,18 @@ export class ShooterSession {
     this.landmarkRules = this.worldRules?.landmarks ?? null; this.landmarkMaterials = new Map();
     this.landmarks = this.landmarkRules && this.assets.has(this.landmarkRules.library)
       ? createLandmarkAssembler({ library: this.assets.get(this.landmarkRules.library).gltf.scene, material: (slot, hex) => this._landmarkMaterial(slot, hex) }) : null;
+    if(this.host){
+      // The host's world: the session's things go in a group of their own there, lit by the host's sky and sun.
+      this.scene=new Group();this.scene.name='HostedGame';this.host.parent.add(this.scene);
+      this.worldModels=policy.mobile?new WorldModelBatch(this.scene,this.owned):null;
+    }else{
     this.renderer.toneMappingExposure = look.lighting.exposure ?? 1.18;
     this.scene = new Scene();this.worldModels=policy.mobile?new WorldModelBatch(this.scene,this.owned):null; this.scene.background = new Color(project.lighting === 'night' ? 0x101d2c : 0x71818f);
     this.scene.fog = new Fog(this.scene.background, 42, 150);
-    this.camera = new PerspectiveCamera(58, 1, 0.06, 300); this.scene.add(this.camera);
+    }
+    // Hosted, the eye stays in the level's own frame, out of the host's scene: a genre's camera aims in level
+    // coordinates (lookAt reads world ones), and the host puts its own eye where this one is, plus the level's origin.
+    this.camera = new PerspectiveCamera(58, 1, 0.06, 300); if (!this.host) this.scene.add(this.camera);
     this.vmScene = new Scene(); this.vmCamera = new PerspectiveCamera(CAMERA.viewmodelFov,1,CAMERA.viewmodelNear,CAMERA.viewmodelFar); this.vmScene.add(this.vmCamera);
     /**
      * The view model is lit by COPIES of the world's lights, refreshed every frame in
@@ -193,7 +228,9 @@ export class ShooterSession {
      * Before this the VFX pool's lights were emitters with no rig to show them - a muzzle
      * flash lit nothing in the studio.
      */
-    this.rig = new LightRig(this.scene, profile.lights);
+    // Hosted, the host's lights are the only lights in its world: a pool of the session's own would change the light
+    // count of every material there (a shader rebuild of the whole world), so the effects light nothing.
+    this.rig = this.host ? null : new LightRig(this.scene, profile.lights);
     this.accent = accentColors[project.palette];
     this.sun = null; this.sky = null; this.fogUniforms = null;
     /**
@@ -203,6 +240,10 @@ export class ShooterSession {
      * puddle in front of it agree.
      */
     const L = look.lighting;
+    if(this.host){
+      this.sky={sunDir:new Vector3(0,1,0),dispose(){}};this.host.sunDir?.(this.sky.sunDir);
+      this.hemi=this.host.lights.hemi;this.sun=this.sunLight=this.host.lights.sun;
+    }else{
     this.sky = new SkyEnvironment(this.renderer, look.sky, { accent: this.accent, probeSize: policy.probeSize });
     this.sky.applyTo(this.scene, { environmentIntensity: L.env });
     this.fogUniforms = createFogUniforms(look.fog, look.sky, this.sky.uniforms);
@@ -214,10 +255,12 @@ export class ShooterSession {
     sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.03;
     this.scene.add(sun, sun.target); this.sun = this.sunLight = sun;
     fitSunShadow(sun, new Vector3(0, 0, 28), { halfExtent: 26 });
+    }
     buildCombatEnvironment(this);
-    this.vmScene.environment = this.scene.environment; this.vmScene.environmentIntensity = this.scene.environmentIntensity * .8;
+    const lit = this.host ? this.host.world : this.scene;
+    this.vmScene.environment = lit.environment ?? null; this.vmScene.environmentIntensity = (lit.environmentIntensity ?? 1) * .8;
     this.vfx = new VFX(this.scene, { particleScale: profile.particleScale, maxLights: profile.liveEffectLights, lightCapacity: 6, decalCapacity: profile.maxDecals, maxDecals: profile.maxDecals, anisotropy: profile.anisotropy });
-    this.rig.addAll(this.vfx.lights);
+    this.rig?.addAll(this.vfx.lights);
     this.tracers = new TracerPool(this.scene, 32, 0.09);
     this.audio = new CombatAudio({sounds: pack.sounds});
     await this.audio.preload();
@@ -264,7 +307,7 @@ export class ShooterSession {
       this.vmCamera.add(this.firstPersonArms);
     }
     this.scene.traverse(o => { for (const m of (Array.isArray(o.material) ? o.material : o.material ? [o.material] : [])) if (m.isMeshBasicMaterial) excludeFromEnvironment(m); });
-    if (profile.postFX) {
+    if (profile.postFX && !this.host) {
       this.post = new PostFX({ renderer: this.renderer, worldScene: this.scene, worldCamera: this.camera, viewmodelScene: this.vmScene, viewmodelCamera: this.vmCamera }, profile);
       this.post.setLook(look);
     }
@@ -550,11 +593,19 @@ export class ShooterSession {
     container.addEventListener('contextmenu', e => e.preventDefault(), options);
   }
   _applyRenderScale() {
+    if(this.host)return;   // the host's renderer keeps its own pixel ratio
     const p=this.performanceProfile;
     this.renderer.setPixelRatio(Math.min(devicePixelRatio,p.maxPixelRatio)*(this.renderScale??1));
   }
   resize() {
     if (!this.renderer || !this.camera) return;
+    if (this.host) {
+      // The host sizes its canvas; the session's eye and the view model's only take its shape.
+      const w = this.canvas.clientWidth || 1, h = this.canvas.clientHeight || 1;
+      this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
+      if (this.vmCamera) { this.vmCamera.aspect = this.camera.aspect; this.vmCamera.updateProjectionMatrix(); }
+      return;
+    }
     const rect = this.canvas.parentElement.getBoundingClientRect();
     const size = viewportSize(rect.width, rect.height);
     // A collapsed viewport draws nothing and keeps its last real size; see core/Renderer.js viewportSize.
@@ -637,8 +688,10 @@ export class ShooterSession {
     // The camera is final here: the rig scores from the eye, the shadow follows the feet.
     this.camera.updateMatrixWorld();
     this.audio?.updateListener(this.camera);
-    this.rig.update(this.camera.position, null, 0, dt);
-    if (this.sun) fitSunShadow(this.sun, edit ? { x: edit.focus.x, y: 0, z: edit.focus.z } : p.position, { halfExtent: 26 });
+    this.rig?.update(this.camera.position, null, 0, dt);
+    // Hosted, the host's sun keeps the host's shadow; its direction is all the view model needs of it.
+    if (this.host) this.host.sunDir?.(this.sky.sunDir);
+    else if (this.sun) fitSunShadow(this.sun, edit ? { x: edit.focus.x, y: 0, z: edit.focus.z } : p.position, { halfExtent: 26 });
     this._mirrorViewLights();
     if (this.post) {
       this.post.setAds(this.viewmodel?.ads?.blend ?? 0);
@@ -646,7 +699,9 @@ export class ShooterSession {
     }
     this.worldModels?.update();
     this.performanceMonitor?.beginFrame();
-    if (this.post) this.post.render();
+    // Hosted, the host draws its world (the session's things are in it) and then the view model (renderOverlay).
+    if (this.host) { /* drawn by the host */ }
+    else if (this.post) this.post.render();
     else {
       this.renderer.render(this.scene, this.camera);
       this.renderer.autoClear = false; this.renderer.clearDepth(); this.renderer.render(this.vmScene, this.vmCamera); this.renderer.autoClear = true;
@@ -655,6 +710,11 @@ export class ShooterSession {
     this.performanceMonitor?.sample(now);
     this.onFrame({ ...game.hudState, playing: this.playing, genre: this.genre.id, view, fps: Math.round(1 / Math.max(0.001, elapsed)), inventory:(game.weapons?.order??[]).map((id,i)=>`${i+1} ${this.pack.weapons[id].id}`),
       draws: this.renderer.info.render.drawCalls ?? this.renderer.info.render.calls, triangles: this.renderer.info.render.triangles });
+  }
+  /** Hosted: the view model, drawn over the host's frame (the host has cleared the depth and turned autoClear off). */
+  renderOverlay(renderer = this.renderer) {
+    if (!this.game || !this.vmScene) return;
+    renderer.render(this.vmScene, this.vmCamera);
   }
   /** A hand-built level's moving parts follow its script: doors swing, padlocks go, levers throw, taken items vanish. */
   _syncLevelScript(script) {
@@ -703,10 +763,14 @@ export class ShooterSession {
     this.genrePlayerVisual?.dispose?.();this.genrePlayerVisual=null;
     this.post?.dispose(); this.post = null; this.sky?.dispose(); this.sky = null; this.rig?.dispose(); this.rig = null; this.armsAnimator?.dispose(); this.audio?.dispose(); this.game?.dispose(); this.vfx?.dispose(); this.tracers?.dispose();
     for (const resource of this.owned) resource.dispose(); this.owned.clear();
+    if (this.host) this.scene?.removeFromParent();
     this.game = null; this.scene = null;
   }
+  /** Hosted: take the game down (out of the host's world) and keep what loading cost: the assets, the renderer's. */
+  unload() { this.stop(); this._clear(); }
   dispose() {
     this.stop(); this.abort.abort(); this.resizeObserver?.disconnect(); this.performanceMonitor?.dispose();
+    if (this.host) { this._clear(); this.assets?.dispose(); return; }
     this.renderer?.setAnimationLoop(null); this._clear(); this.assets?.dispose(); this.renderer?.dispose();
   }
 }

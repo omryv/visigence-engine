@@ -2303,6 +2303,46 @@ export class Engine {
     this._emit("mode", mode);
   }
 
+  /* ── play: a game on this world ──
+     A game hosted on the world (editor/world/play.js, src/game/ShooterSession.js `host`) drives the eye itself. Its
+     controller stands where a walker would: `update(dt)` runs first thing in every frame and leaves the camera where
+     the game's player looks from, and everything after it (the terrain's detail, the air, the shadow box, the sea's
+     mirror, the weather) follows that eye like any other. The game's own pass (its hands and weapon) is drawn over
+     the frame through overlayPass. The editing view the game was started from comes back when it ends. */
+  beginPlay(controller, overlay = null) {
+    if (this.controllers.play) this.endPlay();
+    if (this.mode !== "orbit") this.setMode("orbit");
+    const c = this.camera;
+    this._beforePlay = { p: c.position.clone(), q: c.quaternion.clone(), t: this.controllers.orbit.controls.target.clone(), fov: c.fov };
+    this._flight = null;
+    this._orbitAround = null;
+    this.controllers.play = controller;
+    this.overlayPass = overlay;
+    /* The editor's own marks are not in the game's world: the pins, the markers, the spawn and site rings, a path
+       ghost, a placement ghost, the gizmo and the selection boxes stand aside, and come back when play ends. */
+    this._chromeHidden = [this.pins?.group, this.markers?.group, this._spawnMark, this._siteRing, this._pathGhost,
+      this._ghost?.object, this._gizmo?.getHelper?.(), ...(this._selHelpers || [])].filter((o) => o && o.visible);
+    for (const o of this._chromeHidden) o.visible = false;
+    this.setMode("play");
+  }
+  endPlay() {
+    if (!this.controllers.play) return;
+    if (this.mode === "play") this.setMode("orbit");
+    delete this.controllers.play;
+    this.overlayPass = null;
+    for (const o of this._chromeHidden || []) o.visible = true;
+    this._chromeHidden = null;
+    const b = this._beforePlay, c = this.camera;
+    this._beforePlay = null;
+    if (b) {
+      c.fov = b.fov; c.updateProjectionMatrix();
+      this.controllers.orbit.controls.target.copy(b.t);
+      c.position.copy(b.p); c.quaternion.copy(b.q);
+    }
+    this.invalidate();
+  }
+  get playing() { return this.mode === "play"; }
+
   /* ── queries the shell uses ── */
   raycastGround(ndcX, ndcY) {
     const ray = new THREE.Raycaster();
@@ -2399,7 +2439,7 @@ export class Engine {
      and which candles are burning never enter params, so a world still
      reloads identically and an export still carries a room. */
   interact() {
-    if (this.mode === "orbit") return null;
+    if (this.mode === "orbit" || this.mode === "play") return null;
     const walk = this.controllers.walk;
     if (walk?.seated) {
       walk.stand();
@@ -2425,7 +2465,7 @@ export class Engine {
   // What the crosshair is on, as a line to show: {verb, label} or null. The
   // engine draws no HUD, so this is the whole of its side of the contract.
   usesPrompt() {
-    if (this.mode === "orbit") return null;
+    if (this.mode === "orbit" || this.mode === "play") return null;
     if (this.controllers.walk?.seated) return { verb: "Stand", label: "" };
     return this.fittings.promptFor(this.fittings.pick(this.camera));
   }

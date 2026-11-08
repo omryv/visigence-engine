@@ -12,7 +12,7 @@ import { parseProjectText, packageProject } from '../src/world/projectSchema.js'
 import { GENRES, genreOf } from '../src/genres/registry.js';
 import { installModelCards } from './modelCards.js';
 import { visionFromURL, arriveWithVision } from './visionArrival.js';
-import { missionFromEditor } from '../src/world/editorMission.js';
+import { missionFromEditor } from '../src/world/editorProject.js';
 
 const $ = selector => document.querySelector(selector);
 const paths = {

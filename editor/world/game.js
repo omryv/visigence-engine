@@ -6,7 +6,9 @@
  *   the Game panel   genre, look, difficulty, enemies, and where on the world the mission stands;
  *   the workspaces   Mission (the mission graph) and Level (the level editor), opened over the viewport from the top
  *                    bar, on the editor's own mission;
- *   Play             the mission on this world, over the viewport.
+ *   Play             from the World view, the mission on this world, played by the world engine that draws it, at
+ *                    the world's own scale (editor/world/play.js); from Mission or Level, the level as built, in the
+ *                    game runtime over the viewport.
  *
  * THE EDITOR KEEPS ONE MISSION. Until a workspace edits it, the mission is what the Game panel's settings make
  * (src/world/editorMission.js settingsMission). Once the graph or the level editor has changed it, every step comes
@@ -14,15 +16,17 @@
  * project or a game of levels. Changing the genre or the look makes a new mission from the settings (the panel says
  * so); difficulty and enemies change the edited mission in place.
  *
- * Workspaces and Play run the game runtime, game.html (the document an exported game is), inside this page in a frame,
- * handed the mission and the world in its address (editorMission.js). The world engine stands still while either is
- * open and its canvas is hidden, so one renderer draws at a time. Nothing is stored: the mission lives in this page's
- * memory, like the world, and the runtime inside keeps its own storage in memory too.
+ * The workspaces, and Play from one of them, run the game runtime, game.html (the document an exported game is), inside
+ * this page in a frame, handed the mission and the world in its address (editorMission.js). The world engine stands
+ * still while one is open and its canvas is hidden, so one renderer draws at a time. Play from the World view needs no
+ * frame: the world engine draws the game. Nothing is stored: the mission lives in this page's memory, like the world,
+ * and the runtime inside keeps its own storage in memory too.
  */
 import { GENRES } from "../../src/genres/registry.js";
-import { MISSION_WORLDS } from "../../src/world/missionCard.js";
+import { MISSION_WORLDS } from "../../src/world/missionWorlds.js";
 import { editorMissionURL, checkSettings, MISSION_DEFAULTS, DIFFICULTIES, MAX_ENEMIES } from "../../src/world/editorMission.js";
 import { encodeWorldLink } from "../../src/world/worldLink.js";
+import { mountWorldPlay } from "./play.js";
 
 export const MESSAGES = Object.freeze({
   leaveGame: "visigence:leave-game",
@@ -121,9 +125,9 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
     hint.className = "opt-hint game-site-hint";
     const s = spawn();
     hint.textContent = siteMode === "auto"
-      ? "The mission finds the best 640 m of this world to stand on."
-      : s ? `The mission stands at the spawn marker (${Math.round(s.x)}, ${Math.round(s.z)}). Move it with the Spawn tool.`
-        : "Click the ground to set the spawn marker; the mission stands there.";
+      ? "You start where this world is best to stand on: dry, gentle ground the level ground finds."
+      : s ? `You start at the spawn marker (${Math.round(s.x)}, ${Math.round(s.z)}). Move it with the Spawn tool.`
+        : "Click the ground to set the spawn marker; you start there.";
     panel.append(site, hint);
 
     // What Play will play: the settings' mission, or the one the workspaces edited.
@@ -227,6 +231,7 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
     }
     hideViews(name);
     closeGame();
+    if (worldPlay.playing()) worldPlay.leave();
     document.body.classList.add("in-workspace");
     engine.setPaused(true);
     view = name;
@@ -239,8 +244,32 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
     document.body.classList.remove("in-game");
   }
 
-  /** Play the mission on this world, over the whole screen. Leaving the game returns to the view it was played from. */
+  /* Play on the world: the World view's Play, drawn by the world engine itself. */
+  const worldPlay = mountWorldPlay({
+    engine, announce,
+    onEnd: () => { if (view === "play") { view = "world"; onView(view); render(); } },
+  });
+  async function playOnWorld() {
+    let s;
+    try { s = currentSettings(); } catch (e) { announce("Play", `This world cannot be played: ${e.message}`); return; }
+    view = "play";
+    onView(view);
+    // The mission is made into a project here, with the game: both arrive on the first Play (src/world/editorProject.js).
+    worldPlay.start({
+      site: s.site,
+      make: async (index = 0) => (await import("../../src/world/editorProject.js")).editorProject({
+        seed: engine.params.seed, worldParams: { terrain: engine.params.terrain, water: engine.params.water }, settings: s, mission, index,
+      }),
+    });
+  }
+
+  /**
+   * Play the mission. From the World view, on this world (playOnWorld); from Mission or Level, the level as built, over
+   * the whole screen, and leaving the game returns to the view it was played from.
+   */
   function play() {
+    if (view === "world") { playOnWorld(); return; }
+    if (view === "play" && worldPlay.playing()) return;
     let src;
     try { src = url(); } catch (e) { announce("Play", `This world cannot be played: ${e.message}`); return; }
     back = view !== "world" && view !== "play" ? view : null;
@@ -258,6 +287,7 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
   /** Back to the world: whatever is over it steps aside (the views kept, paused) and the world runs again. */
   function leave() {
     if (view === "world") return;
+    if (worldPlay.playing()) { worldPlay.leave(); return; }
     closeGame();
     hideViews();
     document.body.classList.remove("in-workspace");
@@ -294,6 +324,8 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
   return {
     render, play, leave, openWorkspace, url,
     playing: () => view === "play",
+    /** Play on the world, while it runs: the hosted game and what the world made of the mission (tests, tools). */
+    worldPlay,
     view: () => view,
     settings: () => currentSettings(),
     mission: () => mission,
