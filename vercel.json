@@ -1,12 +1,20 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "",
+  "installCommand": "npm ci",
   "buildCommand": "node tools/build/build-preview.mjs",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "redirects": [
-    { "source": "/world", "destination": "/", "permanent": true },
-    { "source": "/world.html", "destination": "/", "permanent": true }
+    {
+      "source": "/world",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/world.html",
+      "destination": "/",
+      "permanent": true
+    }
   ]
 }
