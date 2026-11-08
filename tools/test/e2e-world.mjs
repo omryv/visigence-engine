@@ -193,7 +193,7 @@ try {
   await w.until(`${shown('my3d')} && !!${ME}.document.querySelector('#fileFront')`, 60000, 'the My-3D-Engine view');
   check('My-3D-Engine opens in the page, the other views kept and paused', await w.js(`document.querySelector('#view-2d').hidden && document.querySelector('#view-build').hidden && document.querySelector('#view-remix').hidden`));
   await w.js(`(async () => {
-    const blob = await (await fetch('/tools/test/fixtures/photo-front.png')).blob();
+    const blob = await (await fetch('data:image/png;base64,${fs.readFileSync(path.join(ROOT, 'tools/test/fixtures/photo-front.png')).toString('base64')}')).blob();
     const win = ${ME}, input = win.document.querySelector('#fileFront');
     const dt = new win.DataTransfer(); dt.items.add(new win.File([blob], 'photo-front.png', { type: 'image/png' }));
     input.files = dt.files; input.dispatchEvent(new win.Event('change'));

@@ -14,5 +14,8 @@
     "three:vendor": "node tools/three/vendor.mjs",
     "test": "node tools/test/run.mjs",
     "assets:fetch": "node tools/build/fetch-runtime-assets.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }

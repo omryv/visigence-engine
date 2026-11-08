@@ -4,6 +4,7 @@ import { cpSync, mkdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { writeAssetManifest } from './asset-manifest.mjs';
+import { bundlePages } from './bundle-pages.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const output = path.join(root, 'dist');
@@ -27,4 +28,8 @@ for (const directory of directories) {
     },
   });
 }
+// Each page as one minified bundle and its chunks (tools/build/bundle-pages.mjs); the sources stay beside them.
+const bundled = await bundlePages(root, output);
+if (bundled) for (const b of bundled) console.log(`  ${b.page}: ${b.files} bundle files, ${(b.bytes / 1048576).toFixed(2)} MB minified`);
+else console.log('  esbuild is not installed (npm ci): the pages are served unbundled');
 console.log('Visigence Engine built in dist/ (the editor at /; the pages of its views at /game, /2d and /my-3d-engine; the kernel at src/kernel/, the world engine at src/genesis/, the reconstruction at src/atlas/; art served from R2)');

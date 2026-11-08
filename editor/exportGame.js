@@ -92,7 +92,9 @@ export async function exportGame(doc, progress = () => {}) {
     files.push(['IMPORTED-ASSET-CREDITS.txt',customFiles.map(p=>`${p.name||'Mission identity image'}\nCreator: ${p.creator}\nSource: ${p.source||'Not supplied'}\nLicence: ${p.license}\nSHA-256: ${p.id}\nRedistribution permission declared by importer.\n`).join('\n')]);
   }
   files.push([`packs/${project.theme}/pack.json`,JSON.stringify(bundle.pack)]);
-  const html=await(await get(studioPage())).text();
+  // On the site the page loads its bundle (tools/build/bundle-pages.mjs); a downloaded game packs the unbundled
+  // runtime, so it starts from the unbundled page the build keeps beside it. A checkout has only the one page.
+  const html=await(await get('game.source.html').catch(()=>get(studioPage()))).text();
   // Replacer functions, so a "$" in a game's name is never read as a replacement pattern. The portal hooks stand
   // before the import map, ahead of every module a portal's SDK might need to precede.
   const embedded=`<script type="application/json" id="compiled-project">${JSON.stringify(shipped).replace(/</g,'\\u003c')}</script></head>`;

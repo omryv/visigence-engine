@@ -80,8 +80,16 @@ three.js is vendored (`vendor/three/`) and every import is a relative file. The 
 (`src/config/assetDelivery.js`); see [Assets and R2](#assets-and-r2). The world engine needs no art: everything it
 draws is generated.
 
-**Deploying.** Import this repository into Vercel with the repository root as the Root Directory. `vercel.json` skips
-installation, builds with `node tools/build/build-preview.mjs` and serves `dist/`: the editor at `/` (the old `/world` redirects there), the game runtime at `/game`.
+**The site is bundled.** Development stays a save-and-reload: no install, no build. The site build
+(`node tools/build/build-preview.mjs`) gives each page one minified bundle and its chunks (`tools/build/bundle-pages.mjs`,
+esbuild, the one dev dependency: `npm ci`), with every source file still beside them for the workers and for a
+downloaded game. Measured by `tools/test/measure-load.mjs` (local server, cache off): the editor went from 150 requests
+and 3.7 MB to 5 requests and 1.8 MB, ready in 3.4 s instead of 6.0 s; with every view open, from 568 requests and
+10.6 MB to 63 and 5.9 MB. Without esbuild installed the build still runs and serves the pages unbundled.
+
+**Deploying.** Import this repository into Vercel with the repository root as the Root Directory. `vercel.json`
+installs with `npm ci` (esbuild), builds with `node tools/build/build-preview.mjs` and serves `dist/`: the editor at `/`
+(the old `/world` redirects there), the pages of its views at `/game`, `/2d` and `/my-3d-engine`.
 
 ## Layout
 
