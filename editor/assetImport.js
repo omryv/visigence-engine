@@ -47,7 +47,8 @@ export function inspectGLB(buffer) {
 export { fileBytes as importedBytes } from './localFiles.js';
 export async function prepareImportedAssets(project) {if(isPackagedGame())return;for(const p of project.importedProps??[])registerLocalAsset(p.model,await importedBytes(p));}
 function disposeModel(scene) {const textures=new Set(),materials=new Set(),geometry=new Set();scene?.traverse(o=>{if(o.geometry)geometry.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){materials.add(m);for(const v of Object.values(m))if(v?.isTexture)textures.add(v);}});textures.forEach(t=>t.dispose());materials.forEach(m=>m.dispose());geometry.forEach(g=>g.dispose());}
-export async function openAssetImport({getProject,onChange,toast,notice}) {
+/** `figure`: a figure already made (the editor's My-3D-Engine view, a GLB from a photograph) to open the importer on, as a figure. */
+export async function openAssetImport({getProject,onChange,toast,notice,figure=null}) {
   const dialog=document.createElement('dialog');dialog.className='prop-dialog';dialog.setAttribute('aria-label','Import static prop');
   dialog.innerHTML=`<form method="dialog"><div class="import-heading"><div><span class="eyebrow">ASSET LIBRARY</span><h2>Import static prop</h2></div><button aria-label="Close import" value="close" class="dialog-close">×</button></div></form>
   ${notice?`<p class="import-notice" role="status">${notice}</p>`:''}<p class="import-intro">Bring a static object into your mission. Preview it, set its size, and choose how it behaves.</p>
@@ -110,6 +111,11 @@ export async function openAssetImport({getProject,onChange,toast,notice}) {
     finally{if(!disposed)button.disabled=false;}
   }
   $('.sample-prop').addEventListener('click',async()=>{try{const r=await fetch(assetURL('/assets/studio/import-demo.glb'));if(!r.ok)throw Error('Sample could not be loaded.');await load(new File([await r.blob()],'Field supply case.glb'),true);}catch(e){$('.import-error').textContent=e.message;}});
+  if(figure){
+    await load(new File([figure.bytes],`${(figure.name||'Me').slice(0,58)}.glb`,{type:'model/gltf-binary'}));
+    if(loaded&&!disposed){form.elements.height.value='1.75';form.elements.source.value='A photograph, reconstructed on this device';if(!form.elements.license.value)form.elements.license.value='My own photograph';
+      $('.prop-metrics').textContent=`Your figure from My-3D-Engine: ${Math.round(figure.triangles||0).toLocaleString()} triangles. Set its height, tick the rights, and add it.`;}
+  }
   form.addEventListener('submit',async e=>{e.preventDefault();if(!loaded)return;const button=form.querySelector('button');button.disabled=true;
     try{const p={...loaded,name:form.elements.name.value,scale:Number(form.elements.height.value)/loaded.size[1],collision:form.elements.collision.value,creator:form.elements.creator.value,source:form.elements.source.value,license:form.elements.license.value,rightsConfirmed:form.elements.rights.checked};delete p.blob;
       const next=normalizeImportedProps([...(getProject().importedProps??[]).filter(a=>a.id!==p.id),p]);await stored(p.id,loaded.blob);registerLocalAsset(`imports/${p.id}.glb`,loaded.blob);onChange({importedProps:next});dialog.close();toast('Prop added. Play this mission to see it near your starting route.');

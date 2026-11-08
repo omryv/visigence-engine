@@ -53,6 +53,16 @@ if (fromEditor) {
 }
 const embedded = !!fromEditor;
 const toEditor = (message) => window.parent?.postMessage(message, location.origin);
+// The editor keeps this view when another is shown, and says so: stop drawing while hidden, start again when shown.
+if (fromEditor) window.addEventListener('message', (e) => {
+  if (e.origin !== location.origin || e.source !== window.parent) return;
+  if (e.data?.type === 'visigence:pause') session?.setRendering(false);
+  if (e.data?.type === 'visigence:resume' && document.body.dataset.mode === 'build') session?.setRendering(true);
+  // A figure from the My-3D-Engine view, for this mission: the prop importer opens on it.
+  if (e.data?.type === 'visigence:import-figure' && workspace === 'remix') import('./assetImport.js')
+    .then(({ openAssetImport }) => openAssetImport({ getProject: () => project, onChange: patch => change(patch), toast, figure: e.data.figure }))
+    .catch(err => toast(err.message));
+});
 const leaveForWorld = () => toEditor({ type: workspace ? 'visigence:leave-workspace' : 'visigence:leave-game' });
 const standalone = document.body.dataset.build === 'standalone';
 const environmentName=p=>THEMES[p.theme];
@@ -484,6 +494,7 @@ if (fromEditor?.error) errorDisplay(new Error(`The world editor's mission cannot
 else if (standalone) queueBuild(true);
 else if (workspace === 'remix') playerFront.mode('remix');
 else if (workspace === 'build') enterBuild(fromEditor.game ?? resolveGame(project));
+if (workspace) toEditor({ type: 'visigence:ready' });
 // Arriving from the landing page with a vision: build it and open the canvas on it (docs/VISION.md).
 const vision = standalone || workspace ? null : visionFromURL();
 if (vision) arriveWithVision(vision, { change, toast, fitGraph, enterCanvas: () => {

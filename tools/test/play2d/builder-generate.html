@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generated levels review</title>
+<style>
+  body { margin: 0; background: #08090a; color: #ecebe6; font: 12px/1.4 ui-monospace, Menlo, monospace; }
+  h2 { margin: 18px 16px 4px; font: 600 13px/1.3 ui-monospace, monospace; }
+  p { margin: 0 16px 8px; color: #9ea1a7; }
+  canvas { display: block; margin: 0 16px 8px; border: 1px solid #26282c; }
+</style>
+</head>
+<body>
+<!--
+  Review sheet for the level generator (builder/core/generate.js): every level it returns for a
+  genre and seed, drawn whole with the builder's own renderer, with its difficulty and facts.
+  Open it from a static server at the repository root:
+    /tools/test/builder-generate.html?genre=platformer&seed=demo&count=6&biome=mixed&from=0.1&to=0.9
+-->
+<div id="out"></div>
+<script type="module">
+import { createArt } from '/src/play2d/art/index.js';
+import { drawScene, sceneFromLevel } from '/src/play2d/runtime/render.js';
+import { generateLevels } from '/src/play2d/core/generate.js';
+import { createProject } from '/src/play2d/core/format.js';
+
+const q = new URLSearchParams(location.search);
+const genre = q.get('genre') || 'platformer';
+const art = createArt();
+const out = document.getElementById('out');
+const DPR = Math.min(2, devicePixelRatio || 1);
+const width = +(q.get('w') || 1180);
+const t0 = performance.now();
+const result = generateLevels(genre, {
+  count: +(q.get('count') || 6), seed: q.get('seed') || 'demo', biome: q.get('biome') || 'mixed',
+  from: +(q.get('from') ?? 0.1), to: +(q.get('to') ?? 0.9),
+});
+const ms = Math.round(performance.now() - t0);
+const head = document.createElement('p');
+head.textContent = `${genre}: ${result.levels.length} levels from ${result.attempts} candidates (${result.rejected} rejected) in ${ms} ms`;
+out.append(head);
+const project = createProject(genre);
+project.levels = result.levels.map(r => r.level);
+result.levels.forEach((r, i) => {
+  const h2 = document.createElement('h2');
+  h2.textContent = `${i + 1}. ${r.level.name} · ${r.label} ${Math.round(r.score * 100)} · ${r.level.width}×${r.level.height} ${r.level.biome}`;
+  const p = document.createElement('p');
+  p.textContent = r.facts.join(' · ');
+  const scene = sceneFromLevel(project, i, 0);
+  const size = Math.max(6, Math.min(40, Math.floor(Math.min(width / r.level.width, 520 / r.level.height))));
+  const c = document.createElement('canvas');
+  const w = r.level.width * size, h = r.level.height * size;
+  c.width = w * DPR; c.height = h * DPR; c.style.width = w + 'px'; c.style.height = h + 'px';
+  out.append(h2, p, c);
+  const g = c.getContext('2d');
+  drawScene(g, scene, { x: 0, y: 0, size: size * DPR }, art, { width: c.width, height: c.height, t: 0, editor: true });
+});
+window.__ready = true;
+</script>
+</body>
+</html>

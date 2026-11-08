@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Builder play harness</title>
+<style>html, body { margin: 0; height: 100%; background: #08090a; } #game { position: fixed; inset: 0; }</style>
+</head>
+<body>
+<!--
+  Development harness for the level builder's game shell: runs a template or a blank project
+  full-screen. Serve the repository root and open
+    /tools/test/builder-play.html?template=honey-heist&mode=standalone|playtest|preview&level=0
+    /tools/test/builder-play.html?genre=maze
+-->
+<div id="game"></div>
+<script type="module">
+import { createGame } from '/src/play2d/runtime/game.js';
+import { templateById, blankProject } from '/src/play2d/templates/index.js';
+
+const q = new URLSearchParams(location.search);
+const project = q.get('template') ? templateById(q.get('template')).build({ id: 'harness-' + q.get('template') }) : blankProject(q.get('genre') || 'platformer');
+const mode = q.get('mode') || 'standalone';
+window.__events = [];
+window.__game = createGame(document.getElementById('game'), project, {
+  mode,
+  levelIndex: +(q.get('level') || 0),
+  muted: q.has('muted'),
+  hooks: {
+    adBreak: kind => { window.__events.push('adBreak:' + kind); return Promise.resolve(kind === 'rewarded'); },
+    event: (name, data) => window.__events.push(name),
+  },
+  onExit: result => { window.__exit = result; },
+});
+window.__ready = true;
+</script>
+</body>
+</html>

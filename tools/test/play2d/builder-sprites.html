@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Builder art review</title>
+<style>
+  body { margin: 0; background: #08090a; color: #ecebe6; font: 12px/1.4 ui-monospace, Menlo, monospace; }
+  h2 { margin: 16px 16px 6px; font: 600 13px/1 ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; color: #9ea1a7; }
+  canvas { display: block; margin: 0 16px 8px; }
+  .row { display: flex; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<!--
+  Review sheet for the level builder's art: every tile in autotile arrangements, every decor
+  item, every entity and animation, in each biome, time of day and view. Open it from a static
+  server at the repository root: /tools/test/builder-sprites.html (?sheet=scenes|cast, ?size=32).
+-->
+<div id="out"></div>
+<script type="module">
+import { createArt } from '/src/play2d/art/index.js';
+import { drawScene, sceneFromLevel } from '/src/play2d/runtime/render.js';
+import { createProject, createLevel } from '/src/play2d/core/format.js';
+import { ENTITIES, entitiesFor } from '/src/play2d/core/catalog.js';
+import { bodyFor } from '/src/play2d/runtime/sims/shared.js';
+
+const q = new URLSearchParams(location.search);
+const art = createArt();
+const out = document.getElementById('out');
+const DPR = Math.min(2, devicePixelRatio || 1);
+const T = +(q.get('t') || 0.4);
+
+function canvas(w, h, title) {
+  if (title) { const h2 = document.createElement('h2'); h2.textContent = title; out.append(h2); }
+  const c = document.createElement('canvas');
+  c.width = w * DPR; c.height = h * DPR; c.style.width = w + 'px'; c.style.height = h + 'px';
+  out.append(c);
+  const g = c.getContext('2d'); g.scale(DPR, DPR);
+  return g;
+}
+
+function sideLevel(biome, time) {
+  const p = createProject('platformer');
+  const l = createLevel('platformer', { width: 40, height: 14, biome, time, empty: true });
+  const set = (x, y, c) => { if (x >= 0 && y >= 0 && x < l.width && y < l.height) l.terrain[y * l.width + x] = c; };
+  const rows = [
+    '........................................',
+    '........................................',
+    '.....................333................',
+    '..............................BBBB......',
+    '..........7.............................',
+    '.......2227.....3333........AAAA........',
+    '..........7..........5555...............',
+    '.....1...............................44.',
+    '....111.....666....................4444.',
+    '1111111111111111....1111888811111111111.',
+    '1111111111111111....1111888811111111111.',
+    '1111111111111111....11118888111111111111',
+    '11111111111111111111111111111111111111..',
+    '1111111111111111111111111111111111111...',
+  ];
+  const map = { '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, 'A': 9, 'B': 10 };
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (map[ch]) set(x, y, map[ch]); }));
+  const d = (x, y, c) => { l.decor[y * l.width + x] = c; };
+  d(1, 8, 55); d(8, 8, 50); d(10, 8, 51); d(13, 8, 58); d(22, 8, 52); d(30, 8, 57); d(33, 8, 54); d(34, 8, 54); d(35, 8, 54); d(3, 1, 59); d(24, 2, 59); d(18, 11, 60); d(28, 8, 53); d(31, 8, 56); d(29, 8, 61);
+  const ents = [['player', 3, 8], ['slime', 11, 8], ['coin', 17, 4], ['coin', 18, 4], ['gem', 29, 4], ['spring', 19, 8], ['bee', 24, 5], ['goal', 37, 6], ['checkpoint', 6, 6], ['sign', 14, 8], ['key', 9, 3], ['door', 26, 8], ['switch', 27, 8], ['platform', 32, 5], ['spiky', 7, 8], ['turret', 36, 6], ['heart', 21, 3], ['bswitch', 15, 8], ['powerup', 23, 2], ['boss', 1, 7]];
+  l.entities = ents.map(([type, x, y], i) => ({ id: 'e' + i, type, x, y, props: type === 'platform' ? { width: 3, axis: 'x', distance: 4, speed: 2 } : type === 'key' ? { color: 'amber' } : type === 'door' ? { lock: 'amber', stayOpen: true } : type === 'powerup' ? { kind: 'wings', seconds: 10 } : {} }));
+  p.levels = [l];
+  return p;
+}
+
+function topLevel(biome, time, genre = 'adventure') {
+  const p = createProject(genre);
+  const l = createLevel(genre, { width: 30, height: 16, biome, time, empty: true });
+  const rows = [
+    'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW',
+    'W.......WW..........OOOO.....W',
+    'W.PPPP..WW...B......OOOO..T..W',
+    'W....P......BB.....OBBBO.....W',
+    'W....PPPPPPPPPPPPPPPOO=OPPPP.W',
+    'W.WWW........I......OOOO...P.W',
+    'W.W.W..XX....II.....OOOO...P.W',
+    'W.W.W..XX....III...........P.W',
+    'W.WWW.........................W',
+    'W......GGG......WWWWWW.......W',
+    'W.....GGGG......W....W..###..W',
+    'W......GG.......W....W..#....W',
+    'W...............WW..WW.......W',
+    'W....................HH......W',
+    'W....................HH......W',
+    'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW',
+  ];
+  const map = { W: 20, P: 21, O: 22, '=': 23, B: 24, I: 25, X: 26, G: 29, '#': 20, H: 27 };
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (map[ch] && x < l.width) l.terrain[y * l.width + x] = map[ch]; }));
+  const d = (x, y, c) => { l.decor[y * l.width + x] = c; };
+  d(10, 2, 55); d(3, 12, 50); d(4, 12, 51); d(18, 13, 52); d(25, 13, 57); d(7, 13, 58); d(12, 9, 56); d(13, 12, 53); d(15, 1, 54); d(16, 1, 54); d(17, 1, 54); d(27, 8, 60); d(2, 10, 61);
+  const types = ['player', 'npc', 'slime', 'bee', 'spiky', 'turret', 'spirit', 'coin', 'gem', 'heart', 'key', 'door', 'switch', 'plate', 'chest', 'crate', 'teleporter', 'sign', 'goal', 'checkpoint', 'spawner', 'powerup'];
+  const spots = [[3, 6], [6, 2], [14, 9], [18, 2], [10, 7], [26, 10], [22, 7], [8, 4], [9, 5], [10, 5], [11, 5], [19, 11], [18, 13], [23, 12], [3, 9], [16, 6], [1, 13], [6, 9], [27, 2], [4, 3], [24, 13], [13, 13]];
+  l.entities = types.map((type, i) => ({ id: 'e' + i, type, x: spots[i][0], y: spots[i][1], props: type === 'door' ? { lock: 'ice' } : type === 'key' ? { color: 'rose' } : type === 'teleporter' ? { channel: 2 } : type === 'powerup' ? { kind: 'rapid' } : {} }));
+  p.levels = [l];
+  return p;
+}
+
+function mazeLevel(biome) {
+  const p = createProject('maze');
+  const l = createLevel('maze', { width: 19, height: 11, biome, empty: true });
+  const rows = [
+    'WWWWWWWWWWWWWWWWWWW',
+    'W........W........W',
+    'W.WW.WWW.W.WWW.WW.W',
+    'W.................W',
+    'W.WW.W.WW=WW.W.WW.W',
+    '.....W.W...W.W.....',
+    'W.WW.W.WWWWW.W.WW.W',
+    'W.................W',
+    'W.WW.WWW.W.WWW.WW.W',
+    'W........W........W',
+    'WWWWWWWWWWWWWWWWWWW',
+  ];
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { l.terrain[y * l.width + x] = ch === 'W' ? 20 : ch === '=' ? 28 : 0; }));
+  l.entities = [['player', 9, 7], ['bee', 8, 5], ['bee', 9, 5], ['bee', 10, 5], ['power', 1, 1], ['power', 17, 9], ['gem', 9, 3]].map(([type, x, y], i) => ({ id: 'm' + i, type, x, y, props: {} }));
+  p.levels = [l];
+  return p;
+}
+
+function drawLevel(p, w, h, size, title, opts = {}) {
+  const g = canvas(w, h, title);
+  const scene = sceneFromLevel(p, 0, T);
+  drawScene(g, scene, { x: opts.camX ?? -0.5, y: opts.camY ?? -0.5, size }, art, { width: w, height: h, t: T, editor: true });
+}
+
+const sheet = q.get('sheet') || 'scenes';
+const size = +(q.get('size') || 32);
+if (sheet === 'scenes') {
+  for (const biome of ['meadow', 'desert', 'snow']) drawLevel(sideLevel(biome, 'day'), 41 * size, 14 * size, size, `side · ${biome} · day`);
+  drawLevel(sideLevel('meadow', 'golden'), 41 * size, 14 * size, size, 'side · meadow · golden');
+  drawLevel(sideLevel('snow', 'night'), 41 * size, 14 * size, size, 'side · snow · night');
+} else if (sheet === 'top') {
+  for (const biome of ['meadow', 'desert', 'snow']) drawLevel(topLevel(biome, 'day'), 31 * size, 17 * size, size, `top · ${biome} · day`);
+  drawLevel(topLevel('meadow', 'night'), 31 * size, 17 * size, size, 'top · meadow · night');
+} else if (sheet === 'maze') {
+  for (const biome of ['meadow', 'desert', 'snow']) drawLevel(mazeLevel(biome), 20 * size, 12 * size, size, `maze · ${biome}`);
+} else if (sheet === 'cast') {
+  const anims = { player: ['idle', 'run', 'jump', 'fall', 'climb', 'swim', 'hurt', 'dead', 'win', 'walk', 'push'], slime: ['idle', 'walk', 'attack', 'hurt', 'dead'], bee: ['idle', 'fly', 'flee', 'eaten', 'attack'], boss: ['idle', 'walk', 'attack'], spiky: ['idle', 'walk', 'hurt'], turret: ['idle', 'fire'], spirit: ['idle'] };
+  for (const view of ['side', 'top']) {
+    const types = ENTITIES.map(e => e.type);
+    const s = size * 2;
+    const cols = 12;
+    const rowsN = Math.ceil(types.length / cols);
+    const g = canvas(cols * s * 1.5, rowsN * s * 2.4, `cast · ${view} · ${s}px`);
+    g.fillStyle = view === 'side' ? '#bfe6fb' : '#86cf5f'; g.fillRect(0, 0, cols * s * 1.5, rowsN * s * 2.4);
+    types.forEach((type, i) => {
+      const cx = (i % cols) * s * 1.5 + s * 0.25, cy = Math.floor(i / cols) * s * 2.4 + s * 0.6;
+      const fp = type === 'boss' ? { w: 2, h: 2 } : type === 'platform' ? { w: 3, h: 1 } : { w: 1, h: 1 };
+      const body = bodyFor(view, type, 0, 0, fp);
+      const k = type === 'boss' || type === 'platform' ? 0.5 : 1;
+      const e = { type, ...body, props: type === 'key' ? { color: 'ice' } : type === 'door' ? { lock: 'rose' } : type === 'powerup' ? { kind: 'spread' } : type === 'platform' ? { width: 3 } : {}, facing: 1, dir: 'down', anim: 'idle', animTime: 0, alive: true, active: i % 2 === 0, open: false, data: {}, hp: 2, maxHp: 2, cell: { x: i, y: 0 } };
+      g.fillStyle = 'rgba(0,0,0,0.08)'; g.fillRect(cx, cy, fp.w * s * k, fp.h * s * k);
+      art.entity(g, e, { x: cx + body.x * s * k, y: cy + body.y * s * k, w: body.w * s * k, h: body.h * s * k }, s * k, { view, biome: 'meadow', t: T, editor: true, toggle: false });
+      g.fillStyle = '#2b1d14'; g.font = '11px monospace'; g.fillText(type, cx, cy + s * 1.35);
+    });
+    for (const [type, list] of Object.entries(anims)) {
+      const s2 = size * 2;
+      const g2 = canvas(list.length * s2 * 1.6 + 20, s2 * 2.4, `${type} anims · ${view}`);
+      g2.fillStyle = view === 'side' ? '#bfe6fb' : '#86cf5f'; g2.fillRect(0, 0, list.length * s2 * 1.6 + 20, s2 * 2.4);
+      list.forEach((anim, i) => {
+        const fp = type === 'boss' ? { w: 2, h: 2 } : { w: 1, h: 1 };
+        const k = type === 'boss' ? 0.5 : 1;
+        const body = bodyFor(view, type, 0, 0, fp);
+        const cx = 10 + i * s2 * 1.6, cy = s2 * 0.7;
+        const dir = ['down', 'right', 'up', 'left'][i % 4];
+        const e = { type, ...body, props: {}, facing: i % 2 ? -1 : 1, dir, anim, animTime: 0.21, alive: anim !== 'dead', data: { fleeLeft: 5 }, hp: 1, maxHp: 1, cell: { x: i, y: 1 } };
+        art.entity(g2, e, { x: cx + body.x * s2 * k, y: cy + body.y * s2 * k, w: body.w * s2 * k, h: body.h * s2 * k }, s2 * k, { view, biome: 'meadow', t: T, editor: false });
+        g2.fillStyle = '#2b1d14'; g2.font = '11px monospace'; g2.fillText(anim + (view === 'top' ? ' ' + dir : ''), cx, s2 * 2.2);
+      });
+    }
+  }
+} else if (sheet === 'icons') {
+  const g = canvas(1200, 400, 'palette icons');
+  let i = 0;
+  for (const view of ['side', 'top']) {
+    for (const e of ENTITIES) { const c = art.icon('entity', e.type, 48, { view, biome: 'meadow' }); g.drawImage(c, (i % 24) * 50, Math.floor(i / 24) * 50, 48, 48); i++; }
+  }
+  for (const code of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]) { const c = art.icon('tile', code, 48, { view: code < 20 ? 'side' : 'top', biome: 'meadow' }); g.drawImage(c, (i % 24) * 50, Math.floor(i / 24) * 50, 48, 48); i++; }
+  for (const code of [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61]) { const c = art.icon('decor', code, 48, { view: 'side', biome: 'meadow' }); g.drawImage(c, (i % 24) * 50, Math.floor(i / 24) * 50, 48, 48); i++; }
+}
+window.__ready = true;
+</script>
+</body>
+</html>

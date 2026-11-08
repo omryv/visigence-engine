@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" data-theme="engine">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<meta name="description" content="Visigence Engine, 2D: paint a level on a grid, drop in critters, wire the gates and play it in a click.">
+<title>Visigence Engine · 2D</title>
+<link rel="icon" href="./favicon.png">
+<!-- The 2D view of the one editor (index.html, at /): the 2D builder, in the editor's own colours and type
+     (editor/play2d/builder.css, the "engine" theme). It stores nothing, as the editor does: its storage is this page's
+     memory while it runs (src/play2d/editor/app.js), and games leave it as files, links and exports. -->
+<script>
+  (function () {
+    var mem = new Map(), memory = {
+      getItem: function (k) { return mem.has(k) ? mem.get(k) : null; },
+      setItem: function (k, v) { mem.set(k, String(v)); },
+      removeItem: function (k) { mem.delete(k); },
+      clear: function () { mem.clear(); },
+      key: function (i) { return Array.from(mem.keys())[i] || null; },
+      get length() { return mem.size; }
+    };
+    Object.defineProperty(window, 'localStorage', { value: memory, configurable: true });
+    Object.defineProperty(window, 'sessionStorage', { value: memory, configurable: true });
+  })();
+</script>
+<link rel="stylesheet" href="/editor/play2d/builder.css">
+</head>
+<body>
+<a class="skip" id="skip" href="#viewport" hidden>Skip to the level grid</a>
+<noscript><p class="noscript">The level builder needs JavaScript. Turn it on to paint levels and play them.</p></noscript>
+<div id="app" class="app" data-view="boot">
+
+  <section id="gallery" class="gallery" aria-labelledby="gallery-title" hidden></section>
+
+  <div id="editor" class="editor" hidden>
+    <header id="topbar" class="topbar">
+      <a class="brand" href="#gallery" data-action="gallery" aria-label="The start screen: your games and templates">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h7v7H5zM12 14h7v7h-7zM19 21h8v6h-8z" fill="currentColor"/><path d="M5 21h7v6H5zM19 7h8v7h-8z" fill="none" stroke="var(--peaking)" stroke-width="1.6"/></svg>
+        <span class="brand__word">Visigame</span><span class="brand__sub meta">Builder</span>
+      </a>
+      <button type="button" class="btn btn--ghost topbar__games" id="games-btn" data-action="gallery" aria-label="Your games and templates"></button>
+      <div class="titlebox">
+        <label class="sr-only" for="game-title">Game title</label>
+        <input id="game-title" class="titlebox__input" type="text" maxlength="48" autocomplete="off" spellcheck="false">
+        <span id="genre-chip" class="chip chip--static meta"></span>
+        <span id="saved" class="tally" role="status"></span>
+      </div>
+      <div class="topbar__group" role="group" aria-label="History">
+        <button type="button" class="icon-btn" id="undo" data-action="undo" aria-label="Undo" disabled></button>
+        <button type="button" class="icon-btn" id="redo" data-action="redo" aria-label="Redo" disabled></button>
+      </div>
+      <div class="topbar__spacer"></div>
+      <button type="button" class="issues-tally" id="issues-tally" data-action="issues" aria-live="polite"></button>
+      <button type="button" class="btn btn--ghost topbar__panel-btn" id="toggle-right" data-action="toggle-right" aria-label="Inspect" aria-expanded="false" aria-controls="panel-right"></button>
+      <button type="button" class="btn btn--secondary topbar__hide-sm" data-action="share" id="share-btn" aria-label="Share a link"></button>
+      <button type="button" class="btn btn--secondary topbar__hide-sm" data-action="export" id="export-btn" aria-label="Export" data-kbd="⌘E"></button>
+      <div class="split" id="play-split">
+        <button type="button" class="btn btn--primary split__main" data-action="play" id="play-btn"></button>
+        <button type="button" class="btn btn--primary split__more" data-action="play-menu" aria-label="More ways to play" aria-haspopup="menu" aria-expanded="false" id="play-more"></button>
+      </div>
+    </header>
+
+    <nav id="toolrail" class="toolrail" aria-label="Tools"></nav>
+
+    <aside id="panel-left" class="panel panel-left" aria-label="Layers and palette">
+      <div class="sheet-grip" aria-hidden="true"></div>
+      <section id="layers" class="pnl" aria-label="Layers"></section>
+      <section id="palette" class="pnl pnl--grow" aria-label="Palette"></section>
+    </aside>
+
+    <main id="stage" class="stage" aria-label="Level">
+      <div id="levels" class="levels"></div>
+      <div id="viewport" class="viewport" tabindex="-1"></div>
+    </main>
+
+    <aside id="panel-right" class="panel panel-right" aria-label="Inspector and checks">
+      <div class="sheet-grip" aria-hidden="true"></div>
+      <section id="inspector" class="pnl pnl--grow" aria-label="Inspector"></section>
+      <section id="issues" class="pnl" aria-label="Checks"></section>
+    </aside>
+
+    <footer id="statusbar" class="statusbar meta" role="contentinfo"></footer>
+
+    <nav id="mobilebar" class="mobilebar" aria-label="Tools"></nav>
+  </div>
+
+  <div id="playtest" class="playtest" hidden></div>
+  <div id="dialogs"></div>
+  <div id="menus"></div>
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+</div>
+<script type="module" src="/src/play2d/editor/app.js"></script>
+</body>
+</html>
