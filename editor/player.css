@@ -248,3 +248,7 @@ body[data-embed=world] #overlay-exit,body[data-embed=world] .play-overlay:has(#m
    files and Play, so the studio's own front, file buttons and game-output panel step aside. */
 body[data-workspace] :is(#player-front,#remix-return,.navigation .brand,.nav-bottom,#new-project){display:none!important}
 body[data-workspace=remix] #preview-panel{display:none!important}
+/* THE ENGINE THEME for the editor's Mission and Level views: the editor's alloy (editor/world/css/editor.css :root),
+   the system face and machined corners, so the graph and the level editor read as the same tool as the world. */
+body[data-workspace]{background:#08090b;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;--cyan:#f2a13f;--accent:#f2a13f;--panel:#0e1014;--border:#23272e;--muted:#99a2ab}
+body[data-workspace] .bld{--surface-000:#08090b;--surface-100:#0e1014;--surface-200:#16191e;--surface-300:#1d2127;--line:#23272e;--line-strong:#5c646d;--ink:#eef1f4;--ink-muted:#99a2ab;--tungsten:#f2a13f;--tungsten-hover:#ffc476;--on-tungsten:#1c1103;--tungsten-ink:#ffc476;--peaking:#5aa9f2;--tally:#f2564a;--zebra:#ffc476;--success:#62d29a;--on-signal:#08090b;--shadow-practical:0 0 0 1px #f2a13f,0 10px 28px -8px rgba(242,161,63,.5);--radius-sm:6px;--radius-md:9px;--font-display:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;--font-sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;--font-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}

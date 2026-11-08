@@ -172,6 +172,7 @@ const game = mountGame({
   announce,
   // The top bar names the view that is open: the world, the mission's graph, its levels (Play covers them all).
   onView: (view) => {
+    document.body.dataset.view = view;
     for (const b of document.querySelectorAll("#modes [data-view]")) {
       const on = b.dataset.view === view;
       b.classList.toggle("on", on);

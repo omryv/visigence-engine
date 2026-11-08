@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visigence Engine · My-3D-Engine</title>
+<meta name="description" content="Visigence Engine, My-3D-Engine: one photograph in, a watertight, textured, rigged figure out, with a per-vertex uncertainty field. Runs in the browser; nothing is uploaded.">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="./favicon.png">
+<!-- The My-3D-Engine view of the one editor (index.html, at /): atlas-core's reconstruction page, in the editor's colours and type
+     (editor/my-3d-engine/my-3d-engine.css), drawn by the engine's own renderer (editor/my-3d-engine/viewer.js). Nothing is uploaded and nothing is
+     stored: the figure leaves as the files it exports. -->
+<link rel="stylesheet" href="/editor/my-3d-engine/my-3d-engine.css">
+<script type="importmap">{"imports":{"three":"/vendor/three/build/three.webgpu.min.js","three/webgpu":"/vendor/three/build/three.webgpu.min.js","three/tsl":"/vendor/three/build/three.tsl.min.js","three/addons/":"/vendor/three/examples/jsm/"}}</script>
+</head>
+<body>
+<main class="layout">
+
+  <!-- ─────────────────────────────────────────────────────── the stage -->
+  <section class="stage" id="stage">
+    <canvas id="viewport"></canvas>
+
+    <!-- drop target, shown until a reconstruction exists -->
+    <div class="dropzone" id="dropzone">
+      <svg class="drop-icon" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M24 32V10M24 10l-8 8M24 10l8 8" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 30v6a2 2 0 0 0 2 2h28a2 2 0 0 0 2-2v-6" fill="none" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p class="drop-title">Drop a photograph</p>
+      <p class="drop-sub">or <button class="linkish" id="browseBtn" type="button">browse</button> — PNG with alpha reconstructs best</p>
+      <p class="drop-note">Nothing is uploaded. The reconstruction runs in this tab.</p>
+    </div>
+
+    <!-- progress, shown while the worker runs -->
+    <div class="progress" id="progress" hidden>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <p class="progress-label" id="progressLabel">Reconstructing…</p>
+    </div>
+
+    <!-- view controls, shown once there is something to look at -->
+    <div class="viewbar" id="viewbar" hidden>
+      <div class="segmented" role="group" aria-label="Shading mode">
+        <button type="button" class="seg on" data-view="textured">Textured</button>
+        <button type="button" class="seg" data-view="confidence">Confidence</button>
+        <button type="button" class="seg" data-view="sigma">Uncertainty</button>
+        <button type="button" class="seg" data-view="wire">Wireframe</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Mesh">
+        <button type="button" class="seg on" data-mesh="full" id="meshFullBtn">Full</button>
+        <button type="button" class="seg" data-mesh="smart" id="meshSmartBtn" disabled>Evidence-sized</button>
+      </div>
+      <button type="button" class="ghost" id="spinBtn" aria-pressed="true">Pause spin</button>
+    </div>
+
+    <p class="viewer-notice" id="viewerNotice" hidden></p>
+  </section>
+
+  <!-- ──────────────────────────────────────────────────────── controls -->
+  <aside class="panel">
+
+    <section class="card">
+      <h2>Input</h2>
+      <input type="file" id="fileFront" accept="image/*" class="visually-hidden">
+      <input type="file" id="fileBack" accept="image/*" class="visually-hidden">
+      <input type="file" id="fileProfile" accept="image/*" class="visually-hidden">
+
+      <div class="slots">
+        <button type="button" class="slot" id="slotFront" data-slot="front">
+          <span class="slot-thumb"></span>
+          <span class="slot-text"><b>Front</b><i>required</i></span>
+        </button>
+        <button type="button" class="slot" id="slotBack" data-slot="back">
+          <span class="slot-thumb"></span>
+          <span class="slot-text"><b>Back</b><i>texture for the far side</i></span>
+        </button>
+        <button type="button" class="slot" id="slotProfile" data-slot="profile">
+          <span class="slot-thumb"></span>
+          <span class="slot-text"><b>Profile</b><i>the only view that carries depth</i></span>
+        </button>
+      </div>
+
+      <label class="field">
+        <span class="field-label">Reconstruction mode</span>
+        <select id="mode">
+          <option value="draft">Draft — 190px grid, fastest</option>
+          <option value="balanced" selected>Balanced — 280px grid</option>
+          <option value="archival">Archival — 360px grid, slowest</option>
+        </select>
+      </label>
+
+      <label class="field checkline">
+        <input type="checkbox" id="facingRight">
+        <span>Profile subject faces right</span>
+      </label>
+
+      <button type="button" class="primary" id="runBtn" disabled>Reconstruct</button>
+    </section>
+
+    <section class="card" id="smartCard">
+      <h2>Evidence-sized mesh</h2>
+      <p class="card-note">An edge collapse whose budget is the per-vertex σ. The triangle count is an output, not a setting.</p>
+      <label class="field">
+        <span class="field-label">κ — fraction of σ a collapse may spend <output id="kappaOut">0.25</output></span>
+        <input type="range" id="kappa" min="0.05" max="1" step="0.05" value="0.25">
+      </label>
+      <label class="field">
+        <span class="field-label">Triangle target <i class="hint">optional — a request, never permission to exceed the budget</i></span>
+        <input type="number" id="target" min="4" step="100" placeholder="none">
+      </label>
+      <button type="button" class="secondary" id="simplifyBtn" disabled>Simplify</button>
+      <p class="stop" id="stopLine" hidden></p>
+    </section>
+
+    <section class="card" id="readoutCard" hidden>
+      <h2>What it measured</h2>
+      <dl class="readout" id="readout"></dl>
+    </section>
+
+    <section class="card" id="exportCard" hidden>
+      <h2>Export</h2>
+      <div class="exports">
+        <button type="button" class="secondary" id="glbBtn">GLB</button>
+        <button type="button" class="secondary" id="objBtn">OBJ bundle</button>
+        <button type="button" class="secondary" id="atlasBtn">Atlas PNG</button>
+<button type="button" class="primary" id="missionBtn">Use in the mission</button>
+      </div>
+      <p class="card-note" id="exportNote">The GLB carries positions, normals, UVs, the skin, and <code>_SIGMA</code> — the per-vertex uncertainty — with its units. The OBJ bundle is a zip of the OBJ, its MTL and the atlas.</p>
+    </section>
+
+    <section class="card">
+      <h2>Log</h2>
+      <div class="log" id="log" aria-live="polite"></div>
+    </section>
+
+  </aside>
+</main>
+<script type="module" src="/editor/my-3d-engine/app.js"></script>
+</body>
+</html>

@@ -143,6 +143,7 @@ const VENDORED = [
 const CHECKS = [
   ['check-imports', 'tools/check-imports.mjs'],
   ['check-three', 'tools/three/check.mjs'],
+  ['check-site-build', 'tools/test/check-site-build.mjs'],
 ];
 /**
  * A suite that cannot run here at all (test-kernel-parity without python3) exits 0 and prints a
@@ -160,10 +161,13 @@ let artSkips = 0;
  *  file, certificates, the genesis CLI and MCP server): each a bare .js file run under node with the harness's shim. */
 const KERNEL = fs.readdirSync(path.join(ROOT, 'tools/test/kernel')).filter(f => f.endsWith('.test.js')).sort();
 const GENESIS = fs.readdirSync(path.join(ROOT, 'tools/test/genesis')).filter(f => f.endsWith('.test.js')).sort();
+/** The 2D builder's suites (src/play2d/: its genres, checks and solver, editing model, templates, generator, export). */
+const PLAY2D = fs.readdirSync(path.join(ROOT, 'tools/test/play2d')).filter(f => /^test-.*\.mjs$/.test(f)).sort();
 const jobs = [
   ...CHECKS.map(([name, file]) => ({ name, file, args: [] })),
   ...KERNEL.map(f => ({ name: 'kernel-' + f.replace(/\.test\.js$/, ''), file: `tools/test/kernel/${f}`, args: ['--import', './tools/test/kernel/shim.mjs'] })),
   ...GENESIS.map(f => ({ name: 'genesis-' + f.replace(/\.test\.js$/, ''), file: `tools/test/genesis/${f}`, args: ['--import', './tools/test/kernel/shim.mjs'] })),
+  ...PLAY2D.map(f => ({ name: 'play2d-' + f.replace(/^test-builder-|\.mjs$/g, ''), file: `tools/test/play2d/${f}`, args: [] })),
   ...PURE.map(name => ({ name, file: `tools/test/${name}.mjs`, args: [] })),
   ...VENDORED.map(name => ({ name, file: `tools/test/${name}.mjs`, args: ['--import', HOOK] })),
   { name: 'atlas', file: 'tools/test/atlas/run.mjs', args: [] },

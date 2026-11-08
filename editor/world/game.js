@@ -22,6 +22,7 @@
 import { GENRES } from "../../src/genres/registry.js";
 import { MISSION_WORLDS } from "../../src/world/missionCard.js";
 import { editorMissionURL, checkSettings, MISSION_DEFAULTS, DIFFICULTIES, MAX_ENEMIES } from "../../src/world/editorMission.js";
+import { encodeWorldLink } from "../../src/world/worldLink.js";
 
 export const MESSAGES = Object.freeze({
   leaveGame: "visigence:leave-game",
@@ -30,7 +31,6 @@ export const MESSAGES = Object.freeze({
   play: "visigence:play",
   workspace: "visigence:workspace",
 });
-const WORKSPACE_NAMES = { remix: "Mission", build: "Level" };
 
 /**
  * @param {object} o
@@ -163,45 +163,104 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
     });
   }
 
-  function open(next, workspace = null) {
-    let src;
-    try { src = url(workspace); } catch (e) { announce(workspace ? WORKSPACE_NAMES[workspace] : "Play", `This world cannot be opened: ${e.message}`); return; }
-    // A debug session (?debug=1, the browser checks) debugs the game too.
-    if (new URLSearchParams(location.search).get("debug") === "1") src = src.replace(".html?", ".html?debug=1&");
-    close();
-    layer = document.createElement("div");
-    layer.id = workspace ? "workspace-layer" : "game-layer";
+  /* ── the views ──
+     Each view (Mission, Level, 2D, My-3D-Engine) runs in its own frame, made the first time it is opened and KEPT: switching
+     away hides it and tells it to stop drawing, switching back shows it again at once, as it was. A frame is made
+     again only when what it was opened on has changed under it (Mission and Level are opened on the world and the
+     Game panel's settings; their edits already came back here, so nothing is lost). 2D keeps its own game and is told
+     the new world instead; My-3D-Engine depends on nothing here. Play is not kept: a game is built for the world as it stands,
+     and it is taken down when it ends. */
+  const worldKey = () => JSON.stringify([engine.params.seed, engine.params.terrain, engine.params.water]);
+  const VIEWS = {
+    remix: { src: () => url("remix"), key: () => worldKey() + JSON.stringify(currentSettings()), title: "Mission: the mission's graph" },
+    build: { src: () => url("build"), key: () => worldKey() + JSON.stringify(currentSettings()), title: "Level: the mission's levels" },
+    "2d": { src: () => `/2d.html#world=${worldLinkValue()}`, key: () => "2d", title: "2D: games on a grid" },
+    my3d: { src: () => "/my-3d-engine.html", key: () => "my3d", title: "My-3D-Engine: a figure from a photograph" },
+  };
+  const frames = new Map();   // view -> { layer, frame, key, ready, queue }
+  const worldLinkValue = () => encodeWorldLink({ seed: engine.params.seed, worldParams: { terrain: engine.params.terrain, water: engine.params.water } });
+  const debug = new URLSearchParams(location.search).get("debug") === "1";
+  const withDebug = (src) => (debug ? src.replace(/\.html(\?|#)/, (_, c) => `.html?debug=1${c === "?" ? "&" : "#"}`) : src);
+  const tell = (frame, message) => { try { frame?.contentWindow?.postMessage(message, location.origin); } catch { /* not loaded yet */ } };
+  /** A message for a view that may still be loading: sent when it says it is ready (visigence:ready), or now. */
+  const tellWhenReady = (name, message) => {
+    const f = frames.get(name);
+    if (!f) return;
+    if (f.ready) tell(f.frame, message); else f.queue.push(message);
+  };
+
+  function hideViews(except = null) {
+    for (const [name, f] of frames) {
+      if (name === except || f.layer.hidden) continue;
+      f.layer.hidden = true;
+      tell(f.frame, { type: "visigence:pause" });
+    }
+  }
+  function makeFrame(id, src, title) {
+    const layer = document.createElement("div");
+    layer.id = id;
     const frame = document.createElement("iframe");
-    frame.title = workspace ? `${WORKSPACE_NAMES[workspace]}: the mission's ${workspace === "remix" ? "graph" : "levels"}` : "The game, on this world";
+    frame.title = title;
     frame.allow = "fullscreen; gamepad; autoplay";
-    frame.src = src;
+    frame.src = withDebug(src);
     layer.append(frame);
     document.body.append(layer);
-    document.body.classList.toggle("in-game", !workspace);
-    document.body.classList.toggle("in-workspace", !!workspace);
-    engine.setPaused(true);
     frame.addEventListener("load", () => frame.contentWindow?.focus(), { once: true });
-    view = next;
+    return { layer, frame };
+  }
+  function showView(name) {
+    const v = VIEWS[name];
+    let f = frames.get(name), key;
+    try { key = v.key(); } catch (e) { announce(name, e.message); return; }
+    if (f && f.key !== key) { f.layer.remove(); frames.delete(name); f = null; }
+    if (!f) {
+      let src;
+      try { src = v.src(); } catch (e) { announce("View", `This world cannot be opened: ${e.message}`); return; }
+      f = { ...makeFrame(`view-${name}`, src, v.title), key, ready: false, queue: [] };
+      f.layer.className = "view-layer";
+      frames.set(name, f);
+    } else {
+      f.layer.hidden = false;
+      tell(f.frame, { type: "visigence:resume" });
+      if (name === "2d") tell(f.frame, { type: "visigence:world", link: worldLinkValue() });
+      f.frame.contentWindow?.focus();
+    }
+    hideViews(name);
+    closeGame();
+    document.body.classList.add("in-workspace");
+    engine.setPaused(true);
+    view = name;
     onView(view);
   }
-  function close() {
+  function closeGame() {
     if (!layer) return;
     layer.remove();
     layer = null;
-    document.body.classList.remove("in-game", "in-workspace");
+    document.body.classList.remove("in-game");
   }
 
-  /** Play the mission on this world, over the viewport. Leaving the game returns to the view it was played from. */
+  /** Play the mission on this world, over the whole screen. Leaving the game returns to the view it was played from. */
   function play() {
-    back = view === "remix" || view === "build" ? view : null;
-    open("play");
+    let src;
+    try { src = url(); } catch (e) { announce("Play", `This world cannot be played: ${e.message}`); return; }
+    back = view !== "world" && view !== "play" ? view : null;
+    closeGame();
+    hideViews();
+    ({ layer } = makeFrame("game-layer", src, "The game, on this world"));
+    document.body.classList.add("in-game");
+    document.body.classList.remove("in-workspace");
+    engine.setPaused(true);
+    view = "play";
+    onView(view);
   }
-  /** Open a workspace (remix: the mission graph; build: the level editor) on the editor's mission. */
-  function openWorkspace(name) { if (view !== name) open(name, name); }
-  /** Back to the world: whatever is open over it comes down and the world runs again. */
+  /** Open a view (remix: the mission graph; build: the level editor; 2d; me). */
+  function openWorkspace(name) { if (VIEWS[name] && view !== name) showView(name); }
+  /** Back to the world: whatever is over it steps aside (the views kept, paused) and the world runs again. */
   function leave() {
-    if (!layer) return;
-    close();
+    if (view === "world") return;
+    closeGame();
+    hideViews();
+    document.body.classList.remove("in-workspace");
     engine.setPaused(false);
     view = "world";
     onView(view);
@@ -209,14 +268,26 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
   }
 
   window.addEventListener("message", (e) => {
-    const frame = layer?.querySelector("iframe");
-    if (e.origin !== location.origin || !frame || e.source !== frame.contentWindow) return;
+    if (e.origin !== location.origin) return;
+    const fromGame = layer && e.source === layer.querySelector("iframe")?.contentWindow;
+    const fromView = [...frames.values()].some((f) => e.source === f.frame.contentWindow);
+    if (!fromGame && !fromView) return;
     const { type } = e.data ?? {};
+    if (type === "visigence:ready") {
+      for (const f of frames.values()) if (e.source === f.frame.contentWindow) { f.ready = true; for (const m of f.queue.splice(0)) tell(f.frame, m); }
+      return;
+    }
+    // A figure from My-3D-Engine, for the mission: the Mission view opens with its prop importer on it.
+    if (type === "visigence:figure" && e.data.figure?.bytes) {
+      showView("remix");
+      tellWhenReady("remix", { type: "visigence:import-figure", figure: e.data.figure });
+      return;
+    }
     if (type === MESSAGES.mission && e.data.mission) { mission = e.data.mission; return; }
-    if (type === MESSAGES.leaveGame && back) { const to = back; back = null; open(to, to); return; }
+    if (type === MESSAGES.leaveGame && fromGame && back) { const to = back; back = null; showView(to); return; }
     if (type === MESSAGES.leaveGame || type === MESSAGES.leaveWorkspace) { leave(); return; }
     if (type === MESSAGES.play) { if (e.data.mission) mission = e.data.mission; play(); return; }
-    if (type === MESSAGES.workspace && WORKSPACE_NAMES[e.data.to]) { if (e.data.mission) mission = e.data.mission; openWorkspace(e.data.to); }
+    if (type === MESSAGES.workspace && VIEWS[e.data.to]) { if (e.data.mission) mission = e.data.mission; openWorkspace(e.data.to); }
   });
 
   render();

@@ -148,9 +148,11 @@ try {
   await w.until(`!document.querySelector('#game-layer') && !document.body.classList.contains('in-game')`, 10000, 'the world again');
   check('"Back to the world" takes the game down and the world runs again', !(await w.js('engine.paused')) && (await w.js('engine.props.items.size')) === built.props);
   // ── 6. Mission: the graph, in the editor, on the editor's mission ──────────────
+  const V = (name) => `document.querySelector("#view-${name} iframe").contentWindow`;
+  const shown = (name) => `!!document.querySelector('#view-${name}') && !document.querySelector('#view-${name}').hidden`;
   await w.click('#modes [data-view="remix"]');
-  const WS = 'document.querySelector("#workspace-layer iframe").contentWindow';
-  await w.until(`!!document.querySelector('#workspace-layer iframe') && ${WS}.document.body.dataset.mode === 'remix' && !!${WS}.__studio`, 120000, 'the Mission workspace');
+  const WS = V('remix');
+  await w.until(`${shown('remix')} && ${WS}.document.body.dataset.mode === 'remix' && !!${WS}.__studio`, 120000, 'the Mission view');
   const ws1 = JSON.parse(await w.js(`JSON.stringify({ genre: ${WS}.__studio.project.genre, seed: ${WS}.__studio.project.seed, site: ${WS}.__studio.project.worldSite, on: document.querySelector('#modes .on')?.dataset.view, paused: engine.paused, bar: getComputedStyle(document.querySelector('#readout')).visibility })`));
   check('Mission opens the mission graph in the page, under the editor\'s top bar, on the editor\'s mission',
     ws1.genre === 'arena' && ws1.seed === built.seed && ws1.on === 'remix' && ws1.paused && ws1.bar === 'visible', JSON.stringify(ws1));
@@ -161,19 +163,61 @@ try {
   await w.until(`!!document.querySelector('#game-layer iframe') && !!${G}.__studio?.completedBuild`, 300000, 'the edited mission');
   check('Generate & play in the graph plays the edited mission in the editor', (await w.js(`${G}.__studio.project.name`)) === 'Harbour defence');
   await w.js(`${G}.document.querySelector('#overlay-exit').click()`);
-  await w.until(`!!document.querySelector('#workspace-layer iframe') && ${WS}.document.body.dataset.mode === 'remix'`, 60000, 'the graph again');
-  check('leaving that game returns to the graph', true);
+  await w.until(`${shown('remix')} && !document.querySelector('#game-layer')`, 60000, 'the graph again');
+  check('leaving that game returns to the graph, as it was (the view kept)', (await w.js(`${WS}.__studio.project.name`)) === 'Harbour defence');
   // ── 7. Level: the level editor, in the editor ─────────────────────────────────
   await w.click('#modes [data-view="build"]');
-  await w.until(`!!document.querySelector('#workspace-layer iframe') && ${WS}.document.body.dataset.mode === 'build' && !!${WS}.__studio?.build?.store`, 180000, 'the Level workspace');
-  const lvl = JSON.parse(await w.js(`JSON.stringify({ name: ${WS}.__studio.build.store.game.name, levels: ${WS}.__studio.build.store.game.levels.length, seed: ${WS}.__studio.build.store.game.levels[0].seed })`));
+  const LV = V('build');
+  await w.until(`${shown('build')} && ${LV}.document.body.dataset.mode === 'build' && !!${LV}.__studio?.build?.store`, 180000, 'the Level view');
+  const lvl = JSON.parse(await w.js(`JSON.stringify({ name: ${LV}.__studio.build.store.game.name, levels: ${LV}.__studio.build.store.game.levels.length, seed: ${LV}.__studio.build.store.game.levels[0].seed })`));
   check('Level opens the level editor in the page on the same mission', lvl.name === 'Harbour defence' && lvl.seed === built.seed, JSON.stringify(lvl));
   await sleep(3000);
   const ls = await w.shot('level-in-the-editor');
   console.log(`       level: ${ls.file} (${ls.colours} colours)`);
+  // ── 8. 2D: games on a grid, this world among them ─────────────────────────────
+  await w.click('#modes [data-view="2d"]');
+  const D2 = V('2d');
+  await w.until(`${shown('2d')} && !!${D2}.document.querySelector('[data-g="world"]')`, 60000, 'the 2D view');
+  check('2D opens its start screen with this world offered', (await w.js(`${D2}.document.querySelector('.g-world .meta')?.textContent ?? ''`)).includes(built.seed));
+  check('and the editor\'s Play steps aside there (2D plays its own games)', await w.js(`getComputedStyle(document.querySelector('#play-here')).display === 'none'`));
+  await w.js(`${D2}.document.querySelector('[data-g="world"]').click()`);
+  await w.until(`${D2}.document.getElementById('app').dataset.view === 'editor'`, 30000, 'the world in 2D');
+  const two = JSON.parse(await w.js(`JSON.stringify({ genre: ${D2}.__builder.store.project.genre, title: ${D2}.__builder.store.project.title, w: ${D2}.__builder.store.level.width, h: ${D2}.__builder.store.level.height, ready: !${D2}.__builder.analysis()?.issues?.some?.(i => i.severity === 'error') })`));
+  check('"Your world, in 2D" opens this world as a 2D adventure', two.genre === 'adventure' && two.title.includes(built.seed) && two.w === 48 && two.h === 32, JSON.stringify(two));
+  await sleep(1500);
+  const ts = await w.shot('2d-in-the-editor');
+  check('and draws it', ts.colours > 30, `${ts.colours} colours; ${ts.file}`);
+  // ── 9. My-3D-Engine: a figure from a photograph, into the mission ───────────
+  await w.click('#modes [data-view="my3d"]');
+  const ME = V('my3d');
+  await w.until(`${shown('my3d')} && !!${ME}.document.querySelector('#fileFront')`, 60000, 'the My-3D-Engine view');
+  check('My-3D-Engine opens in the page, the other views kept and paused', await w.js(`document.querySelector('#view-2d').hidden && document.querySelector('#view-build').hidden && document.querySelector('#view-remix').hidden`));
+  await w.js(`(async () => {
+    const blob = await (await fetch('/tools/test/fixtures/photo-front.png')).blob();
+    const win = ${ME}, input = win.document.querySelector('#fileFront');
+    const dt = new win.DataTransfer(); dt.items.add(new win.File([blob], 'photo-front.png', { type: 'image/png' }));
+    input.files = dt.files; input.dispatchEvent(new win.Event('change'));
+  })()`);
+  await w.until(`!${ME}.document.querySelector('#runBtn').disabled`, 60000, 'the photograph to be taken');
+  const t0 = Date.now();
+  await w.js(`${ME}.document.querySelector('#runBtn').click()`);
+  await w.until(`!${ME}.document.querySelector('#exportCard').hidden`, 600000, 'the reconstruction');
+  check('a photograph becomes a figure in My-3D-Engine', true, `${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  await sleep(3000);
+  const ms = await w.shot('my-3d-engine-in-the-editor');
+  check('and My-3D-Engine draws it with the engine\'s renderer', ms.colours > 30, `${ms.colours} colours; ${ms.file}`);
+  await w.js(`${ME}.document.querySelector('#missionBtn').click()`);
+  await w.until(`${shown('remix')} && /Your figure from My-3D-Engine/.test(${WS}.document.querySelector('dialog.prop-dialog .prop-metrics')?.textContent ?? '')`, 300000, 'the figure in the Mission view');
+  check('"Use in the mission" opens Mission with its prop importer on the figure', true);
+  await w.js(`${WS}.document.querySelector('dialog.prop-dialog')?.close()`);
+  // ── 10. back, to views kept as they were ─────────────────────────────────────
+  const t1 = Date.now();
+  await w.click('#modes [data-view="2d"]');
+  await w.until(`${shown('2d')} && ${D2}.document.getElementById('app').dataset.view === 'editor'`, 5000, '2D again');
+  check('2D comes back as it was, at once', (await w.js(`${D2}.__builder.store.project.title`)) === two.title, `${Date.now() - t1} ms`);
   await w.click('#modes [data-view="world"]');
-  await w.until(`!document.querySelector('#workspace-layer') && !engine.paused`, 10000, 'the world');
-  check('World takes the workspace down and the world runs again, the mission kept', (await w.js(`studio.game.mission()?.name`)) === 'Harbour defence');
+  await w.until(`!document.querySelector('.view-layer:not([hidden])') && !engine.paused`, 10000, 'the world');
+  check('World steps every view aside and the world runs again, the mission kept', (await w.js(`studio.game.mission()?.name`)) === 'Harbour defence');
 } catch (err) {
   check('the run finished', false, err.message);
 } finally {

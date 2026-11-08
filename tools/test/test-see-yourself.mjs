@@ -30,18 +30,21 @@ const ok = msg => console.log(`  ok   ${msg}`);
 {
   for (const f of ['web/figure.js', 'web/worker.js', 'atlas-core.js', 'exporters.js', 'smartmesh.js'])
     assert(fs.existsSync(path.join(ATLAS, f)), `src/atlas/${f} is in the engine`);
-  // Who reaches into src/atlas/ from outside it: the import dialog, and nothing the game runs.
+  // Who reaches into src/atlas/ from outside it: the import dialog and the editor's My-3D-Engine view (the
+  // reconstruction's own page), and nothing the game runs (neither ships in a downloaded game: tools/build/game-manifest.mjs).
   const reachers = [];
   for (const file of [...jsFiles(path.join(ROOT, 'src')), ...jsFiles(path.join(ROOT, 'editor'))]) {
     if (inAtlas(file)) continue;
     for (const spec of moduleSpecifiers(fs.readFileSync(file, 'utf8')))
       if (spec.startsWith('.') && inAtlas(resolveRelative(file, spec))) reachers.push(path.relative(ROOT, file));
   }
-  assert.deepEqual([...new Set(reachers)], ['editor/assetImport.js'], 'only the import dialog reaches the reconstruction');
+  assert.deepEqual([...new Set(reachers)].sort(), ['editor/assetImport.js', 'editor/my-3d-engine/app.js', 'editor/my-3d-engine/viewer.js'], 'only the import dialog and My-3D-Engine reach the reconstruction');
+  const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'editor/runtime-files.json'), 'utf8'));
+  assert(!manifest.some((f) => f.startsWith('editor/my-3d-engine/') || f.startsWith('src/atlas/')), 'a downloaded game carries neither');
   const importer = fs.readFileSync(path.join(ROOT, 'editor/assetImport.js'), 'utf8');
   assert(importer.includes("import('../src/atlas/web/figure.js')"), 'the import dialog loads figure.js on demand');
   assert(!/^\s*import\b[^(]*src\/atlas/m.test(importer), 'and never statically: a studio that never imports a photo never loads it');
-  ok('the reconstruction is in the engine at src/atlas/; only the import dialog reaches it, on demand');
+  ok('the reconstruction is in the engine at src/atlas/; only the import dialog (on demand) and My-3D-Engine reach it');
 }
 
 // ── 2. the worker's protocol ────────────────────────────────────────────────
