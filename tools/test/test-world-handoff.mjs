@@ -31,7 +31,8 @@ import { makeParams } from '../../src/kernel/presets.js';
 import { createHeightSampler } from '../../src/kernel/terrain/heightfield.js';
 import { terrainParameterHash, hex } from '../../src/kernel/terrain/fingerprint.js';
 import { encodeWorldLink, decodeWorldLink, worldFromLocation, WORLD_LINK_VERSION } from '../../src/world/worldLink.js';
-import { editorMissionURL, missionFromEditor } from '../../src/world/editorMission.js';
+import { editorMissionURL } from '../../src/world/editorMission.js';
+import { missionFromEditor } from '../../src/world/editorProject.js';
 
 const ok = msg => console.log(`  ok   ${msg}`);
 const SEED = 'K7QN-3F2A-9XBD';

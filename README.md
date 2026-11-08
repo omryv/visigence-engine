@@ -14,8 +14,8 @@ this repository.
 ## The editor
 
 One page, at `/` (`index.html`): the world and its game are made there and the game is played there. Its top bar
-switches between its views of the same project, and **Play** plays the mission over World, Mission or Level, on the world
-as it stands.
+switches between its views of the same project, and **Play** plays the mission: from World, on the world itself, drawn
+by the world engine; from Mission or Level, the level as it was built.
 
 | View | What it does | Where |
 |---|---|---|
@@ -39,9 +39,29 @@ was, at once. Mission and Level are made again only when the world or the Game p
 (their edits are already the editor's); 2D keeps its game and is handed the new world. Only Play is not kept: a game is
 built for the world as it stands.
 
-**Play, inside the editor.** Play opens the game over the editor's viewport, in the same page; the world stands still
-under it and its chrome steps back, and "Back to the world" takes the game down and returns to the view Play was
-pressed in (`editor/world/game.js`). The game is the game runtime, `game.html` in the standalone mode an exported game uses,
+**Play, on the world.** Play in the World view plays the mission on the world on screen, by the world engine that is
+drawing it (`editor/world/play.js`). No frame opens, no second renderer starts and the world is not rebuilt. The player
+stands on the world's own ground at the world's own scale, under its sky, weather and time of day, among the buildings
+and woods placed on it, and the mission's critters, pads, gates, pickups and whatever the Level editor placed are
+brought there (`src/world/worldPlay.js`). Three things are read from the world:
+
+- **The ground** the game's body stands on: the engine's ground, sampled every 0.5 m, with floors a body steps onto.
+  Its water is only where the sea reaches, so a dry hollow below the waterline stays dry.
+- **Where a body can go**: no walls of placed buildings at foot height, no deep water, no slopes too steep, and only
+  what can be reached from the start.
+- **The start**: the spawn marker, or where the level ground finds the world best to stand on.
+
+The game's simulation and art run unchanged, as a hosted session (`src/game/ShooterSession.js` `host`). Its things
+go in a group of the engine's scene at the level's origin, and its controller drives the engine's eye in the engine's
+`play` mode (`Engine.beginPlay`). Its hands and weapon are drawn over the engine's frame. Mission things with no room
+on the world move to the nearest open ground, and cover with no room is left out; the ready card says how many. Esc
+pauses, and the card offers Resume or Back to editing. The top bar is back whenever a card is up, and the editing view
+returns exactly where it was. The editor loads none of this until the first Play (the editor's first load grew by
+4 KB). Every genre plays this way, first person or with the hero in view.
+
+**Play from Mission or Level** plays the level as built, over the editor's viewport, in the same page; the world
+stands still under it and its chrome steps back, and "Back to the world" takes the game down and returns to the view
+Play was pressed in (`editor/world/game.js`). The game is the game runtime, `game.html` in the standalone mode an exported game uses,
 handed the mission in its address (`src/world/editorMission.js`): the Game panel's settings in the query, the world in
 the fragment (`src/world/worldLink.js`: the seed and the world's terrain and water params, under a kilobyte for a
 world with a town on it). The editor stores nothing on the visitor's machine, and the game it runs keeps that promise:
@@ -65,6 +85,11 @@ Said plainly, because this replaces four repositories and not everything has arr
   `tools/test/check-wgsl.mjs` has three generate the WGSL for every material in a live world and compiles each one,
   and the pixels are checked on the renderer's WebGL2 backend (the same node graphs, compiled to GLSL). On a real GPU
   WebGPU runs the programs proved valid; nothing in this sandbox could show one running.
+- **Play on the world, its edges.** The game's body walks a 160 m play area round the start: past it the world is
+  drawn but not walked. Buildings are solid to the game's body, so their rooms (which the editor's own Walk mode
+  enters, doors and stairs and all) are closed to it, and the critters and weapons are the Arcade pack's, toon-shaded,
+  on a world that is not. Only the stand-in art and the WebGL2 backend have been seen playing it here; the game's real
+  art and a WebGPU frame have not.
 - **The old editor's WebGL renderer** is not here, on purpose: the world engine's GLSL (terrain, sea, sky, air,
   grass, scatter, fire, weather, pins and markers) was rewritten as TSL, term for term, and runs on the one renderer.
 
@@ -115,7 +140,7 @@ There is no CI, on purpose. `sh check.sh` is the gate; run it before you push.
 sh check.sh                              # = node tools/test/run.mjs: the import and three checks, then every offline suite
 node tools/test/run.mjs genesis          # only the suites whose name contains "genesis"
 node tools/test/check-wgsl.mjs --town    # every program a built-on world draws, compiled as WGSL
-node tools/test/e2e-world.mjs            # World: woods, a hamlet, the Game panel, Play in the page at the spawn
+node tools/test/e2e-world.mjs            # World: woods, a hamlet, the Game panel, Play on the world at the spawn, the views
 node tools/test/e2e-genres.mjs           # one mission per genre in headless Chromium
 node tools/test/e2e-see-yourself.mjs     # the photograph to a figure, through the studio's own dialog
 node tools/test/play2d/e2e-builder.mjs   # the 2D builder end to end: templates, generator, playtests, export, share

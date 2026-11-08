@@ -10,7 +10,7 @@
  * refused by name rather than misread. Pure: no DOM, no storage.
  */
 import { normalizeSeed } from '../kernel/seed.js';
-import { normalizeWorldParams, WORLD_PARAMS_MAX_BYTES } from './shooterProject.js';
+import { normalizeWorldParams, WORLD_PARAMS_MAX_BYTES } from './worldParams.js';
 
 export const WORLD_LINK_VERSION = 1;
 export const WORLD_LINK_KEY = 'world';

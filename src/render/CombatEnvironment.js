@@ -193,6 +193,9 @@ export function buildCombatEnvironment(host) {
  let safe=null;
  const accent=emissive(host.accent,night?2.6:1.2),warm=emissive(look?.lighting?.lampColor??0xffcc8e,night?3.2:.6);
  const materialCache=new Map();
+ // A level played on another engine's world (src/world/worldPlay.js, hosted by the world editor): that world is the
+ // ground, the water and the scenery, drawn by its own engine, and this draws only the mission's things on it.
+ if(!level.playArea){
  // The ground: a painted tile, toon-shaded like the props on it (the kit's grass: blue-grey shade, no rim); a biome
  // paints its own (the desert's sand) from the world rules' `ground`.
  const lawn=track(lawnTexture(project.seed,size,host.worldRules?.ground??MEADOW_GROUND));lawn.repeat.set(20,20);lawn.anisotropy=anisotropy;
@@ -244,6 +247,7 @@ export function buildCombatEnvironment(host) {
  }else{
   const floor=host._mesh(new PlaneGeometry(80,80),groundMaterial,0,-.025,0);floor.rotation.x=-Math.PI/2;
   if(overlay&&!host.toon){const sheet=host._mesh(new PlaneGeometry(80,80),track(new MeshBasicMaterial({map:overlay,transparent:true,depthWrite:false})),0,-.015,0);sheet.rotation.x=-Math.PI/2;}
+ }
  }
  const groundY=(x,z)=>level.terrain?.heightAt?.(x,z)??0;
  const flora=[],trees=[];

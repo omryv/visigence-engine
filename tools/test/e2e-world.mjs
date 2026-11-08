@@ -11,9 +11,13 @@
  *      through the editor's own site command (its pads sculpt the ground);
  *   3. the deck's Game button opens the Game panel; the mission is set to an arena shooter standing at the spawn
  *      marker, which is set with the Spawn tool on the town's ground;
- *   4. Play runs the game in the page, over the viewport, the world standing still: the level is prepared, it stands
- *      on the world the editor holds (the same world parameter hash) at the spawn marker, and the game draws;
- *   5. "Back to the world" takes the game down and the world runs again.
+ *   4. Play, from the World view, plays the mission ON the world, in the world engine (editor/world/play.js): no
+ *      frame and no second renderer; the game's ground is the engine's own, the player starts at the spawn marker,
+ *      the critters stand in the engine's scene on its ground, the body walks on it, the engine draws from the
+ *      game's eye;
+ *   5. Esc pauses it and says so; "Back to editing" takes the game out of the world and the editor is as it was; a
+ *      first-person shooter then plays the same way, its weapon drawn over the world's frame, quicker the second time;
+ *   6.-9. Mission, Level, 2D and My-3D-Engine; Play from Mission still plays the level as built, in the runtime.
  *
  * Shots go to docs/reports/world/ (PNGs stay local). Pixels are read on the WebGL2 backend (see
  * tools/test/check-wgsl.mjs for why WebGPU frames cannot be read here). Not in tools/test/run.mjs: it needs a browser.
@@ -113,40 +117,71 @@ try {
   const settings = JSON.parse(await w.js(`JSON.stringify(studio.game.settings())`));
   check('the mission is set: an arena shooter, standing at the spawn marker', settings.genre === 'arena' && !!settings.site,
     `site (${settings.site?.x?.toFixed(0)}, ${settings.site?.z?.toFixed(0)})`);
-  const expected = await w.js(`(async () => {
-    const { worldParamsFor } = await import('/src/world/kernelGround.js');
-    const { terrainParameterHash, hex } = await import('/src/kernel/terrain/fingerprint.js');
-    return hex(terrainParameterHash(worldParamsFor(engine.params.seed, { terrain: engine.params.terrain, water: engine.params.water })));
-  })()`);
-  // ── 4. Play, here ────────────────────────────────────────────────────────────
+  // ── 4. Play, on the world: the world engine plays it ─────────────────────────
+  const P = 'studio.game.worldPlay';
+  const card = () => w.js(`document.querySelector('#world-play .wp-title').textContent`);
+  const readyCard = `!document.querySelector('#world-play').hidden && !document.querySelector('#world-play .wp-card').hidden && !document.querySelector('#world-play .wp-go').hidden`;
+  const props0 = await w.js('engine.props.items.size');
+  let playT0 = Date.now();
   await w.js('document.querySelector("#game-rows .game-play").click()');
-  await w.until(`!!document.querySelector('#game-layer iframe') && document.body.classList.contains('in-game')`, 10000, 'the game layer');
-  check('Play opens the game over the viewport, in this page, and the world stands still', await w.js('engine.paused'));
-  const G = 'document.querySelector("#game-layer iframe").contentWindow';
-  const prepared = await w.until(`!!${G}.__studio?.completedBuild || !!${G}.document.querySelector('#preview-loading.is-error')`, 300000, 'the mission').catch(e => e);
-  const failure = await w.js(`${G}.document.querySelector('#preview-loading.is-error #load-status')?.textContent ?? ''`).catch(() => '');
-  check('the mission is prepared', !(prepared instanceof Error) && !failure, prepared instanceof Error ? prepared.message : failure || `${prepared} ms`);
-  const ground = JSON.parse(await w.js(`JSON.stringify(${G}.__studio?.session?.level?.ground ?? null)`) || 'null');
-  check('the level stands on the world the editor holds', ground?.kind === 'world' && ground.world.parameterHash === expected,
-    ground ? `${ground.kind}: ${ground.world?.parameterHash} vs ${expected}${ground.reason ? '; ' + ground.reason : ''}` : 'no level');
-  check('at the spawn marker', ground?.site && Math.abs(ground.site.x - settings.site.x) < 0.2 && Math.abs(ground.site.z - settings.site.z) < 0.2,
-    `site (${ground?.site?.x}, ${ground?.site?.z})`);
-  // The game's art comes from the asset origin, as everywhere on the site, not from beside the page: a downloaded ZIP
-  // keeps its art next to it, the editor's game does not. (This server would answer /assets/ with stand-ins, so the
-  // address is checked, not the load.)
-  const art = await w.js(`(async () => { const d = await ${G}.eval("import('/src/config/assetDelivery.js')"); return JSON.stringify({ url: d.assetURL('assets/studio/visigames-mark.svg'), origin: d.ASSET_ORIGIN, packaged: d.isPackagedGame() }); })()`);
-  const artAt = JSON.parse(art);
-  check('the game loads its art from the art server, not from the site', artAt.url.startsWith(artAt.origin + '/') && !artAt.packaged, artAt.url);
-  check('and nothing the game does is stored', await w.js(`${G}.localStorage !== localStorage && localStorage.length === 0`));
+  await w.until(`${readyCard} || /cannot be played/.test(document.querySelector('#world-play .wp-title')?.textContent ?? '')`, 300000, 'the mission on the world');
+  const firstReady = Date.now() - playT0;
+  const why = await card(), framed = await w.js(`!!document.querySelector('#game-layer, .view-layer:not([hidden])')`);
+  check('Play brings the mission onto this world, in the world engine: no frame, no second renderer',
+    !/cannot/.test(why) && !framed && (await w.js('engine.mode')) === 'play' && !(await w.js('engine.paused')), `${why}; ready in ${firstReady} ms`);
+  const level = JSON.parse(await w.js(`JSON.stringify((() => { const s = ${P}.session, L = s.level, o = L.playArea.origin;
+    const pts = [[0, 0], [12, -20], [-30, 25], [40, 40]].map(([x, z]) => [L.terrain.heightAt(x, z), engine.sampleHeight(o.x + x, o.z + z)]);
+    return { origin: o, size: L.playArea.size, spawn: L.spawn.position, pts, village: L.placements.filter(p => p.village).length,
+      group: !!engine.scene.getObjectByName('WorldPlay')?.getObjectByName('HostedGame'), critters: s.game.enemies.enemies.length,
+      onGround: s.game.enemies.enemies.every(e => Math.abs(e.position.y - L.terrain.heightAt(e.position.x, e.position.z)) < 0.05) }; })())`));
+  check('the ground the game stands on is the world engine\'s own', level.pts.every(([a, b]) => Math.abs(a - b) < 0.1) && level.village === 0,
+    level.pts.map(([a, b]) => `${a.toFixed(2)}/${b.toFixed(2)}`).join(' '));
+  const startAt = { x: level.spawn.x + level.origin.x, z: level.spawn.z + level.origin.z };
+  check('the player starts at the spawn marker, on the town', Math.hypot(startAt.x - settings.site.x, startAt.z - settings.site.z) < 3,
+    `(${startAt.x.toFixed(1)}, ${startAt.z.toFixed(1)}) for (${settings.site.x.toFixed(1)}, ${settings.site.z.toFixed(1)})`);
+  check('the mission\'s critters are in the world engine\'s scene, on its ground', level.group && level.critters > 0 && level.onGround, `${level.critters} critters`);
+  await w.js(`document.querySelector('#world-play .wp-go').click()`);
+  await w.until(`${P}.session.playing && document.querySelector('#world-play .wp-card').hidden`, 10000, 'the game to start');
+  // Frames on a software rasteriser come seconds apart, so the game is stepped by its own fixed step, as a replay is.
+  const moved = JSON.parse(await w.js(`(() => { const g = ${P}.session.game, a = g.player.position.clone();
+    for (let i = 0; i < 120; i++) g.step({ move: { x: 0, y: 1 } });
+    return JSON.stringify({ d: Math.hypot(g.player.position.x - a.x, g.player.position.z - a.z), dy: Math.abs(g.player.position.y - g.level.terrain.heightAt(g.player.position.x, g.player.position.z)) }); })()`));
+  check('played: the body walks on the world\'s ground', moved.d > 1 && moved.dy < 0.05, `${moved.d.toFixed(1)} m, ${moved.dy.toFixed(3)} m off the ground`);
+  await sleep(5000);
+  const eye = JSON.parse(await w.js(`JSON.stringify((() => { const s = ${P}.session, v = new engine.camera.position.constructor(); v.copy(s.camera.position).add(engine.scene.getObjectByName('WorldPlay').position); return { d: v.distanceTo(engine.camera.position) }; })())`));
+  check('the world engine draws from the game\'s eye', eye.d < 0.05, `${eye.d.toFixed(3)} m apart`);
+  const ps = await w.shot('play-on-the-world');
+  check('and draws the game on the world', ps.colours > 40, `${ps.colours} colours; ${ps.file}`);
+  // ── 5. pause, and back to editing ────────────────────────────────────────────
+  await w.key({ key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+  await w.until(`/waits/.test(document.querySelector('#world-play .wp-title').textContent)`, 20000, 'the paused card');
+  check('Esc pauses the mission, and says so', (await w.js(`${P}.session.game.state.current`)) === 'PAUSED');
+  await w.js(`document.querySelector('#world-play .wp-back').click()`);
+  await w.until(`!${P}.playing() && document.querySelector('#world-play').hidden`, 10000, 'the editing view');
+  const after = JSON.parse(await w.js(`JSON.stringify({ mode: engine.mode, view: studio.game.view(), game: !!engine.scene.getObjectByName('WorldPlay'), props: engine.props.items.size, chrome: getComputedStyle(document.querySelector('#readout')).visibility })`));
+  check('"Back to editing" takes the game out of the world and the editor is as it was', after.mode === 'orbit' && after.view === 'world' && !after.game
+    && after.props === props0 && after.chrome === 'visible', JSON.stringify(after));
+  // ── 5b. a first-person shooter on the world: the hands and weapon drawn over the world's frame ──────────
+  await w.js(`(() => { const s = document.querySelector('#game-rows select'); s.value = 'shooter'; s.dispatchEvent(new Event('change')); })()`);
+  playT0 = Date.now();
+  await w.click('#play-here');
+  await w.until(readyCard, 300000, 'the shooter on the world');
+  const againReady = Date.now() - playT0;
+  check('Play again is quicker (what loading cost is kept)', againReady < firstReady, `${againReady} ms against ${firstReady} ms`);
+  await w.js(`document.querySelector('#world-play .wp-go').click()`);
   await sleep(4000);
-  const ps = await w.shot('play-in-the-editor');
-  check('the game draws, in the editor', ps.colours > 40, `${ps.colours} colours; ${ps.file}`);
-  // ── 5. back to the world ────────────────────────────────────────────────────
-  const exit = await w.js(`${G}.document.querySelector('#overlay-exit').textContent`);
-  check('the game\'s way out says where it goes', exit === 'Back to the world', exit);
-  await w.js(`${G}.document.querySelector('#overlay-exit').click()`);
-  await w.until(`!document.querySelector('#game-layer') && !document.body.classList.contains('in-game')`, 10000, 'the world again');
-  check('"Back to the world" takes the game down and the world runs again', !(await w.js('engine.paused')) && (await w.js('engine.props.items.size')) === built.props);
+  const fp = JSON.parse(await w.js(`JSON.stringify({ overlay: typeof engine.overlayPass === 'function', view: ${P}.session.rules.view(${P}.session), weapon: document.querySelector('#world-play .wp-wname').textContent, cross: !document.querySelector('#world-play .wp-cross').hidden })`));
+  check('first person: the weapon is drawn over the world, the HUD names it', fp.overlay && fp.view === 'first' && fp.weapon.length > 0 && fp.cross, JSON.stringify(fp));
+  const fs1 = await w.shot('shooter-on-the-world');
+  console.log(`       shooter: ${fs1.file} (${fs1.colours} colours)`);
+  check('in live play the editor\'s chrome is gone, the top bar too', await w.js(`getComputedStyle(document.querySelector('#readout')).visibility === 'hidden'`));
+  await w.key({ key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+  await w.until(`/waits/.test(document.querySelector('#world-play .wp-title').textContent)`, 20000, 'the paused card');
+  check('paused, the top bar is back: the views are one click away', await w.js(`getComputedStyle(document.querySelector('#readout')).visibility === 'visible'`));
+  await w.click('#modes [data-view="world"]');
+  await w.until(`!${P}.playing()`, 10000, 'the editing view');
+  await w.js(`(() => { const s = document.querySelector('#game-rows select'); s.value = 'arena'; s.dispatchEvent(new Event('change')); })()`);
+  check('the World button in the top bar leaves play too', (await w.js('engine.mode')) === 'orbit' && (await w.js('studio.game.settings().genre')) === 'arena');
   // ── 6. Mission: the graph, in the editor, on the editor's mission ──────────────
   const V = (name) => `document.querySelector("#view-${name} iframe").contentWindow`;
   const shown = (name) => `!!document.querySelector('#view-${name}') && !document.querySelector('#view-${name}').hidden`;
@@ -160,8 +195,27 @@ try {
   await w.until(`studio.game.mission()?.name === 'Harbour defence'`, 10000, 'the edit to reach the editor');
   check('an edit in the graph is the editor\'s mission', true);
   await w.js(`${WS}.document.querySelector('#compile-top').click()`);
+  // Play from a workspace plays the level as it was built, in the game runtime over the viewport.
+  const G = 'document.querySelector("#game-layer iframe").contentWindow';
   await w.until(`!!document.querySelector('#game-layer iframe') && !!${G}.__studio?.completedBuild`, 300000, 'the edited mission');
   check('Generate & play in the graph plays the edited mission in the editor', (await w.js(`${G}.__studio.project.name`)) === 'Harbour defence');
+  const expected = await w.js(`(async () => {
+    const { worldParamsFor } = await import('/src/world/kernelGround.js');
+    const { terrainParameterHash, hex } = await import('/src/kernel/terrain/fingerprint.js');
+    return hex(terrainParameterHash(worldParamsFor(engine.params.seed, { terrain: engine.params.terrain, water: engine.params.water })));
+  })()`);
+  const ground = JSON.parse(await w.js(`JSON.stringify(${G}.__studio?.session?.level?.ground ?? null)`) || 'null');
+  check('that level stands on the world the editor holds, at the spawn marker', ground?.kind === 'world' && ground.world.parameterHash === expected
+    && Math.abs(ground.site.x - settings.site.x) < 0.2 && Math.abs(ground.site.z - settings.site.z) < 0.2,
+    ground ? `${ground.kind}: ${ground.world?.parameterHash} vs ${expected}; site (${ground.site?.x}, ${ground.site?.z})` : 'no level');
+  // The game's art comes from the asset origin, as everywhere on the site, not from beside the page: a downloaded ZIP
+  // keeps its art next to it, the editor's game does not. (This server would answer /assets/ with stand-ins, so the
+  // address is checked, not the load.)
+  const artAt = JSON.parse(await w.js(`(async () => { const d = await ${G}.eval("import('/src/config/assetDelivery.js')"); return JSON.stringify({ url: d.assetURL('assets/studio/visigames-mark.svg'), origin: d.ASSET_ORIGIN, packaged: d.isPackagedGame() }); })()`));
+  check('the game loads its art from the art server, not from the site', artAt.url.startsWith(artAt.origin + '/') && !artAt.packaged, artAt.url);
+  check('and nothing the game does is stored', await w.js(`${G}.localStorage !== localStorage && localStorage.length === 0`));
+  const exit = await w.js(`${G}.document.querySelector('#overlay-exit').textContent`);
+  check('the game\'s way out says where it goes', exit === 'Back to the world', exit);
   await w.js(`${G}.document.querySelector('#overlay-exit').click()`);
   await w.until(`${shown('remix')} && !document.querySelector('#game-layer')`, 60000, 'the graph again');
   check('leaving that game returns to the graph, as it was (the view kept)', (await w.js(`${WS}.__studio.project.name`)) === 'Harbour defence');

@@ -1703,3 +1703,103 @@ body.in-workspace #play-here { top: auto; bottom: 18px; left: auto; right: 18px;
 /* Play plays the mission: it belongs to the views of the mission (World, Mission, Level), not to 2D or My-3D-Engine, which
    play their own things. */
 body:is([data-view="2d"], [data-view="my3d"]) #play-here { display: none; }
+
+/* ══════════════════════════════════════════════════════════════════
+   PLAY ON THE WORLD — the World view's Play (editor/world/play.js).
+   The world engine draws the game; the editing chrome steps aside and
+   the HUD is pinned to the edges, the middle left to the world. One card
+   for every pause: ready, paused, won, lost, and why not.
+   ══════════════════════════════════════════════════════════════════ */
+body.in-play :is(#actions, #deck, #chart, .rail, #selection-chip, #coach, #cue-layer, #play-here, #toast, #minimap) {
+  visibility: hidden;
+}
+/* The top bar (the views) stays while a card is up (ready, paused, ended): one click to anywhere. Live play is the
+   world and the HUD only. */
+body.in-play.play-live #readout { visibility: hidden; }
+body.in-play #vignette { visibility: hidden; }
+#world-play { position: fixed; inset: 0; z-index: 1000; pointer-events: none; font-family: var(--font); color: var(--text); }
+#world-play[hidden] { display: none; }
+#world-play .wp-hurt {
+  position: absolute; inset: 0; opacity: 0;
+  background: radial-gradient(120% 90% at 50% 50%, transparent 52%, rgba(242, 86, 74, 0.75));
+}
+#world-play .wp-cross { position: absolute; left: 50%; top: 50%; width: 0; height: 0; --spread: 0; }
+#world-play .wp-cross i {
+  position: absolute; width: 2px; height: 9px; left: -1px; top: -4.5px; background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45); border-radius: 1px;
+}
+#world-play .wp-cross i:nth-child(1) { transform: rotate(0deg) translateY(calc(-11px - var(--spread) * 160px)); }
+#world-play .wp-cross i:nth-child(2) { transform: rotate(90deg) translateY(calc(-11px - var(--spread) * 160px)); }
+#world-play .wp-cross i:nth-child(3) { transform: rotate(180deg) translateY(calc(-11px - var(--spread) * 160px)); }
+#world-play .wp-cross i:nth-child(4) { transform: rotate(270deg) translateY(calc(-11px - var(--spread) * 160px)); }
+#world-play .wp-hit {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -54%); font: 800 30px/1 var(--font);
+  color: #fff; opacity: 0; text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+#world-play .wp-hit.on { animation: wp-hit 0.32s var(--snap); }
+#world-play .wp-hit[data-kind="kill"], #world-play .wp-hit[data-kind="clear"], #world-play .wp-hit[data-kind="headshot"] { color: var(--acc-hi); }
+@keyframes wp-hit { 0% { opacity: 1; transform: translate(-50%, -54%) scale(1.25); } 100% { opacity: 0; transform: translate(-50%, -54%) scale(0.9); } }
+
+#world-play :is(.wp-top, .wp-health, .wp-weapon, .wp-prompt:not(:empty)) {
+  background: linear-gradient(180deg, var(--bar-hi), var(--bar-lo)); box-shadow: var(--lit), var(--ao-bar);
+  border-radius: var(--r-md);
+}
+#world-play .wp-top {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--s3); padding: 8px 14px; max-width: calc(100vw - 32px);
+  font-size: var(--t-md); font-weight: 700; letter-spacing: 0.02em; white-space: nowrap;
+}
+#world-play .wp-mission { overflow: hidden; text-overflow: ellipsis; }
+#world-play .wp-progress { color: var(--text-2); font-size: var(--t-sm); font-weight: 500; }
+#world-play .wp-bottom {
+  position: absolute; left: 16px; right: 16px; bottom: 16px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s3);
+}
+#world-play .wp-health { display: flex; align-items: center; gap: var(--s2); padding: 8px 12px; min-width: 150px; }
+#world-play .wp-health b { font-size: 20px; min-width: 2.2em; }
+#world-play .wp-health span { flex: 1; height: 6px; border-radius: 3px; background: var(--cut-floor); box-shadow: var(--cut); overflow: hidden; }
+#world-play .wp-health i { display: block; height: 100%; width: 100%; background: var(--good); transition: width 0.18s var(--glide); }
+#world-play .wp-health.low i { background: var(--danger); }
+#world-play .wp-prompt {
+  align-self: center; padding: 7px 12px; font-size: var(--t-sm); font-weight: 600; position: relative; overflow: hidden; --p: 0;
+}
+#world-play .wp-prompt:not(:empty)::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: calc(var(--p) * 100%); background: var(--acc);
+}
+#world-play .wp-weapon { display: flex; flex-direction: column; align-items: flex-end; padding: 8px 12px; min-width: 120px; }
+#world-play .wp-weapon[hidden] { display: none; }
+#world-play .wp-wname { font-size: var(--t-xs); letter-spacing: var(--track); text-transform: uppercase; color: var(--text-2); }
+#world-play .wp-ammo { font-size: 20px; }
+#world-play .wp-weapon[data-level="low"] .wp-ammo { color: var(--acc-hi); }
+#world-play .wp-weapon[data-level="empty"] .wp-ammo, #world-play .wp-weapon[data-level="reload"] .wp-ammo { color: var(--danger); }
+#world-play .wp-touch { position: absolute; right: 18px; bottom: 96px; display: flex; gap: var(--s3); pointer-events: auto; }
+#world-play .wp-touch[hidden] { display: none; }
+#world-play .wp-tkey {
+  width: 72px; height: 72px; border-radius: 50%; border: 0; font: 700 var(--t-sm) var(--font); color: var(--text);
+  background: linear-gradient(180deg, var(--key-hi), var(--key-lo)); box-shadow: var(--lit-key), var(--ao-key-up); touch-action: none;
+}
+#world-play .wp-tkey:last-child { background: var(--acc); color: var(--acc-ink); }
+
+#world-play .wp-card {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: auto;
+  width: min(440px, calc(100vw - 32px)); padding: var(--s6) var(--s6) var(--s5);
+  border-radius: var(--r-xl); background: linear-gradient(180deg, var(--face-hi), var(--face-lo));
+  box-shadow: var(--lit), var(--ao-overlay);
+}
+#world-play .wp-card[hidden] { display: none; }
+#world-play.carded::before { content: ""; position: absolute; inset: 0; background: rgba(5, 6, 8, 0.35); }
+#world-play .wp-eyebrow { margin: 0; font-size: var(--t-xs); font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; color: var(--acc); }
+#world-play .wp-title { margin: var(--s2) 0 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+#world-play .wp-line { margin: var(--s2) 0 0; font-size: var(--t-md); line-height: 1.45; color: var(--text-2); }
+#world-play .wp-keys { display: flex; gap: var(--s2); margin-top: var(--s5); }
+#world-play .wp-go { flex: 1; }
+#world-play .wp-go[hidden] { display: none; }
+#world-play .wp-back { flex: 0 0 auto; }
+#world-play .wp-back:only-child, #world-play .wp-go[hidden] + .wp-back { flex: 1; }
+#world-play .wp-help { margin: var(--s4) 0 0; font-size: var(--t-xs); color: var(--text-3); line-height: 1.5; }
+#world-play .wp-help[hidden] { display: none; }
+#world-play.carded :is(.wp-cross, .wp-hit, .wp-bottom, .wp-touch) { visibility: hidden; }
+@media (max-width: 720px) {
+  #world-play .wp-top { top: 10px; font-size: var(--t-sm); }
+  #world-play .wp-health { min-width: 120px; }
+}

@@ -12,13 +12,15 @@
  * stands, world metres (the editor's spawn marker). Without it the level ground finds the best site itself
  * (src/world/kernelGround.js).
  *
+ * This module is the address: what the editor needs to make one, light enough to load with the editor. Reading an
+ * address, and making the settings or an edited mission into a project, is world/editorProject.js, which loads the
+ * mission compiler.
+ *
  * Pure: no DOM, no storage, no randomness. The same link is the same mission.
  */
-import { worldMission, MISSION_WORLDS } from './missionCard.js';
+import { MISSION_WORLDS } from './missionWorlds.js';
 import { GENRES, DEFAULT_GENRE } from '../genres/registry.js';
-import { encodeWorldLink, worldFromLocation } from './worldLink.js';
-import { resolveProject, resolveGame } from './shooterProject.js';
-import { levelProject } from './level/game.js';
+import { encodeWorldLink } from './worldLink.js';
 
 export const EDITOR_EMBED = 'world';
 export const DIFFICULTIES = Object.freeze(['easy', 'normal', 'hard']);
@@ -50,29 +52,6 @@ const toB64 = (s) => {
   for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
-const fromB64 = (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
-
-/** The mission the settings make on a world: the look's mission for the world's seed and the genre, as set. */
-export function settingsMission(settings, world) {
-  const s = checkSettings(settings);
-  return resolveProject({
-    ...worldMission(s.look, world.seed, s.genre),
-    difficulty: s.difficulty,
-    ...(s.enemies !== null ? { enemyCount: s.enemies } : {}),
-    worldParams: world.worldParams,
-    ...(s.site ? { worldSite: s.site } : {}),
-  });
-}
-
-/**
- * A mission (a project, or a game of levels) put on the editor's world: every level stands on its seed, its terrain
- * and water, and at its site when one is chosen. The world is the editor's to say, whatever the mission carried.
- */
-export function onWorld(mission, world, site = null) {
-  const ground = { seed: world.seed, worldParams: world.worldParams, worldSite: site ?? null, ground: 'world' };
-  if (Array.isArray(mission?.levels)) return resolveGame({ ...mission, ground: 'world', levels: mission.levels.map((l) => ({ ...l, ...ground })) });
-  return resolveProject({ ...mission, ...ground });
-}
 
 /**
  * The runtime address (path, query and fragment) for the editor's mission on this world: played (no workspace), or
@@ -93,47 +72,4 @@ export function editorMissionURL({ seed, name = null, worldParams, settings, mis
     hash += `&mission=${toB64(text)}`;
   }
   return `/game.html?${q}#${hash}`;
-}
-
-/**
- * The mission a runtime address names, or null when it is not an editor's (no `embed=world`). An address that is an
- * editor's but cannot be read comes back as `{ error }`, so the runtime says why instead of playing something else.
- *
- * @param {{search: string, hash: string}} loc
- * @returns {null | {project: object, game: object|null, world: object, settings: object, workspace: string|null} | {error: string}}
- */
-export function missionFromEditor(loc) {
-  const q = new URLSearchParams(loc?.search ?? '');
-  if (q.get('embed') !== EDITOR_EMBED) return null;
-  const { world, error } = worldFromLocation(loc);
-  if (!world) return { error: error ?? 'the editor sent no world' };
-  try {
-    const workspace = q.get('workspace');
-    if (workspace !== null && !WORKSPACES.includes(workspace)) throw new Error(`workspace "${workspace}" is not one of ${WORKSPACES.join(', ')}`);
-    const siteText = q.get('site');
-    const site = siteText === null ? null : (() => {
-      const [x, z] = siteText.split(',').map(Number);
-      return { x, z };
-    })();
-    const enemiesText = q.get('enemies');
-    const settings = checkSettings({
-      genre: q.get('genre') ?? MISSION_DEFAULTS.genre,
-      look: q.get('look') ?? MISSION_DEFAULTS.look,
-      difficulty: q.get('difficulty') ?? MISSION_DEFAULTS.difficulty,
-      enemies: enemiesText === null ? null : Number(enemiesText),
-      site,
-    });
-    const m = /(?:^#|&)mission=([^&]*)/.exec(loc?.hash ?? '');
-    let doc = null;
-    if (m) {
-      if (m[1].length > MISSION_MAX_BYTES * 2) throw new Error('the mission in the link is too large');
-      try { doc = JSON.parse(fromB64(decodeURIComponent(m[1]))); } catch { throw new Error('the mission in the link cannot be read'); }
-    }
-    const placed = doc ? onWorld(doc, world, settings.site) : settingsMission(settings, world);
-    const game = Array.isArray(placed.levels) ? placed : null;
-    const project = game ? resolveProject(levelProject(game, 0)) : placed;
-    return { project, game, world, settings, workspace };
-  } catch (e) {
-    return { error: e.message };
-  }
 }

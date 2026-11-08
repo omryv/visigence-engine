@@ -130,6 +130,8 @@ const VENDORED = [
    * the kernel's walker and the nav grid agree, and the real body walks inside par.
    */
   'test-kernel-ground',
+  /** Play on the world (src/world/worldPlay.js): the mission on a world's own ground, water and buildings, played. */
+  'test-world-play',
 ];
 
 /**

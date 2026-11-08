@@ -162,9 +162,9 @@ $("#seed-chip").addEventListener("click", () => {
 });
 
 /* ── the game ──
-   The Game panel sets the mission up and Play plays it, here, over the viewport, on this world as it stands
-   (editor/world/game.js); the world stands still meanwhile. Its site is the best one the level ground finds, or the
-   spawn marker. */
+   The Game panel sets the mission up and Play plays it, here, on this world as it stands (editor/world/game.js): from
+   the World view the world engine plays it itself (editor/world/play.js), from Mission or Level the level is played as
+   built. The player starts where the level ground finds this world best to stand on, or at the spawn marker. */
 const game = mountGame({
   engine, panel: $("#game-rows"),
   spawn: () => (customSpawn && spawnTag === worldTag() ? customSpawn : null),
@@ -468,7 +468,10 @@ function setStage(on) {
   document.body.classList.toggle("stage", on);
   if (on) toast("Stage — press \\ to bring the interface back", 2400);
 }
+/* While a game runs on the world (editor/world/play.js) every key is the game's: no editing shortcut fires. */
+const inPlay = () => document.body.classList.contains("in-play");
 addEventListener("keydown", (e) => {
+  if (inPlay()) return;
   if (e.code !== "Backslash" || e.metaKey || e.ctrlKey || e.altKey) return;
   const t = e.target;
   if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.isContentEditable)) return;
@@ -1139,7 +1142,7 @@ engine.on("mode", (mode) => {
   }
   // The body class drives the chrome: walking or flying clears the editing
   // furniture so the world is unobstructed (and the touch pads have room).
-  document.body.classList.remove("mode-orbit", "mode-walk", "mode-fly");
+  document.body.classList.remove("mode-orbit", "mode-walk", "mode-fly", "mode-play");
   document.body.classList.add(`mode-${mode}`);
   // The deck reflows when the tool segment hides, so both markers re-measure.
   requestAnimationFrame(() => { syncModeMarker(); syncDeck(); });
@@ -1421,7 +1424,7 @@ canvas.addEventListener("pointercancel", () => {
   paintStroke = null;
   downAt = null;
   dragTravel = 0;
-  engine.controllers.orbit.controls.enabled = true;
+  if (engine.mode === "orbit") engine.controllers.orbit.controls.enabled = true;
 });
 
 canvas.addEventListener("pointerup", async (e) => {
@@ -2146,6 +2149,7 @@ engine.on("gizmo-end", ({ uids }) => {
   refreshRegister(); // the coordinates on the chip and in the list have moved
 });
 window.addEventListener("keydown", (e) => {
+  if (inPlay()) return;
   // Typing is typing. The Object Manager's list is focusable and walks
   // itself with the arrow keys, so a keystroke aimed at the LIST must never
   // also nudge the block the list is pointing at.
@@ -3284,6 +3288,7 @@ const palette = new CommandPalette({
 });
 $("#btn-cmd").addEventListener("click", () => palette.show());
 addEventListener("keydown", (e) => {
+  if (inPlay()) return;
   if ((e.metaKey || e.ctrlKey) && e.code === "KeyK") { e.preventDefault(); palette.toggle(); }
   // ⌘S and ⌘O mean what they mean everywhere else. Both are taken off the
   // browser: ⌘S would otherwise offer to save the DOM, and ⌘O would open a
