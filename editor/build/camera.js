@@ -50,9 +50,20 @@ export class EditorCamera {
     camera.up.set(0, 1, 0);
     camera.lookAt(look.x, look.y, look.z);
     camera.fov = this.mode === 'top' ? 34 : this.fov;
-    camera.near = 0.1; camera.far = 6600; // a level on its world draws its sea out to the horizon (render/CombatEnvironment.js)
+    // A level on its world draws its sea out to the horizon (render/CombatEnvironment.js), so the far plane stays far.
+    // The near plane follows how far the eye is from what it looks at: a fixed 0.1 against a 6600 m far plane left the
+    // depth buffer no precision past a few hundred metres, so the sea and the distant ground z-fought into streaks, and
+    // the temporal AA and the ambient occlusion (both read depth) smeared them across the view.
+    camera.near = this.nearPlane(eye);
+    camera.far = 6600;
     this._eye = eye; this._look = look;
     return !!this.tween;
+  }
+
+  /** The nearest the lens draws: a few percent of the orbit distance; in fly, a share of the height over the ground. */
+  nearPlane(eye) {
+    if (this.mode === 'fly') return clamp((eye.y - this.ground(eye.x, eye.z)) * 0.25, 0.1, 1);
+    return clamp(this.distance * 0.04, 0.2, 3);
   }
 
   /** Start an ease from wherever the camera is now to the pose the next change makes. */

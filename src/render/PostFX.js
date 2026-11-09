@@ -239,6 +239,8 @@ export class PostFX {
     this.lensflareEnabled = !!profile.postFX && fxEnabled('lensflare', profile);
     this.filmEnabled = !!profile.postFX && fxEnabled('film', profile);
     this.motionBlurSamples = profile.motionBlurSamples ?? 8;
+    /** 1 blurs along the velocities, 0 draws without the blur (live: no rebuild). See setMotionBlur. */
+    this.uMotionBlur = uniform(1.0);
     const targets = { output };
     if (this.ssrEnabled) { targets.normal = normalView; targets.rm = vec4(roughness, metalness, 1, 1); }
     if (this.aoEnabled && !this.ssrEnabled) targets.aoMask = float(1);
@@ -302,7 +304,8 @@ export class PostFX {
     // one does not, and a camera turn blurs the world by exactly as far as it moved.
     if (this.motionBlurEnabled) {
       // The blur samples its input along the velocity, so the input has to be a texture.
-      world = motionBlur(convertToTexture(world), this.worldPass.getTextureNode('velocity'), int(this.motionBlurSamples));
+      // Scaled by a live uniform so a view that jumps the camera between frames (the level editor) can turn it off.
+      world = motionBlur(convertToTexture(world), this.worldPass.getTextureNode('velocity').mul(this.uMotionBlur), int(this.motionBlurSamples));
     }
     /**
      * Depth of field, only while aiming. The focus sits where the sights are looking and
@@ -526,6 +529,11 @@ export class PostFX {
   setDamage(v) { this.uDamage.value = v; }
   /** 0..1 aim-down-sights blend: drives the depth of field. */
   setAds(blend) { this.uDof.value = blend; }
+  /**
+   * Motion blur on or off. The level editor draws on demand and its orbit, pan and zoom jump the camera between
+   * frames, so the velocities are whole screen-widths and the blur smeared the world into streaks.
+   */
+  setMotionBlur(on) { this.uMotionBlur.value = on ? 1 : 0; }
   render() { this.uAspect.value = this.worldCamera.aspect; this.pipeline.render(); }
    dispose() {
     this.traaNode?.dispose?.();
