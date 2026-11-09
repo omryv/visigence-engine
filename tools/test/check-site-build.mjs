@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const DIST = path.join(ROOT, 'dist');
-const PAGES = ['index.html', 'game.html', '2d.html', 'my-3d-engine.html'];
+const PAGES = ['index.html', 'game.html', '2d.html'];
 
 const r = spawnSync(process.execPath, ['tools/build/build-preview.mjs'], { cwd: ROOT, encoding: 'utf8' });
 if (r.status !== 0) {

@@ -168,30 +168,23 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
   }
 
   /* ── the views ──
-     Each view (Mission, Level, 2D, My-3D-Engine) runs in its own frame, made the first time it is opened and KEPT: switching
+     Each view (Mission, Level, 2D) runs in its own frame, made the first time it is opened and KEPT: switching
      away hides it and tells it to stop drawing, switching back shows it again at once, as it was. A frame is made
      again only when what it was opened on has changed under it (Mission and Level are opened on the world and the
      Game panel's settings; their edits already came back here, so nothing is lost). 2D keeps its own game and is told
-     the new world instead; My-3D-Engine depends on nothing here. Play is not kept: a game is built for the world as it stands,
+     the new world instead. Play is not kept: a game is built for the world as it stands,
      and it is taken down when it ends. */
   const worldKey = () => JSON.stringify([engine.params.seed, engine.params.terrain, engine.params.water]);
   const VIEWS = {
     remix: { src: () => url("remix"), key: () => worldKey() + JSON.stringify(currentSettings()), title: "Mission: the mission's graph" },
     build: { src: () => url("build"), key: () => worldKey() + JSON.stringify(currentSettings()), title: "Level: the mission's levels" },
     "2d": { src: () => `/2d.html#world=${worldLinkValue()}`, key: () => "2d", title: "2D: games on a grid" },
-    my3d: { src: () => "/my-3d-engine.html", key: () => "my3d", title: "My-3D-Engine: a figure from a photograph" },
   };
   const frames = new Map();   // view -> { layer, frame, key, ready, queue }
   const worldLinkValue = () => encodeWorldLink({ seed: engine.params.seed, worldParams: { terrain: engine.params.terrain, water: engine.params.water } });
   const debug = new URLSearchParams(location.search).get("debug") === "1";
   const withDebug = (src) => (debug ? src.replace(/\.html(\?|#)/, (_, c) => `.html?debug=1${c === "?" ? "&" : "#"}`) : src);
   const tell = (frame, message) => { try { frame?.contentWindow?.postMessage(message, location.origin); } catch { /* not loaded yet */ } };
-  /** A message for a view that may still be loading: sent when it says it is ready (visigence:ready), or now. */
-  const tellWhenReady = (name, message) => {
-    const f = frames.get(name);
-    if (!f) return;
-    if (f.ready) tell(f.frame, message); else f.queue.push(message);
-  };
 
   function hideViews(except = null) {
     for (const [name, f] of frames) {
@@ -305,12 +298,6 @@ export function mountGame({ engine, panel, spawn, placeSpawn, announce, onView =
     const { type } = e.data ?? {};
     if (type === "visigence:ready") {
       for (const f of frames.values()) if (e.source === f.frame.contentWindow) { f.ready = true; for (const m of f.queue.splice(0)) tell(f.frame, m); }
-      return;
-    }
-    // A figure from My-3D-Engine, for the mission: the Mission view opens with its prop importer on it.
-    if (type === "visigence:figure" && e.data.figure?.bytes) {
-      showView("remix");
-      tellWhenReady("remix", { type: "visigence:import-figure", figure: e.data.figure });
       return;
     }
     if (type === MESSAGES.mission && e.data.mission) { mission = e.data.mission; return; }

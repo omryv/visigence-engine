@@ -3,7 +3,7 @@
  * tools/build/build-preview.mjs).
  *
  * Everything the engine runs is inside this repository and is served from the root of an origin, exactly as it sits
- * on disk: src/ (the engine, its kernel at src/kernel/ and its reconstruction at src/atlas/), editor/ (the studio),
+ * on disk: src/ (the engine, its kernel at src/kernel/), editor/ (the studio),
  * vendor/ (three.js). There is no other place an import may land, so one rule holds every specifier: resolved as a
  * path on disk and resolved as a URL from the file's served path, it is the same real file inside the repository.
  * The browser cannot climb above "/", and a specifier that climbs out of the repository and back in is a file on
@@ -18,11 +18,9 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 
 const inside = (dir, file) => file === dir || file.startsWith(dir + path.sep);
 export const inRepo = file => inside(ROOT, file);
-/** The kernel and the reconstruction: pure modules, which may import nothing outside themselves (check-imports). */
+/** The kernel: pure modules, which may import nothing outside themselves (check-imports). */
 export const KERNEL = path.join(ROOT, 'src', 'kernel');
-export const ATLAS = path.join(ROOT, 'src', 'atlas');
 export const inKernel = file => inside(KERNEL, file);
-export const inAtlas = file => inside(ATLAS, file);
 
 /**
  * The source with comments removed and every template literal's text blanked (its ${…} expressions kept, since code

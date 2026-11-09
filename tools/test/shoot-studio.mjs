@@ -48,8 +48,6 @@ const SHOTS = [
   { name: 'arcade-world-aerial', q: { quick: 1, theme: 'arcade', genre: 'shooter', seed: 'K7QN-3F2A-9XBD', ground: 'world', lighting: 'dawn', quality: 'quality', aerial: '46,34,58' } },
   { name: 'arcade-village-aerial', q: { quick: 1, theme: 'arcade', genre: 'shooter', seed: 'K7QN-3F2A-9XBD', ground: 'village', lighting: 'dawn', quality: 'quality', aerial: '46,34,58' } },
   // The world past the rim (render/ArcadeGround.js `beyond`): its hills, its coast and its sea, from high over the village.
-  // See yourself: a photograph made into a figure (src/atlas/web/figure.js) standing on the world's ground.
-  { name: 'arcade-world-figure', q: { quick: 1, theme: 'arcade', genre: 'shooter', seed: 'K7QN-3F2A-9XBD', ground: 'world', lighting: 'dawn', quality: 'quality', figure: '0,22.5', yaw: 0.0, pitch: 0.02, viewmodel: 'off' } },
   { name: 'arcade-world-vista', q: { quick: 1, theme: 'arcade', genre: 'shooter', seed: 'K7QN-3F2A-9XBD', ground: 'world', lighting: 'dawn', quality: 'quality', aerial: '120,85,170' } },
 ];
 
@@ -86,7 +84,6 @@ for (const shot of SHOTS) {
   check('no errors reached the page', !state?.errors?.length && !consoleErrors.length,
     [...(state?.errors ?? []), ...consoleErrors].slice(0, 3).join(' | ').slice(0, 400));
   check('the screenshot exists and is not blank', fs.statSync(file).size > 20000, `${fs.statSync(file).size} bytes`);
-  if (shot.q.figure) check('a figure was made from a photograph and passed the importer', state?.figure?.triangles > 1000 && state.figure.triangles <= 50000, JSON.stringify(state?.figure));
   if (shot.q.ground) check(`the level stands on ${shot.q.ground === 'world' ? "its seed's world" : "the village's hills"}`, state?.ground?.kind === shot.q.ground, JSON.stringify(state?.ground));
   const line = `${state?.backend ?? '?'}  ${state?.draws ?? '?'} draws  ${Number(state?.triangles ?? 0).toLocaleString()} tris  ` +
     `lights ${state?.lights ? `${state.lights.visible} live / ${state.lights.emitters} emitters` : '?'}  post ${state?.post ? Object.entries(state.post).filter(([, v]) => v).map(([k]) => k).join('+') || 'on' : 'off'}  ${elapsed} s`;

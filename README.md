@@ -6,8 +6,8 @@ the game engine plays missions on it, a level cut from the very ground you made.
 renderer: three.js `WebGPURenderer` (WebGPU, with WebGL2 only where a browser has no WebGPU), and every shader is a
 TSL node graph that compiles to WGSL and, for that fallback, to GLSL.
 
-This repository replaces four: `omryv/Visigenesis` (the kernel and its world engine and editor), `omryv/3dgen`
-(Visigames, the game engine), `omryv/3d` (atlas-core, the photograph reconstruction) and `omryv/2dgen` (the 2D
+This repository replaces three: `omryv/Visigenesis` (the kernel and its world engine and editor), `omryv/3dgen`
+(Visigames, the game engine) and `omryv/2dgen` (the 2D
 builder; its core is here, its mode is not yet: see below). Those are archived. Nothing here imports anything outside
 this repository.
 
@@ -23,7 +23,6 @@ by the world engine; from Mission or Level, the level as it was built.
 | **Mission** | The mission as a node graph: pools, steps, rules. Its Generate & play plays the edited mission in the editor. | `editor/studio.js`, [docs/STUDIO.md](docs/STUDIO.md) |
 | **Level** | The 3D level editor: games of several levels, live checks, playtests, export with portal hooks. | `editor/build/`, [docs/EDITOR.md](docs/EDITOR.md) |
 | **2D** | The 2D builder: games on a grid in five genres (platformer, top-down adventure, arena, maze, block puzzle), live reachability and solvability checks, playtests, a generator whose every level passes the checks, templates, share links, one-file HTML export. Its start screen offers **your world, in 2D**: the world's ground read square by square as a top-down adventure (`src/genesis/world/overworld.js`), start and goal joined on foot in 2D and in 3D. Canvas 2D, no three. | `2d.html`, `src/play2d/` |
-| **My-3D-Engine** | One photograph (a back and a profile optional) becomes a watertight, textured, rigged figure with a per-vertex uncertainty field and its certificate, on this device, drawn by the engine's own renderer (WebGPU). Exports GLB and OBJ; **Use in the mission** opens Mission with its prop importer on the figure. | `my-3d-engine.html`, `editor/my-3d-engine/`, `src/atlas/` |
 
 **One mission.** The editor keeps one mission in memory (`editor/world/game.js`). Until Mission or Level edits it, the
 Game panel's settings make it; once either has, every edit comes back to the editor and the edited mission (a project,
@@ -32,7 +31,7 @@ from the settings; difficulty and enemies change the edited one in place. Missio
 editors, run inside the page in a frame under the top bar, by the game runtime document (`game.html`).
 
 **One tool, one look, fast to move around.** Every view wears the editor's colours and type (the graph, the level
-editor, the 2D builder and My-3D-Engine each map their own design tokens onto the editor's), and the top bar is the only
+editor and the 2D builder each map their own design tokens onto the editor's), and the top bar is the only
 navigation. A view runs in its own frame under that bar, made the first time it is opened and then kept: switching
 away hides it and tells it to stop drawing (the world engine stands still the same way), switching back shows it as it
 was, at once. Mission and Level are made again only when the world or the Game panel's settings changed under them
@@ -114,23 +113,22 @@ and 3.7 MB to 5 requests and 1.8 MB, ready in 3.4 s instead of 6.0 s; with every
 
 **Deploying.** Import this repository into Vercel with the repository root as the Root Directory. `vercel.json`
 installs with `npm ci` (esbuild), builds with `node tools/build/build-preview.mjs` and serves `dist/`: the editor at `/`
-(the old `/world` redirects there), the pages of its views at `/game`, `/2d` and `/my-3d-engine`.
+(the old `/world` redirects there), the pages of its views at `/game` and `/2d`.
 
 ## Layout
 
 | Path | What it is |
 |---|---|
-| `index.html`, `game.html`, `2d.html`, `my-3d-engine.html` | The editor (World, Mission, Level, 2D, My-3D-Engine, Play); the pages of its views: the game runtime it plays in and runs Mission and Level in (also the page an exported game is), the 2D builder, and My-3D-Engine |
+| `index.html`, `game.html`, `2d.html` | The editor (World, Mission, Level, 2D, Play); the pages of its views: the game runtime it plays in and runs Mission and Level in (also the page an exported game is), and the 2D builder |
 | `src/kernel/` | The Genesis Kernel: seed, terrain, intent, erosion, flood, reach, claims. Pure: no three, no DOM, no clock, no randomness of its own, imports nothing outside itself |
 | `src/genesis/` | The world engine: `Engine.js` (one public API, on-demand rendering), terrain LOD, sea, rivers, sky, the air (`render/atmosphere.js`), props, grass, scatter, fire, weather, controllers; `render/nodes.js` is the TSL its shaders share |
 | `src/genesis/world/` | World composition: towns (site plans), woods, footings, interiors, the world file, its certificate, the exporters |
 | `src/` (the rest) | The game engine: game, simulation, rendering (`render/`, the one `WebGPURenderer` set up in `core/Renderer.js`), levels and their ground (`world/`), genres |
-| `src/atlas/` | The single-image reconstruction (from atlas-core), with its browser half in `src/atlas/web/` |
 | `src/play2d/` | The 2D builder (from 2dgen): its core (grid, catalog, checks and solver, generator, format), the runtime and its genre simulations, the art, the templates, and its editor |
 | `editor/`, `editor/world/` | The game runtime's page code (the mission graph, the level editor in `editor/build/`); the editor's page code and CSS (`editor/world/game.js` is the Game panel, the views and Play) |
 | `bin/`, `schema/` | The `genesis` CLI, its MCP server and verifier; the JSON schemas a world, its ground and its intent are held to |
 | `packs/`, `specs/`, `vendor/three/` | The Arcade content pack; level build specs; three.js r185, vendored, patches in `vendor/three/PATCHES.md` |
-| `tools/` | Checks, tests (`tools/test/`, with `kernel/`, `genesis/` and `atlas/`), builds, the kernel's vector writers and Python port, the Blender kit |
+| `tools/` | Checks, tests (`tools/test/`, with `kernel/` and `genesis/`), builds, the kernel's vector writers and Python port, the Blender kit |
 
 ## Checking it
 
@@ -142,16 +140,15 @@ node tools/test/run.mjs genesis          # only the suites whose name contains "
 node tools/test/check-wgsl.mjs --town    # every program a built-on world draws, compiled as WGSL
 node tools/test/e2e-world.mjs            # World: woods, a hamlet, the Game panel, Play on the world at the spawn, the views
 node tools/test/e2e-genres.mjs           # one mission per genre in headless Chromium
-node tools/test/e2e-see-yourself.mjs     # the photograph to a figure, through the studio's own dialog
 node tools/test/play2d/e2e-builder.mjs   # the 2D builder end to end: templates, generator, playtests, export, share
 ```
 
 `tools/test/run.mjs` runs, in order: `tools/check-imports.mjs` (every import resolves inside the repository, as a file
-and as a URL alike; only three.js is external; the kernel and the reconstruction import nothing outside themselves)
+and as a URL alike; only three.js is external; the kernel imports nothing outside itself)
 and the vendored-three check; the kernel's suites (`tools/test/kernel/`, its boundary included: no DOM, storage,
 network, clock or `Math.random` inside it, and a manifest that is exactly its files); the world engine's suites
-(`tools/test/genesis/`: composition, the world file, certificates, exporters, the CLI and MCP server); the game
-engine's suites; and the reconstruction's eleven (`tools/test/atlas/`, about four minutes). Eight suites read the
+(`tools/test/genesis/`: composition, the world file, certificates, exporters, the CLI and MCP server); and the game
+engine's suites. Eight suites read the
 game's art and skip, loudly, until the R2 cache exists (`npm run assets:fetch`; `--require-assets` makes a skip a
 failure). The browser harnesses need Chromium and are not in the runner.
 
@@ -202,28 +199,6 @@ stands on it, so par is the walk over open ground. `tools/test/test-kernel-groun
 the conditioned world height for height, the pads stand at the floor and the corridors keep their grade, both walkers
 reach every place a template mission stands at, and the real `PlayerController`, walked at the fixed step along the
 nav grid's path, reaches its first objective inside its par band.
-
-## See yourself (a figure from a photograph, in the mission's importer; the whole page is My-3D-Engine)
-
-The prop importer (*Import prop* in the launcher) has a second way in: **See yourself: make one from a photo**. A
-photograph of one person, or one thing, becomes a figure on this device and walks through the same importer as any
-GLB: preview, size (a person's 1.75 m to start), collision, credits, and the rights box the creator ticks. Nothing is
-uploaded.
-
-The figure is made by `src/atlas/`, the engine's single-image reconstruction, through its browser half
-`src/atlas/web/figure.js` `photoToFigure`: the subject cropped from the frame, the textured mesh reconstructed in a
-worker, cut by SmartMesh to what the evidence supports and at most 24,000 triangles, its atlas held to 2048 px, written
-as a GLB with no skin. Only the import dialog reaches `src/atlas/`, and only when the button is pressed; the game's
-runtime never imports it, and a downloaded game carries the figure as the GLB it became (the export leaves
-`src/atlas/` out).
-
-Measured on the test photograph (`tools/test/fixtures/photo-front.png`): 24,000 triangles and 3.5 MB, in 3.2 s in
-Node and 13.5 s in headless Chromium on a CPU rasteriser. `tools/test/test-see-yourself.mjs` holds the boundary (only
-the import dialog reaches the reconstruction) and the worker's protocol to what `figure.js` needs, and puts that figure
-through the importer;
-`node tools/test/shoot-studio.mjs --stand-ins --only arcade-world-figure` makes it in the browser and stands it in a
-level on its world, and `node tools/test/e2e-see-yourself.mjs` clicks the whole way through the studio's own dialog:
-*My assets*, *See yourself*, the photograph, the preview at 1.75 m, the rights box, *Add to mission*.
 
 ## The game engine's own provenance, and a warning about the upstream
 

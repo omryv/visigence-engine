@@ -4,10 +4,9 @@
  *   node tools/test/run.mjs            # all of them
  *   node tools/test/run.mjs kernel     # only the ones whose name contains "kernel"
  *
- * Five groups. KERNEL suites hold the Genesis Kernel (src/kernel/) to its own records: seed vectors, terrain, intent,
+ * Four groups. KERNEL suites hold the Genesis Kernel (src/kernel/) to its own records: seed vectors, terrain, intent,
  * reach, claims. GENESIS suites hold the world engine World mode runs (src/genesis/): its composition (towns, woods,
- * footings), the world file and its certificate, the exporters, the genesis CLI and MCP server. ATLAS is the reconstruction's suites (src/atlas/), run by their own runner, the slowest job here
- * (minutes, not seconds). PURE suites import src/ modules that import nothing from three, so they run
+ * footings), the world file and its certificate, the exporters, the genesis CLI and MCP server. PURE suites import src/ modules that import nothing from three, so they run
  * under bare node. VENDORED suites load src/ modules that import `three`, resolved to
  * vendor/three by tools/lib/_three-real-hook.mjs — the same bytes a page would load. Neither
  * group needs a registry, which is the point: this runs in a sandbox with no network.
@@ -84,8 +83,6 @@ const PURE = [
    * and met by the kernel's solver on real worlds.
    */
   'test-kernel-parity', 'test-mission-intent',
-  /** See yourself: the reconstruction's boundary in the studio, and a figure from a photograph through the importer. */
-  'test-see-yourself',
   /** Play here: a level cut from the world World mode made (its params, its own intent, its sculpt), and the link. */
   'test-world-handoff',
   /** Generated houses: the grammar, its Python port's parity fixtures and a constraint sweep. */
@@ -172,7 +169,6 @@ const jobs = [
   ...PLAY2D.map(f => ({ name: 'play2d-' + f.replace(/^test-builder-|\.mjs$/g, ''), file: `tools/test/play2d/${f}`, args: [] })),
   ...PURE.map(name => ({ name, file: `tools/test/${name}.mjs`, args: [] })),
   ...VENDORED.map(name => ({ name, file: `tools/test/${name}.mjs`, args: ['--import', HOOK] })),
-  { name: 'atlas', file: 'tools/test/atlas/run.mjs', args: [] },
 ];
 for (const { name, file, args } of jobs) {
   if (filter && !name.includes(filter)) continue;

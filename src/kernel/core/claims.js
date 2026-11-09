@@ -50,8 +50,8 @@
  * tools/test/kernel/claims.test.js walks a real tree and fails on any leaf this registry
  * does not cover, on any registry leaf the tree does not carry, on an
  * "unknown" with no reason, and on a reason listed for a leaf that is then
- * stated anyway — the same two-way honesty src/atlas/ holds its own
- * certificate to ("nothing unknown is unexplained; nothing explained as
+ * stated anyway — the same two-way honesty atlas-core (the photograph
+ * reconstruction, no longer in this repository) held its own certificate to ("nothing unknown is unexplained; nothing explained as
  * unknown is stated").
  *
  * ── what is deliberately not a claim ──

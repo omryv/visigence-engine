@@ -71,20 +71,19 @@
  * the photograph never showed. `focalPx` is therefore an INPUT, in pixels of
  * the image as given, and fromSkyline refuses (records: [], with a reason)
  * when it is missing or not positive rather than assuming a "typical" lens.
- * Where it comes from is the photograph's own EXIF: src/atlas/exif.js
- * readLens(buf, w, h) reads the declared focal length and
+ * Where it comes from is the photograph's own EXIF: a reader such as
+ * atlas-core's readLens(buf, w, h) (no longer in this repository) reads the declared focal length and
  * returns `fRel`, the focal length as a fraction of the image's long side,
  * so focalPx = fRel × max(width, height) — and `known: false` there means
- * there is no focal length to pass, not that one should be invented. The
- * core does not import src/atlas/ (a core module imports only the core,
- * tools/check-imports.mjs), so the caller reads the lens and hands the number
- * in.
+ * there is no focal length to pass, not that one should be invented. A core
+ * module imports only the core (tools/check-imports.mjs), so the caller reads
+ * the lens and hands the number in.
  *
  * ── the registration gate ──
  * Evidence is measured with a tolerance — a survey's ±0.5 m, a chart's line
  * width — and a tolerance is a BAND, not a point: a world whose ground lies
  * anywhere inside it is not in error. bandResidual and registrationGate are
- * src/atlas/register.js's band-aware residual and truth-band
+ * atlas-core's (register.js) band-aware residual and truth-band
  * gate, ported in spirit for held-out evidence (residual = what the world
  * says minus what was measured; see each function). The gate is the reason
  * the band can be trusted at all: widening a band can only make coverage look
