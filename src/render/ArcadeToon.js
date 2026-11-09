@@ -234,9 +234,13 @@ export function createArcadeToon(owned, look = {}) {
   const skinnedHullOf = g => { let h = skinnedGeometry.get(g); if (!h) { h = track(skinnedHullGeometry(g)); skinnedGeometry.set(g, h); } return h; };
   return {
     windOn,
-    /** A toon material for code-built surfaces (the painted lawn): `name` picks the kit entry. */
-    material(parameters, name = 'ARC_Grass') {
-      const m = track(new ArcadeToonMaterial(parameters)), p = TOON_MATERIALS[name.slice(4)] ?? {};
+    /**
+     * A toon material for code-built surfaces (the painted lawn): `name` picks the kit entry. `own` is the set that
+     * disposes it (the kit's own by default; a level's ground passes the level's, so a rebuild frees it).
+     */
+    material(parameters, name = 'ARC_Grass', own = owned) {
+      const m = new ArcadeToonMaterial(parameters), p = TOON_MATERIALS[name.slice(4)] ?? {};
+      own?.add(m);
       m.name = name; m.toonShade.set(p.shade ?? SHADE); m.toonRim = p.rim ?? 0.3;
       return m;
     },
@@ -246,8 +250,8 @@ export function createArcadeToon(owned, look = {}) {
      * sun's two tones and shadows like the lawn beside it (a tree's shadow falls on a pond in the shade tint),
      * and the toon rim brightens it at grazing angles.
      */
-    water({ deep = '#4aa6c8', shallow = '#86d3dc' } = {}) {
-      const m = this.material({ color: 0xffffff }, 'ARC_Water');
+    water({ deep = '#4aa6c8', shallow = '#86d3dc' } = {}, own = owned) {
+      const m = this.material({ color: 0xffffff }, 'ARC_Water', own);
       const s = attribute('shore', 'float');
       m.colorNode = mix(uniform(new Color(deep)), uniform(new Color(shallow)), s.mul(s).mul(0.85).add(s.mul(0.15)));
       return m;

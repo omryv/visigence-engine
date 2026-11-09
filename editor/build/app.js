@@ -216,7 +216,9 @@ export function mountBuild(root, studio) {
     try {
       const session = await studio.ensureSession();
       session.setEditView(editView);
-      await session.build(flat, { isCurrent: () => app.editing });
+      // Warm: the session keeps its stage (scene, lights, sky, post stack, materials) and builds only the level again,
+      // unless the edit changed what the stage was made from (the look, the lighting, the world's biome).
+      await session.build(flat, { isCurrent: () => app.editing, warm: true });
       if (!app.editing) return;
       builtKey = key;
       session.setRendering(false);

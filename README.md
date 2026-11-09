@@ -140,6 +140,7 @@ node tools/test/run.mjs genesis          # only the suites whose name contains "
 node tools/test/check-wgsl.mjs --town    # every program a built-on world draws, compiled as WGSL
 node tools/test/e2e-world.mjs            # World: woods, a hamlet, the Game panel, Play on the world at the spawn, the views
 node tools/test/e2e-genres.mjs           # one mission per genre in headless Chromium
+node tools/test/measure-edit.mjs         # the level editor: an edit's rebuild time, no shader compiled again, no leak
 node tools/test/play2d/e2e-builder.mjs   # the 2D builder end to end: templates, generator, playtests, export, share
 ```
 
