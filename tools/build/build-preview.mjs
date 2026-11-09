@@ -15,9 +15,9 @@ writeAssetManifest(); // Validate the committed inventory; art is served from R2
 rmSync(output, { recursive: true, force: true });
 mkdirSync(output, { recursive: true });
 // The one tool is the site, exactly as in a checkout: the editor (the world and the game) at index.html; the pages
-// of its views, the game runtime it plays in and exports (game.html), the 2D builder (2d.html) and My-3D-Engine (my-3d-engine.html); and
+// of its views, the game runtime it plays in and exports (game.html), and the 2D builder (2d.html); and
 // the icons they link.
-for (const page of ['index.html', 'game.html', '2d.html', 'my-3d-engine.html', 'favicon.png', 'apple-touch-icon.png'])
+for (const page of ['index.html', 'game.html', '2d.html', 'favicon.png', 'apple-touch-icon.png'])
   cpSync(path.join(root, page), path.join(output, page));
 for (const directory of directories) {
   cpSync(path.join(root, directory), path.join(output, directory), {
@@ -32,4 +32,4 @@ for (const directory of directories) {
 const bundled = await bundlePages(root, output);
 if (bundled) for (const b of bundled) console.log(`  ${b.page}: ${b.files} bundle files, ${(b.bytes / 1048576).toFixed(2)} MB minified`);
 else console.log('  esbuild is not installed (npm ci): the pages are served unbundled');
-console.log('Visigence Engine built in dist/ (the editor at /; the pages of its views at /game, /2d and /my-3d-engine; the kernel at src/kernel/, the world engine at src/genesis/, the reconstruction at src/atlas/; art served from R2)');
+console.log('Visigence Engine built in dist/ (the editor at /; the pages of its views at /game and /2d; the kernel at src/kernel/, the world engine at src/genesis/; art served from R2)');

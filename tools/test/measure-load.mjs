@@ -29,10 +29,10 @@ const t0 = Date.now();
 await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?renderer=webgl&gfx=low` }, sessionId);
 await until('!!(window.engine && engine.terrain && engine.terrain.tiles.size > 0)', 180000);
 snap('editor ready', Date.now() - t0);
-for (const v of ['remix', 'build', '2d', 'my3d']) {
+for (const v of ['remix', 'build', '2d']) {
   const t = Date.now();
   await js(`document.querySelector('#modes [data-view="${v}"]').click()`);
-  const sel = { remix: `!!document.querySelector('#view-remix iframe')?.contentWindow?.document?.querySelector('.graph-stage')?.children.length`, build: `document.querySelector('#view-build iframe')?.contentWindow?.document?.body?.dataset.mode === 'build' && !!document.querySelector('#view-build iframe').contentWindow.document.querySelector('.bld:not([hidden]) canvas')`, '2d': `!!document.querySelector('#view-2d iframe')?.contentWindow?.document?.querySelector('[data-g="world"]')`, my3d: `!!document.querySelector('#view-my3d iframe')?.contentWindow?.document?.querySelector('#dropzone')` }[v];
+  const sel = { remix: `!!document.querySelector('#view-remix iframe')?.contentWindow?.document?.querySelector('.graph-stage')?.children.length`, build: `document.querySelector('#view-build iframe')?.contentWindow?.document?.body?.dataset.mode === 'build' && !!document.querySelector('#view-build iframe').contentWindow.document.querySelector('.bld:not([hidden]) canvas')`, '2d': `!!document.querySelector('#view-2d iframe')?.contentWindow?.document?.querySelector('[data-g="world"]')` }[v];
   await until(sel, 120000);
   snap(`+ ${v} view`, Date.now() - t);
 }

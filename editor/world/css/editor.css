@@ -1693,16 +1693,16 @@ body.in-game :is(#readout, #actions, #deck, #chart, .rail, #selection-chip, #coa
 
 /* A workspace (Mission, Level) fills the viewport under the top bar, which stays: the editor's views and Play are
    still there. Play itself takes the whole screen (#game-layer above). */
-/* Every view (Mission, Level, 2D, My-3D-Engine) is a kept frame under the top bar; one shows at a time. */
+/* Every view (Mission, Level, 2D) is a kept frame under the top bar; one shows at a time. */
 .view-layer { position: fixed; left: 0; right: 0; bottom: 0; top: 70px; z-index: 900; background: var(--bg); }
 .view-layer[hidden] { display: none; }
 .view-layer iframe { display: block; width: 100%; height: 100%; border: 0; }
 body.in-workspace #viewport, body.in-workspace #vignette { visibility: hidden; }
 body.in-workspace :is(#actions, #deck, #chart, .rail, #selection-chip, #coach, #cue-layer, #toast) { visibility: hidden; }
 body.in-workspace #play-here { top: auto; bottom: 18px; left: auto; right: 18px; z-index: 950; }
-/* Play plays the mission: it belongs to the views of the mission (World, Mission, Level), not to 2D or My-3D-Engine, which
-   play their own things. */
-body:is([data-view="2d"], [data-view="my3d"]) #play-here { display: none; }
+/* Play plays the mission: it belongs to the views of the mission (World, Mission, Level), not to 2D, which plays its
+   own games. */
+body[data-view="2d"] #play-here { display: none; }
 
 /* ══════════════════════════════════════════════════════════════════
    PLAY ON THE WORLD — the World view's Play (editor/world/play.js).

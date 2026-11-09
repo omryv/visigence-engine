@@ -47,12 +47,11 @@ export function inspectGLB(buffer) {
 export { fileBytes as importedBytes } from './localFiles.js';
 export async function prepareImportedAssets(project) {if(isPackagedGame())return;for(const p of project.importedProps??[])registerLocalAsset(p.model,await importedBytes(p));}
 function disposeModel(scene) {const textures=new Set(),materials=new Set(),geometry=new Set();scene?.traverse(o=>{if(o.geometry)geometry.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){materials.add(m);for(const v of Object.values(m))if(v?.isTexture)textures.add(v);}});textures.forEach(t=>t.dispose());materials.forEach(m=>m.dispose());geometry.forEach(g=>g.dispose());}
-/** `figure`: a figure already made (the editor's My-3D-Engine view, a GLB from a photograph) to open the importer on, as a figure. */
-export async function openAssetImport({getProject,onChange,toast,notice,figure=null}) {
+export async function openAssetImport({getProject,onChange,toast,notice}) {
   const dialog=document.createElement('dialog');dialog.className='prop-dialog';dialog.setAttribute('aria-label','Import static prop');
   dialog.innerHTML=`<form method="dialog"><div class="import-heading"><div><span class="eyebrow">ASSET LIBRARY</span><h2>Import static prop</h2></div><button aria-label="Close import" value="close" class="dialog-close">×</button></div></form>
   ${notice?`<p class="import-notice" role="status">${notice}</p>`:''}<p class="import-intro">Bring a static object into your mission. Preview it, set its size, and choose how it behaves.</p>
-  <div class="import-grid"><div><label class="drop-zone" tabindex="0" role="button"><span>＋</span><strong>Drop a .glb here or browse</strong><small>Self-contained · up to 8 MB · 50k triangles</small><input type="file" accept=".glb,model/gltf-binary" hidden></label><button type="button" class="sample-prop">Load sample prop</button><button type="button" class="photo-prop">See yourself: make one from a photo</button><input class="photo-input" type="file" accept="image/*" hidden><canvas class="prop-preview" hidden aria-label="Drag to rotate imported prop preview"></canvas><p class="prop-metrics" role="status">Static props first. Characters and weapons come later.</p></div>
+  <div class="import-grid"><div><label class="drop-zone" tabindex="0" role="button"><span>＋</span><strong>Drop a .glb here or browse</strong><small>Self-contained · up to 8 MB · 50k triangles</small><input type="file" accept=".glb,model/gltf-binary" hidden></label><button type="button" class="sample-prop">Load sample prop</button><canvas class="prop-preview" hidden aria-label="Drag to rotate imported prop preview"></canvas><p class="prop-metrics" role="status">Static props first. Characters and weapons come later.</p></div>
   <form class="prop-settings"><label>Name<input name="name" maxlength="64" required placeholder="Field supply case"></label><div class="prop-two"><label>Height (metres)<input name="height" type="number" min="0.1" max="4" step="0.01" value="1" required></label><label>Collision<select name="collision"><option value="box">Solid box</option><option value="none">Decorative / walk through</option></select></label></div><label>Creator<input name="creator" required maxlength="160" placeholder="Your name or studio"></label><label>Source<input name="source" maxlength="300" placeholder="Original work or source URL"></label><label>Licence / permission<input name="license" required maxlength="300" placeholder="Original work, CC0, or licence name"></label><label class="rights-check"><input name="rights" type="checkbox" required><span>I own this asset or have permission to include and redistribute it in this game.</span></label><p class="import-error" role="alert"></p><button class="front-primary" type="submit" disabled>Add to mission</button><small>Saved on this device. Included with credits in your game ZIP. JSON projects reference the file; keep the original GLB.</small></form></div>`;
   document.body.append(dialog);dialog.showModal();
   const $=s=>dialog.querySelector(s),form=$('.prop-settings');let loaded,renderer,scene,camera,controls,frame,THREE,disposed=false,loadToken=0,loading=false;
@@ -84,38 +83,7 @@ export async function openAssetImport({getProject,onChange,toast,notice,figure=n
   }
   $('input[type=file]').addEventListener('change',e=>{const f=e.target.files[0];if(f)load(f);e.target.value='';});
   const zone=$('.drop-zone');zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('is-over');});for(const type of ['dragleave','drop'])zone.addEventListener(type,()=>zone.classList.remove('is-over'));zone.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)load(f);});
-  /**
-   * SEE YOURSELF: a photograph of one person (or one thing) becomes a figure, on this device. src/atlas/
-   * reconstructs it in a worker (src/atlas/web/figure.js photoToFigure: the subject cropped, a textured mesh, cut by SmartMesh to
-   * what the evidence supports and at most 24k triangles, no skin), and the GLB it writes goes through this very
-   * importer: preview, size (a person's 1.75 m to start), collision, credits, and the rights box the creator ticks.
-   * Nothing is uploaded; the photograph never leaves the page.
-   */
-  $('.photo-prop').addEventListener('click',()=>$('.photo-input').click());
-  $('.photo-input').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(f)await fromPhoto(f);});
-  async function fromPhoto(file){
-    if(loading)return;const metrics=$('.prop-metrics'),button=$('.photo-prop');
-    $('.import-error').textContent='';button.disabled=true;metrics.textContent='Reconstructing a figure from the photograph, on this device…';
-    try{
-      const {photoToFigure}=await import('../src/atlas/web/figure.js');
-      const fig=await photoToFigure(file,{onProgress:p=>{if(!disposed)metrics.textContent=`Reconstructing a figure from the photograph · ${Math.round(p.progress)}%`;}});
-      if(disposed)return;
-      const name=(file.name.replace(/\.[a-z0-9]+$/i,'')||'Me').slice(0,58);
-      await load(new File([fig.bytes],`${name}.glb`,{type:'model/gltf-binary'}));
-      if(!loaded||disposed)return;
-      form.elements.height.value='1.75';
-      form.elements.source.value='A photograph, reconstructed on this device';
-      if(!form.elements.license.value)form.elements.license.value='My own photograph';
-      metrics.textContent=`A figure from your photograph: ${Math.round(fig.triangles).toLocaleString()} triangles, ${(fig.bytes.length/1024).toFixed(0)} KB, made in ${(fig.ms/1000).toFixed(1)} s. Drag to rotate.`;
-    }catch(err){if(!disposed){$('.import-error').textContent=`The photograph could not be made into a figure: ${err.message}`;metrics.textContent='Try a photograph of one person or object against a plain background.';}}
-    finally{if(!disposed)button.disabled=false;}
-  }
   $('.sample-prop').addEventListener('click',async()=>{try{const r=await fetch(assetURL('/assets/studio/import-demo.glb'));if(!r.ok)throw Error('Sample could not be loaded.');await load(new File([await r.blob()],'Field supply case.glb'),true);}catch(e){$('.import-error').textContent=e.message;}});
-  if(figure){
-    await load(new File([figure.bytes],`${(figure.name||'Me').slice(0,58)}.glb`,{type:'model/gltf-binary'}));
-    if(loaded&&!disposed){form.elements.height.value='1.75';form.elements.source.value='A photograph, reconstructed on this device';if(!form.elements.license.value)form.elements.license.value='My own photograph';
-      $('.prop-metrics').textContent=`Your figure from My-3D-Engine: ${Math.round(figure.triangles||0).toLocaleString()} triangles. Set its height, tick the rights, and add it.`;}
-  }
   form.addEventListener('submit',async e=>{e.preventDefault();if(!loaded)return;const button=form.querySelector('button');button.disabled=true;
     try{const p={...loaded,name:form.elements.name.value,scale:Number(form.elements.height.value)/loaded.size[1],collision:form.elements.collision.value,creator:form.elements.creator.value,source:form.elements.source.value,license:form.elements.license.value,rightsConfirmed:form.elements.rights.checked};delete p.blob;
       const next=normalizeImportedProps([...(getProject().importedProps??[]).filter(a=>a.id!==p.id),p]);await stored(p.id,loaded.blob);registerLocalAsset(`imports/${p.id}.glb`,loaded.blob);onChange({importedProps:next});dialog.close();toast('Prop added. Play this mission to see it near your starting route.');

@@ -58,10 +58,6 @@ if (fromEditor) window.addEventListener('message', (e) => {
   if (e.origin !== location.origin || e.source !== window.parent) return;
   if (e.data?.type === 'visigence:pause') session?.setRendering(false);
   if (e.data?.type === 'visigence:resume' && document.body.dataset.mode === 'build') session?.setRendering(true);
-  // A figure from the My-3D-Engine view, for this mission: the prop importer opens on it.
-  if (e.data?.type === 'visigence:import-figure' && workspace === 'remix') import('./assetImport.js')
-    .then(({ openAssetImport }) => openAssetImport({ getProject: () => project, onChange: patch => change(patch), toast, figure: e.data.figure }))
-    .catch(err => toast(err.message));
 });
 const leaveForWorld = () => toEditor({ type: workspace ? 'visigence:leave-workspace' : 'visigence:leave-game' });
 const standalone = document.body.dataset.build === 'standalone';

@@ -3,7 +3,7 @@
     python3 tools/test/serve.py 8099      then open http://localhost:8099/
 
 It serves the repository at the root of the origin, as the deployed site is served. Everything the engine imports is
-inside it (the kernel at src/kernel/, the reconstruction at src/atlas/), so a plain `python3 -m http.server` works
+inside it (the kernel at src/kernel/), so a plain `python3 -m http.server` works
 too; this one adds no-store caching, so a rebuilt module is never served stale.
 """
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler

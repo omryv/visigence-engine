@@ -31,8 +31,6 @@
  *   &ground=world|village  what the level stands on (world/kernelGround.js)
  *   &aerial=<x>,<y>,<z>   draw from that eye, looking at the level's centre (the level editor's camera hook)
  *   &viewmodel=off        no hands and no weapon in the shot
- *   &figure=<x>,<z>       "See yourself": tools/test/fixtures/photo-front.png made into a figure on this page (src/atlas/web/figure.js),
- *                         passed through the studio's own importer checks, and stood in the level at (x, z)
  *   &renderer=webgl|webgpu  honoured by core/Renderer.js as everywhere else
  */
 import { quickMission } from '/src/world/missionCard.js';
@@ -110,24 +108,6 @@ try {
     });
   }
   if(q.get('enemyMaterials')==='classic')session.enemyMaterialOptions={classic:true};
-  if(q.get('figure')){
-    // The same path the import dialog takes (editor/assetImport.js fromPhoto), minus the dialog.
-    const [fx,fz]=q.get('figure').split(',').map(Number);
-    state.status='making a figure from a photograph';publish();
-    const {photoToFigure}=await import('/src/atlas/web/figure.js');
-    const {inspectGLB}=await import('/editor/assetImport.js');
-    const {registerLocalAsset}=await import('/src/config/localAssets.js');
-    const {normalizeImportedProps}=await import('/src/world/importedProps.js');
-    const photo=await (await fetch('/tools/test/fixtures/photo-front.png')).blob();
-    const fig=await photoToFigure(photo,{onProgress:p=>{state.status=`figure ${Math.round(p.progress)}%`;publish();}});
-    const buffer=fig.bytes.buffer.slice(fig.bytes.byteOffset,fig.bytes.byteOffset+fig.bytes.byteLength),report=inspectGLB(buffer);
-    const id=[...new Uint8Array(await crypto.subtle.digest('SHA-256',buffer))].map(n=>n.toString(16).padStart(2,'0')).join('');
-    registerLocalAsset(`imports/${id}.glb`,new Blob([buffer],{type:'model/gltf-binary'}));
-    project=resolveProject(project);
-    project.importedProps=normalizeImportedProps([{id,name:'You',size:fig.size,scale:1.75/fig.size[1],collision:'box',triangles:report.triangles,bytes:buffer.byteLength,
-      creator:'Visigence',source:'tools/test/fixtures/photo-front.png',license:'CC0-1.0',rightsConfirmed:true,transform:{x:fx,z:fz,yaw:0}}]);
-    state.figure={triangles:report.triangles,bytes:buffer.byteLength,ms:Math.round(fig.ms),size:fig.size.map(v=>+v.toFixed(3))};
-  }
   await session.build(project);
   const p = session.game.player;
   p.yaw = num('yaw', p.yaw); p.pitch = num('pitch', p.pitch);

@@ -17,7 +17,7 @@
  *      game's eye;
  *   5. Esc pauses it and says so; "Back to editing" takes the game out of the world and the editor is as it was; a
  *      first-person shooter then plays the same way, its weapon drawn over the world's frame, quicker the second time;
- *   6.-9. Mission, Level, 2D and My-3D-Engine; Play from Mission still plays the level as built, in the runtime.
+ *   6.-8. Mission, Level and 2D; Play from Mission still plays the level as built, in the runtime.
  *
  * Shots go to docs/reports/world/ (PNGs stay local). Pixels are read on the WebGL2 backend (see
  * tools/test/check-wgsl.mjs for why WebGPU frames cannot be read here). Not in tools/test/run.mjs: it needs a browser.
@@ -241,30 +241,7 @@ try {
   await sleep(1500);
   const ts = await w.shot('2d-in-the-editor');
   check('and draws it', ts.colours > 30, `${ts.colours} colours; ${ts.file}`);
-  // ── 9. My-3D-Engine: a figure from a photograph, into the mission ───────────
-  await w.click('#modes [data-view="my3d"]');
-  const ME = V('my3d');
-  await w.until(`${shown('my3d')} && !!${ME}.document.querySelector('#fileFront')`, 60000, 'the My-3D-Engine view');
-  check('My-3D-Engine opens in the page, the other views kept and paused', await w.js(`document.querySelector('#view-2d').hidden && document.querySelector('#view-build').hidden && document.querySelector('#view-remix').hidden`));
-  await w.js(`(async () => {
-    const blob = await (await fetch('data:image/png;base64,${fs.readFileSync(path.join(ROOT, 'tools/test/fixtures/photo-front.png')).toString('base64')}')).blob();
-    const win = ${ME}, input = win.document.querySelector('#fileFront');
-    const dt = new win.DataTransfer(); dt.items.add(new win.File([blob], 'photo-front.png', { type: 'image/png' }));
-    input.files = dt.files; input.dispatchEvent(new win.Event('change'));
-  })()`);
-  await w.until(`!${ME}.document.querySelector('#runBtn').disabled`, 60000, 'the photograph to be taken');
-  const t0 = Date.now();
-  await w.js(`${ME}.document.querySelector('#runBtn').click()`);
-  await w.until(`!${ME}.document.querySelector('#exportCard').hidden`, 600000, 'the reconstruction');
-  check('a photograph becomes a figure in My-3D-Engine', true, `${((Date.now() - t0) / 1000).toFixed(1)} s`);
-  await sleep(3000);
-  const ms = await w.shot('my-3d-engine-in-the-editor');
-  check('and My-3D-Engine draws it with the engine\'s renderer', ms.colours > 30, `${ms.colours} colours; ${ms.file}`);
-  await w.js(`${ME}.document.querySelector('#missionBtn').click()`);
-  await w.until(`${shown('remix')} && /Your figure from My-3D-Engine/.test(${WS}.document.querySelector('dialog.prop-dialog .prop-metrics')?.textContent ?? '')`, 300000, 'the figure in the Mission view');
-  check('"Use in the mission" opens Mission with its prop importer on the figure', true);
-  await w.js(`${WS}.document.querySelector('dialog.prop-dialog')?.close()`);
-  // ── 10. back, to views kept as they were ─────────────────────────────────────
+  // ── 9. back, to views kept as they were ─────────────────────────────────────
   const t1 = Date.now();
   await w.click('#modes [data-view="2d"]');
   await w.until(`${shown('2d')} && ${D2}.document.getElementById('app').dataset.view === 'editor'`, 5000, '2D again');

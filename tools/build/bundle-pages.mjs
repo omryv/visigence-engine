@@ -8,7 +8,6 @@
  *   index.html          editor/world/studio.js         the editor (World, and the shell around every view)
  *   game.html           editor/studio.js               the game runtime: Play, Mission, Level
  *   2d.html             src/play2d/editor/app.js       2D
- *   my-3d-engine.html   editor/my-3d-engine/app.js     My-3D-Engine
  *
  * Each page is its own build (each runs in its own document), split at its dynamic imports so what a page loads on
  * demand still loads on demand. three is bundled in (`three`, `three/webgpu`, `three/tsl` and `three/addons/` are the
@@ -32,7 +31,6 @@ export const PAGES = [
   { page: 'index.html', entry: 'editor/world/studio.js', name: 'index' },
   { page: 'game.html', entry: 'editor/studio.js', name: 'game', keepSource: 'game.source.html' },
   { page: '2d.html', entry: 'src/play2d/editor/app.js', name: '2d' },
-  { page: 'my-3d-engine.html', entry: 'editor/my-3d-engine/app.js', name: 'my-3d-engine' },
 ];
 
 /** `new URL("./x", import.meta.url)` in a file of the repository, rooted at that file's own place on the site. */
