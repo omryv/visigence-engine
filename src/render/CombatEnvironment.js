@@ -189,7 +189,9 @@ export function buildCombatEnvironment(host) {
   * than MeshBasic: the value leaves the pass above the bloom threshold, so a pad's ring and a
   * beacon glow the way a fixture does instead of reading as painted.
   */
- const emissive=(color,intensity)=>track(new MeshStandardMaterial({color:0x000000,emissive:color,emissiveIntensity:intensity,roughness:1,metalness:0}));
+ // Kept by the session's stage where it has one (a level editor's warm rebuild reuses them and their shaders).
+ const kept=(key,make)=>host.stageMaterial?host.stageMaterial(key,make):track(make());
+ const emissive=(color,intensity)=>kept(`emissive|${color}|${intensity}`,()=>new MeshStandardMaterial({color:0x000000,emissive:color,emissiveIntensity:intensity,roughness:1,metalness:0}));
  let safe=null;
  const accent=emissive(host.accent,night?2.6:1.2),warm=emissive(look?.lighting?.lampColor??0xffcc8e,night?3.2:.6);
  const materialCache=new Map();
@@ -199,7 +201,7 @@ export function buildCombatEnvironment(host) {
  // The ground: a painted tile, toon-shaded like the props on it (the kit's grass: blue-grey shade, no rim); a biome
  // paints its own (the desert's sand) from the world rules' `ground`.
  const lawn=track(lawnTexture(project.seed,size,host.worldRules?.ground??MEADOW_GROUND));lawn.repeat.set(20,20);lawn.anisotropy=anisotropy;
- const groundMaterial=host.toon?host.toon.material({color:0xffffff,map:lawn},'ARC_Grass'):track(new MeshStandardMaterial({color:0xffffff,map:lawn,roughness:.95,metalness:0}));
+ const groundMaterial=host.toon?host.toon.material({color:0xffffff,map:lawn},'ARC_Grass',owned):track(new MeshStandardMaterial({color:0xffffff,map:lawn,roughness:.95,metalness:0}));
  // The village's ground overlay (paths, square, tints) blends over the tile inside the toon material.
  let overlay=null;
  if(level.world&&host.worldRules?.overlay){
@@ -230,7 +232,7 @@ export function buildCombatEnvironment(host) {
    // sky dome's lower half showing past its edge.
    const sea=buildSeaGeometry(geometry.userData.axis,level.world.terrain.size/2,onWorld.sea,onWorld.height,{horizon:WORLD_HORIZON});
    const colours=host.worldRules.terrain.water;
-   const sm=host.toon?host.toon.water(colours):track(new MeshStandardMaterial({color:colours.deep,roughness:.3,metalness:0}));
+   const sm=host.toon?host.toon.water(colours,owned):track(new MeshStandardMaterial({color:colours.deep,roughness:.3,metalness:0}));
    const mesh=host._mesh(sea,sm,0,0,0);mesh.castShadow=false;mesh.receiveShadow=false;mesh.name='WorldSea';
    host.seaTris=sea.userData.tris;
    // Far enough to see the coast and the sea run on into the haze (render/Sky.js's height fog takes it from there).
@@ -240,7 +242,7 @@ export function buildCombatEnvironment(host) {
   const water=level.world.water;
   if(water&&(water.ponds.length||water.brook)){
    const colours=host.worldRules.terrain.water,wg=buildWaterGeometry(water,DIRS64);
-   const wm=host.toon?host.toon.water(colours):track(new MeshStandardMaterial({color:colours.shallow,roughness:.35,metalness:0}));
+   const wm=host.toon?host.toon.water(colours,owned):track(new MeshStandardMaterial({color:colours.shallow,roughness:.35,metalness:0}));
    const mesh=host._mesh(wg,wm,0,0,0);mesh.castShadow=false;mesh.name='ArcadeWater';
    host.waterTris=wg.userData.tris;
   }
@@ -301,7 +303,7 @@ export function buildCombatEnvironment(host) {
    host.worldModels?.add(pivot,{simplify:!p.model.startsWith('assets/v2/arcade/')});
    if(p.objectiveIndex!==undefined) {
     const py=p.y??0;
-    const ring=host._mesh(new RingGeometry(1.3,1.35,40),track(new MeshStandardMaterial({color:0,emissive:0xffce75,emissiveIntensity:2,side:DoubleSide})),p.x,py+.012,p.z);ring.rotation.x=-Math.PI/2;
+    const ring=host._mesh(new RingGeometry(1.3,1.35,40),kept('objective-ring',()=>new MeshStandardMaterial({color:0,emissive:0xffce75,emissiveIntensity:2,side:DoubleSide})),p.x,py+.012,p.z);ring.rotation.x=-Math.PI/2;
     const beacon=host._mesh(new CylinderGeometry(.028,.028,2.8,6),warm,p.x,py+1.4,p.z);beacon.userData.objective=p.objectiveIndex;
     host.rig?.add(track(new PointLight(0xffce75,night?7:2.5,5,2))).position.set(p.x,py+1.6,p.z);
    }

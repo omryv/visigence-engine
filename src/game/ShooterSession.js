@@ -69,7 +69,7 @@ export class ShooterSession {
     Object.assign(this, { canvas, onStatus, onFrame, onError, onFeedback, onLevelEvent, host });
     this.keys = new Set(); this.actions = {}; this.look = { x: 0, y: 0 };
     this.touchMove = { x: 0, y: 0 }; this.playing = false; this.last = 0;
-    this.abort = new AbortController(); this.owned = new Set();
+    this.abort = new AbortController(); this.owned = new Set(); this.stageOwned = new Set(); this.stage = null;
     this._bindInput();
     if(new URLSearchParams(location.search).get('debug')==='1')this.performanceMonitor=new PerformanceMonitor(this);
   }
@@ -107,7 +107,7 @@ export class ShooterSession {
     this.last = 0;
     if (!this.host) this.renderer?.setAnimationLoop(active ? this.animate : null);
   }
-  async build(project, {isCurrent=()=>true}={}) {
+  async build(project, {isCurrent=()=>true,warm=false}={}) {
     this.stop();
     const buildSerial=this.buildSerial=(this.buildSerial??0)+1;
     this.isBuildCurrent=()=>this.buildSerial===buildSerial&&isCurrent()&&!this.abort.signal.aborted;
@@ -115,13 +115,22 @@ export class ShooterSession {
     this.onStatus('Loading theme assets…');
     // Resolve first: a retired theme in a saved project maps to a shipped pack before it is fetched.
     project=resolveProject(project);
-    const response = await fetch(`/packs/${project.theme}/pack.json`,{cache:'no-store'});
-    if (!response.ok) throw new Error('Theme asset manifest could not be loaded');
-    this.manifest = await response.json();
+    // The pack once per theme and session. Its resolved object is also the key of the village layout cache
+    // (world/shooterProject.js cachedLayout): a fresh fetch on every build made each rebuild lay the village out again.
+    const packs = this.packs ??= new Map();
+    if (!packs.has(project.theme)) {
+      const response = await fetch(`/packs/${project.theme}/pack.json`,{cache:'no-store'});
+      if (!response.ok) throw new Error('Theme asset manifest could not be loaded');
+      packs.set(project.theme, { manifest: await response.json(), resolved: new Map() });
+    }
+    const cachedPack = packs.get(project.theme);
+    this.manifest = cachedPack.manifest;
     // The level is built from the pack as its world option sees it: the desert oasis swaps in its own houses, trees,
     // flora, landmarks, ground and props (world/pack.js biomePack); the session loads and draws from that pack.
     // A game whose genre fires nothing is exported without weapons (world/gameBundle.js).
-    let level=compileShooterProject(project,resolvePack(this.manifest,CATALOG[project.theme].measurements,null,{weaponless:!genreOf(project).weapons}));
+    const weaponless=!genreOf(project).weapons;
+    if(!cachedPack.resolved.has(weaponless))cachedPack.resolved.set(weaponless,resolvePack(this.manifest,CATALOG[project.theme].measurements,null,{weaponless}));
+    let level=compileShooterProject(project,cachedPack.resolved.get(weaponless));
     // Hosted, the level is put on the host's world (its ground, water and walls) before anything is built on it.
     if(this.host)level=this.host.level(level);
     project=level.project;
@@ -135,7 +144,9 @@ export class ShooterSession {
      * the platform and are built for every genre alike.
      */
     this.genre=genreOf(project);this.rules=rulesFor(project.genre);this.viewmodel=null;this.weaponRigs=null;this.weaponRig=null;
-    this.performanceProfile=sessionQuality(project.quality,detectProfile({renderer:this.renderer,backend:this.renderer.backend?.isWebGPUBackend?'webgpu':'webgl2'}),qualityOverride(location.search));
+    // The device is read once per session: reading it asks the GPU for its name, which waits for every frame in flight.
+    this.deviceProfile??=detectProfile({renderer:this.renderer,backend:this.renderer.backend?.isWebGPUBackend?'webgpu':'webgl2'});
+    this.performanceProfile=sessionQuality(project.quality,this.deviceProfile,qualityOverride(location.search));
     const policy=this.performanceProfile;
     this.assets.maxTextureSize=1024;this.assets.anisotropy=policy.mobile?2:4;
     const entries=[...(this.genre.gear??[]).map(id=>pack.props.find(p=>p.id===id)).filter(Boolean),pack.characters.player,...pools.enemies.map(id=>pack.characters[id]),...pools.weapons.map(id=>pack.weapons[id]),...pools.weapons.filter(id=>pack.weapons[id].viewmodel).map(id=>({model:pack.weapons[id].viewmodel})),...level.placements.filter(p=>p.model),...(level.worldKit.decorations??[]).map(model=>({model})),...(this.genre.weapons?[{model:grenadeModel(pack)}]:[]),...(pack.creatures?.wildlife?[{model:pack.creatures.library}]:[])];
@@ -156,7 +167,19 @@ export class ShooterSession {
       await this.assets.loadOne(used[i]);
     }
     if(!isCurrent())return null;
-    this._clear();this.assets.retain(retained);this.project=project;this.pack=pack;this.level=level;this.placementVisuals=new Map();this.spinners=[];this.rigidPrepared=new Map();
+    /**
+     * A WARM BUILD (the level editor's rebuild after an edit) keeps the stage: the scene and its lights, the sky and its
+     * probe, the fog, the post stack, the audio, the effect pools, and every material the toon kit and the assemblers
+     * have made. Only the level's own things are taken down and built again. Shader programs are cached by the scene's
+     * lights and by material, so a fresh stage recompiled every shader in the level on its first frame: seconds, for an
+     * edit that moved one barrel. The stage is kept only while everything it was made from is the same (stageKey).
+     */
+    const query = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
+    const stageKey = JSON.stringify([project.theme, level.worldKit?.biome ?? null, project.lighting, project.palette, project.quality, project.genre,
+      lookFor(project, level.worldKit?.biome ?? null), this.performanceProfile, query?.get('toon') ?? null, query?.get('wind') ?? null]);
+    warm = !!(warm && !this.host && this.scene && this.stage?.key === stageKey);
+    if (warm) this._clearLevel(); else this._clear();
+    this.assets.retain(retained);this.project=project;this.pack=pack;this.level=level;this.placementVisuals=new Map();this.spinners=[];this.rigidPrepared=new Map();
     /**
      * THE LOOK AND THE PROFILE, decided once per build. The look (config/looks.js) owns
      * every lighting number below; the profile (studioProfile) owns what the post stack
@@ -177,9 +200,11 @@ export class ShooterSession {
     if(this.host)setUnlitMrtEnabled(false,false);else setUnlitMrtEnabled(profile.postFX && profile.ssr && webgpu, profile.postFX && profile.ao);
     // Arcade draws its GLBs toon-shaded with outline shells (render/ArcadeToon.js).
     // `?toon=off` shows the same files through the plain PBR path, for comparison and diagnosis.
-    const query = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null, toonOff = query?.get('toon') === 'off';
+    const toonOff = query?.get('toon') === 'off';
+    if (!warm) {
     // `?wind=off` keeps the canopy, tufts and reeds still (no sway nodes are built at all).
-    this.toon = !toonOff ? createArcadeToon(this.owned, { ...look.toon, ...(query?.get('wind') === 'off' ? { wind: false } : {}) }) : null;
+    // The kit's materials are the stage's: a warm build reuses them, and with them their compiled shaders.
+    this.toon = !toonOff ? createArcadeToon(this.stageOwned, { ...look.toon, ...(query?.get('wind') === 'off' ? { wind: false } : {}) }) : null;
     // Generated creatures (world/creatureGrammar.js) assemble from the pack's parts library, one material per colour slot.
     this.creatureRules = pack.creatures ?? null; this.creatureMaterials = new Map();
     this.creatures = this.creatureRules && this.assets.has(this.creatureRules.library)
@@ -202,10 +227,9 @@ export class ShooterSession {
     if(this.host){
       // The host's world: the session's things go in a group of their own there, lit by the host's sky and sun.
       this.scene=new Group();this.scene.name='HostedGame';this.host.parent.add(this.scene);
-      this.worldModels=policy.mobile?new WorldModelBatch(this.scene,this.owned):null;
     }else{
     this.renderer.toneMappingExposure = look.lighting.exposure ?? 1.18;
-    this.scene = new Scene();this.worldModels=policy.mobile?new WorldModelBatch(this.scene,this.owned):null; this.scene.background = new Color(project.lighting === 'night' ? 0x101d2c : 0x71818f);
+    this.scene = new Scene(); this.scene.background = new Color(project.lighting === 'night' ? 0x101d2c : 0x71818f);
     this.scene.fog = new Fog(this.scene.background, 42, 150);
     }
     // Hosted, the eye stays in the level's own frame, out of the host's scene: a genre's camera aims in level
@@ -256,14 +280,23 @@ export class ShooterSession {
     this.scene.add(sun, sun.target); this.sun = this.sunLight = sun;
     fitSunShadow(sun, new Vector3(0, 0, 28), { halfExtent: 26 });
     }
-    buildCombatEnvironment(this);
-    const lit = this.host ? this.host.world : this.scene;
-    this.vmScene.environment = lit.environment ?? null; this.vmScene.environmentIntensity = (lit.environmentIntensity ?? 1) * .8;
     this.vfx = new VFX(this.scene, { particleScale: profile.particleScale, maxLights: profile.liveEffectLights, lightCapacity: 6, decalCapacity: profile.maxDecals, maxDecals: profile.maxDecals, anisotropy: profile.anisotropy });
     this.rig?.addAll(this.vfx.lights);
     this.tracers = new TracerPool(this.scene, 32, 0.09);
     this.audio = new CombatAudio({sounds: pack.sounds});
     await this.audio.preload();
+    if(!isCurrent())return null;
+    // What the stage holds, so a warm build can take down exactly what the level added after it.
+    this.stage = { key: stageKey, scene: new Set(this.scene.children), vmScene: new Set(this.vmScene.children), vmCamera: new Set(this.vmCamera.children),
+      camera: new Set(this.camera.children), emitters: this.rig?.emitters.length ?? 0 };
+    } else {
+      // The kept eye, as a fresh one starts (the environment widens its far plane for a world's sea).
+      this.camera.fov = 58; this.camera.near = 0.06; this.camera.far = 300; this.camera.updateProjectionMatrix();
+    }
+    this.worldModels=policy.mobile?new WorldModelBatch(this.scene,this.owned):null;
+    buildCombatEnvironment(this);
+    const lit = this.host ? this.host.world : this.scene;
+    this.vmScene.environment = lit.environment ?? null; this.vmScene.environmentIntensity = (lit.environmentIntensity ?? 1) * .8;
     this.game = new Game({ level: this.level, camera: this.camera, tier: 'high',
       enemyTypes: enemyTypesForProject(project), createEnemyVisual: e => this._enemyVisual(e),
       createSystems: game => this.rules.createSystems(this, game, { pools, project, pack }),
@@ -307,7 +340,7 @@ export class ShooterSession {
       this.vmCamera.add(this.firstPersonArms);
     }
     this.scene.traverse(o => { for (const m of (Array.isArray(o.material) ? o.material : o.material ? [o.material] : [])) if (m.isMeshBasicMaterial) excludeFromEnvironment(m); });
-    if (profile.postFX && !this.host) {
+    if (profile.postFX && !this.host && !warm) {
       this.post = new PostFX({ renderer: this.renderer, worldScene: this.scene, worldCamera: this.camera, viewmodelScene: this.vmScene, viewmodelCamera: this.vmCamera }, profile);
       this.post.setLook(look);
     }
@@ -341,7 +374,7 @@ export class ShooterSession {
     if(slot==='Shine')m=new MeshStandardMaterial({color:0x000000,emissive:hex,emissiveIntensity:1.2,roughness:1});
     else if(this.toon)m=this.toon.material({color:hex,vertexColors:true},`ARC_${slot}`);
     else m=new MeshStandardMaterial({color:hex,vertexColors:true,roughness:.85,metalness:0});
-    this.owned.add(m);this.creatureMaterials.set(key,m);return m;
+    this.stageOwned.add(m);this.creatureMaterials.set(key,m);return m;
   }
   /** A colour-slot material for generated houses; roofs, glass and leaves take the kit's shade, glows stay emissive. */
   _houseMaterial(slot,hex){
@@ -350,7 +383,7 @@ export class ShooterSession {
     if(slot==='Glow')m=new MeshStandardMaterial({color:0x000000,emissive:hex,emissiveIntensity:1.1,roughness:1});
     else if(this.toon)m=this.toon.material({color:hex,vertexColors:true},`ARC_${kit}`);
     else m=new MeshStandardMaterial({color:hex,vertexColors:true,roughness:.85,metalness:0});
-    this.owned.add(m);this.houseMaterials.set(key,m);return m;
+    this.stageOwned.add(m);this.houseMaterials.set(key,m);return m;
   }
   /**
    * A placement's generated house, toon-shaded and outlined (geometry owned by the session). Phones and the
@@ -369,7 +402,7 @@ export class ShooterSession {
     const kit={Leaf:'Leaf',Blossom:'Petal',Bark:'Bark'}[slot]??slot;
     if(this.toon)m=this.toon.material({color:hex,vertexColors:true},`ARC_${kit}`);
     else m=new MeshStandardMaterial({color:hex,vertexColors:true,roughness:.85,metalness:0});
-    this.owned.add(m);this.treeMaterials.set(key,m);return m;
+    this.stageOwned.add(m);this.treeMaterials.set(key,m);return m;
   }
   /**
    * The level's generated trees as one batch (world/treeGrammar.js plans on the placements), toon-shaded and
@@ -388,7 +421,7 @@ export class ShooterSession {
     const key=`${slot}|${hex}`;let m=this.landmarkMaterials.get(key);if(m)return m;
     if(this.toon)m=this.toon.material({color:hex,vertexColors:true},`ARC_${slot}`);
     else m=new MeshStandardMaterial({color:hex,vertexColors:true,roughness:.85,metalness:0});
-    this.owned.add(m);this.landmarkMaterials.set(key,m);return m;
+    this.stageOwned.add(m);this.landmarkMaterials.set(key,m);return m;
   }
   /**
    * A placement's landmark, toon-shaded and outlined (geometry owned by the session), its moving parts listed in
@@ -464,7 +497,8 @@ export class ShooterSession {
   /** The generator's critters (game/LevelScript.js spawnGenerated): each on its own stream, edits honoured. */
   _spawnEnemies() { this.game.script.spawnGenerated(this.project); }
   _mesh(geometry, material, x, y, z, parent = this.scene) {
-    this.owned.add(geometry); this.owned.add(material);
+    // A stage material (stageMaterial, the kit's caches) outlives the level: a warm rebuild draws with it again.
+    this.owned.add(geometry); if (!this.stageOwned.has(material)) this.owned.add(material);
     const mesh = new Mesh(geometry, material); mesh.position.set(x, y, z);
     mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
   }
@@ -759,11 +793,46 @@ export class ShooterSession {
       dst.color.copy(src.color); dst.intensity = src.intensity; dst.distance = src.distance; dst.decay = src.decay;
     }
   }
+  /** A material the stage keeps across warm builds, made once per key (render/CombatEnvironment.js's glows and rings). */
+  stageMaterial(key, make) {
+    const cache = this.stageMaterials ??= new Map();
+    let m = cache.get(key);
+    if (!m) { m = make(); this.stageOwned.add(m); cache.set(key, m); }
+    return m;
+  }
+  /** A warm build's teardown: the level's things and resources go, the stage (see build) stays. */
+  _clearLevel() {
+    const st = this.stage;
+    this.wildlife?.dispose(); this.wildlife = null;
+    this.genrePlayerVisual?.dispose?.(); this.genrePlayerVisual = null;
+    this.armsAnimator?.dispose(); this.armsAnimator = null;
+    // The game is paused now and disposed with the rest of the level, one rebuild late (below): its critters' materials
+    // (render/EnemyReadability.js) are the only things drawn with their shader, which would go with them.
+    const game = this.game; this.gameAudio?.pause(); game?.pause(); this.game = null;
+    this.vfx?.clear(); this.tracers?.clear?.();
+    if (this.rig) { this.rig.emitters.length = st.emitters; this.rig.clear(); }
+    for (const [parent, kept] of [[this.scene, st.scene], [this.vmScene, st.vmScene], [this.vmCamera, st.vmCamera], [this.camera, st.camera]])
+      for (const child of [...parent.children]) if (!kept.has(child)) parent.remove(child);
+    /**
+     * The level's resources are freed one rebuild later, not now. three deletes a shader program (and its pipeline) the
+     * moment the last thing drawn with it goes: freed here, the old ground and water took their programs with them and
+     * the new level compiled them again, seconds; freed after the next frame, the shadow pass and whatever that frame
+     * did not draw still lost theirs. By the next rebuild the level in view has been drawn, shadows and all, and holds
+     * every program it uses, so freeing the one before it releases only what nothing draws any more. The cost is one
+     * level's geometry and textures held a little longer; a full clear (_clear) frees them at once.
+     */
+    this._disposeRetiring();
+    this.retiring = [{ dispose: () => game?.dispose() }, ...this.owned]; this.owned.clear();
+  }
+  _disposeRetiring() { for (const resource of this.retiring ?? []) resource.dispose(); this.retiring = null; }
   _clear() {
+    this._disposeRetiring();
     this.wildlife?.dispose(); this.wildlife = null; this.creatures?.dispose(); this.creatures = null; this.creatureMaterials?.clear();
     this.genrePlayerVisual?.dispose?.();this.genrePlayerVisual=null;
     this.post?.dispose(); this.post = null; this.sky?.dispose(); this.sky = null; this.rig?.dispose(); this.rig = null; this.armsAnimator?.dispose(); this.audio?.dispose(); this.game?.dispose(); this.vfx?.dispose(); this.tracers?.dispose();
     for (const resource of this.owned) resource.dispose(); this.owned.clear();
+    for (const resource of this.stageOwned) resource.dispose(); this.stageOwned.clear(); this.stage = null; this.stageMaterials?.clear();
+    this.houseMaterials?.clear(); this.treeMaterials?.clear(); this.landmarkMaterials?.clear(); this.toon = null;
     if (this.host) this.scene?.removeFromParent();
     this.game = null; this.scene = null;
   }

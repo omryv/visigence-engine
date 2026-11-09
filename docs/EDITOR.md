@@ -134,9 +134,19 @@ carries `{ levels, time }`. A hook that throws, rejects, or never resolves (90 s
 
 The editor renders only while something changes (a drag, a camera ease, a fly, a few frames after an edit for the
 temporal antialiasing to settle); the frame rate shows in the status bar while frames run back to back. Picking uses
-simple shapes rather than meshes; overlays are a handful of draw calls; a rebuild after an edit is debounced and
-reuses loaded art (measured about half a second from an edit to the rebuilt level on a desktop GPU). Budgets in the
-checks keep a level playable on a phone.
+simple shapes rather than meshes; overlays are a handful of draw calls. A rebuild after an edit is debounced and
+**warm** (`ShooterSession.build(project, { warm: true })`): the session keeps its stage (the scene and its lights, the
+sky and its probe, the fog, the post stack, the audio, the effect pools, and every material the toon kit and the
+assemblers made, so no shader is compiled again) and takes down and builds only the level's own things. It also keeps
+the fetched pack (the village layout cache is keyed by it) and the device profile (reading it waits on the GPU). The
+stage is rebuilt only when what it was made from changes: the theme, the world's biome, the lighting, the palette,
+the quality, the genre or the look. The old level's resources (and its paused game) are freed one rebuild late: three
+deletes a shader program when the last thing drawn with it goes, so freeing them before the new level had been drawn,
+shadows and critters included, compiled those shaders again. `node tools/test/measure-edit.mjs` holds all of this:
+in headless Chromium on its software rasteriser (stand-in art), an edit to the rebuilt level drawn once in about
+0.45 s, where a full rebuild took 11 to 12 s, nearly all of it shaders compiled again; no edit compiles a shader
+program; over the edits the renderer's geometries and textures, the scene's objects and the light rig stay flat.
+Budgets in the checks keep a level playable on a phone.
 
 ## Files
 
