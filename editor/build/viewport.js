@@ -150,7 +150,8 @@ export function createViewport(el, { store, app }) {
     const gs = gesture; if (!gs) return;
     const dx = ev.clientX - (gs.lx ?? gs.x ?? ev.clientX), dy = ev.clientY - (gs.ly ?? gs.y ?? ev.clientY);
     gs.lx = ev.clientX; gs.ly = ev.clientY;
-    if (gs.kind === 'pending-move' && Math.hypot(ev.clientX - gs.x, ev.clientY - gs.y) > 4) Object.assign(gs, startTransform('move', gs.g, ev));
+    // A press becomes a drag only past a few pixels (more for a finger), so a click selects and never moves.
+    if (gs.kind === 'pending-move' && Math.hypot(ev.clientX - gs.x, ev.clientY - gs.y) > (ev.pointerType === 'touch' ? 10 : 6)) Object.assign(gs, startTransform('move', gs.g, ev));
     if (gs.kind === 'orbit') { if (Math.hypot(ev.clientX - gs.x, ev.clientY - gs.y) > 3) gs.moved = true; app.camera.orbitBy(dx, dy, el.clientHeight); app.render(); return; }
     if (gs.kind === 'pan') { app.camera.panBy(dx, dy, el.clientHeight); app.render(); return; }
     if (gs.kind === 'marquee') { gs.x = ev.clientX; gs.y = ev.clientY; app.drawMarquee(gs); return; }
@@ -164,6 +165,8 @@ export function createViewport(el, { store, app }) {
         if (gs.role === 'rotate') {
           let d = Math.atan2(g.x - gs.pivot.x, g.z - gs.pivot.z) - gs.angle0;
           if (!free) d = snap(d, STEP.turn);
+          if (!d && !gs.changed) continue;
+          gs.changed = true;
           const cx = s.x - gs.pivot.x, cz = s.z - gs.pivot.z, c = Math.cos(d), sn = Math.sin(d);
           // Turning a group turns it about its centre: each thing's spot orbits, and each thing turns with it.
           store.setTransform(r, { x: gs.pivot.x + cx * c + cz * sn, z: gs.pivot.z - cx * sn + cz * c, yaw: (s.yaw ?? 0) + d }, gs.origins[r]);
@@ -174,8 +177,15 @@ export function createViewport(el, { store, app }) {
         } else {
           let mx = g.x - gs.g0.x, mz = g.z - gs.g0.z;
           if (gs.role === 'move-x') mz = 0; if (gs.role === 'move-z') mx = 0;
+          // Less than half a grid step from where it started is no move at all: snapping the spot of a thing that was
+          // only pressed (a click with a little hand shake) put it on the grid, an edit, and every edit rebuilds the level.
+          if (!free && Math.abs(mx) < STEP.grid / 2 && Math.abs(mz) < STEP.grid / 2) { mx = 0; mz = 0; }
+          // Nothing is written until the drag has gone somewhere: even an unmoved spot, written, makes a generated thing
+          // an override.
+          if (!mx && !mz && !gs.changed) continue;
+          gs.changed = true;
           let x = s.x + mx, z = s.z + mz;
-          if (!free) { x = snap(x, STEP.grid); z = snap(z, STEP.grid); }
+          if (!free && (mx || mz)) { x = snap(x, STEP.grid); z = snap(z, STEP.grid); }
           store.setTransform(r, { x: Math.max(-WORLD_HALF, Math.min(WORLD_HALF, x)), z: Math.max(-WORLD_HALF, Math.min(WORLD_HALF, z)) }, gs.origins[r]);
         }
       }

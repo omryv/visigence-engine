@@ -317,7 +317,12 @@ export function mountBuild(root, studio) {
   }
 
   // ------------------------------------------------------------------ rendering on demand
-  function render() { if (!raf && app.editing) raf = requestAnimationFrame(frame); }
+  /**
+   * Ask for a redraw. Every redraw ends with a few still frames: the temporal AA resolves each frame against the last,
+   * so stopping on the frame a drag or an orbit ends froze its history mid-motion (a doubled grid, smeared edges).
+   */
+  function render() { settle = Math.max(settle, SETTLE_FRAMES); nextFrame(); }
+  function nextFrame() { if (!raf && app.editing) raf = requestAnimationFrame(frame); }
   function frame(now) {
     raf = 0;
     const session = app.session;
@@ -332,7 +337,7 @@ export function mountBuild(root, studio) {
     if (lastFrame && now - lastFrame < 120) { frames++; if (!fpsStart) fpsStart = lastFrame; if (now - fpsStart > 800) { panels.setFps(Math.round(frames * 1000 / (now - fpsStart))); frames = 0; fpsStart = now; } }
     else { frames = 0; fpsStart = 0; }
     lastFrame = now;
-    if (animating || flying || settle-- > 0) render();
+    if (animating || flying || settle-- > 0) nextFrame();
     else { cameras.set(store.level.id, camera.snapshot()); lastFrame = 0; panels.setFps(null); }
   }
   function captureThumb() {

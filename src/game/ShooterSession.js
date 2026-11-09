@@ -696,6 +696,7 @@ export class ShooterSession {
     if (this.post) {
       this.post.setAds(this.viewmodel?.ads?.blend ?? 0);
       this.post.setDamage(p.alive ? Math.max(0, 1 - p.lastHitAge / 0.7) * 0.32 : 0.45);
+      this.post.setMotionBlur(!edit);
     }
     this.worldModels?.update();
     this.performanceMonitor?.beginFrame();
